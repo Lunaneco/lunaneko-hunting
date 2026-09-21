@@ -1,3 +1,4 @@
+import {publicUrl} from './public-url.js';
 import * as THREE from 'three';
 import {part,bakeGroup} from './characters.js';
 import {contains,heightAt,ROUTE_PORTALS} from './terrain.js';
@@ -8,7 +9,7 @@ export class TerrainWorld{
  constructor(world){this.world=world;this.root=new THREE.Group();this.root.name='Stage-specific walkable terrain';world.scene.add(this.root);this.id=null;this.markers=new THREE.Group();world.scene.add(this.markers);this.materials=[];this.markerGroups=[];this.closedGate=null;
   this.surfaces={};this.surfaceFailures=[];const loader=new THREE.TextureLoader();
   this.ready=Promise.all(['earth','stone'].map(async key=>{
-   try{const texture=await loader.loadAsync(`/assets/fields/musubi-${key}.webp`);texture.colorSpace=THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(12,13);texture.anisotropy=Math.min(4,world.renderer.capabilities.getMaxAnisotropy());this.surfaces[key]=texture;}
+   try{const texture=await loader.loadAsync(publicUrl(`assets/fields/musubi-${key}.webp`));texture.colorSpace=THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(12,13);texture.anisotropy=Math.min(4,world.renderer.capabilities.getMaxAnisotropy());this.surfaces[key]=texture;}
    catch{this.surfaceFailures.push(key);}
   }));
  }

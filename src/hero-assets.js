@@ -1,3 +1,4 @@
+import {publicUrl} from './public-url.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { part, bakeGroup } from './characters.js';
@@ -15,7 +16,7 @@ const rigRotation = new THREE.Quaternion();
 
 export async function loadHeroes() {
   const loader = new GLTFLoader();
-  const assets = await Promise.all(files.map(name => loader.loadAsync(`/assets/models/${name}.glb`)));
+  const assets = await Promise.all(files.map(name => loader.loadAsync(publicUrl(`assets/models/${name}.glb`))));
   return assets.map((asset, hero) => createHero(asset, hero));
 }
 
@@ -127,7 +128,7 @@ function createHero(asset, hero) {
   ring.rotation.x = -Math.PI / 2;
   root.add(ring);
   root.userData = { rig, model, bones, weapon, ring, hero, attackTime: 0,
-    metrics, source: `/assets/models/${files[hero]}.glb`, movement: 0 };
+    metrics, source: publicUrl(`assets/models/${files[hero]}.glb`), movement: 0 };
   animateHero(root, { x: 0, z: 0, face: 0, moving: false, invincible: 0 }, 0, 0, hero === 0);
   return root;
 }

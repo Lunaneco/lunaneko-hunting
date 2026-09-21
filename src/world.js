@@ -1,3 +1,4 @@
+import {publicUrl} from './public-url.js';
 import {TerrainWorld} from './terrain-world.js';
 import {createSwordSlash,updateSwordSlash} from './attack-effects.js';
 import {heightAt} from './terrain.js';
@@ -42,7 +43,7 @@ export class World {
   environment(){
     const statics=new THREE.Group();this.scene.add(statics);this.statics=statics;
     const ground=new THREE.Mesh(new THREE.CircleGeometry(24,96),new THREE.MeshStandardMaterial({map:groundTexture(),roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;this.scene.add(ground);this.ground=ground;
-    new THREE.TextureLoader().load('/assets/meadow.png',tex=>{tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(5,5);tex.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());ground.material.map.dispose();ground.material.map=tex;ground.material.needsUpdate=true;});
+    new THREE.TextureLoader().load(publicUrl('assets/meadow.png'),tex=>{tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(5,5);tex.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());ground.material.map.dispose();ground.material.map=tex;ground.material.needsUpdate=true;});
     // Irregular floating-island cliff, with a grassy lip and layered stone faces.
     const cliff=new THREE.CylinderGeometry(23.9,13,8,56,4);const p=cliff.attributes.position;
     for(let i=0;i<p.count;i++){const y=p.getY(i),x=p.getX(i),z=p.getZ(i),a=Math.atan2(z,x);const n=1+Math.sin(a*7+y*2)*.033+Math.cos(a*11)*.026;p.setXYZ(i,x*n,y,z*n);}cliff.computeVertexNormals();part(statics,cliff,0x718584,0,-4.12,0);

@@ -10,15 +10,16 @@ function browserSecurity(){return {
     {tag:'meta',attrs:{name:'referrer',content:'no-referrer'},injectTo:'head-prepend'},
   ];},
 };}
-function offlineBundle(){return {name:'lunaria-offline-bundle',apply:'build',async closeBundle(){
-  const dir=resolve('dist');const files=[];
+function offlineBundle(){let config;return {name:'lunaria-offline-bundle',apply:'build',configResolved(value){config=value;},async closeBundle(){
+  const base=config.base,dir=resolve(config.root,config.build.outDir);const files=[];
   async function visit(folder){for(const e of await readdir(folder,{withFileTypes:true})){const p=resolve(folder,e.name);if(e.isDirectory())await visit(p);else if(e.name!=='sw.js')files.push(p);}}
-  await visit(dir);files.sort();const hash=createHash('sha256');hash.update('same-origin-offline-v2');for(const p of files)hash.update(await readFile(p));
-  const cache='lunaria-v1-'+hash.digest('hex').slice(0,12);const urls=['/',...files.map(p=>'/'+relative(dir,p).replaceAll('\\','/'))];
-  const worker=`const CACHE=${JSON.stringify(cache)};const FILES=${JSON.stringify(urls)};
+  await visit(dir);files.sort();const hash=createHash('sha256');hash.update('scoped-offline-v3'+base);for(const p of files){hash.update(relative(dir,p));hash.update(await readFile(p));}
+  const prefix='lunaria-v1-'+createHash('sha256').update(base).digest('hex').slice(0,12)+'-';
+  const cache=prefix+hash.digest('hex').slice(0,12);const urls=[base,...files.map(p=>base+relative(dir,p).replaceAll('\\','/'))];
+  const worker=`const BASE=${JSON.stringify(base)};const PREFIX=${JSON.stringify(prefix)};const CACHE=${JSON.stringify(cache)};const FILES=${JSON.stringify(urls)};
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('lunaria-v1-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',event=>{const request=event.request;if(request.method!=='GET'||new URL(request.url).origin!==self.location.origin)return;if(request.mode==='navigate'){event.respondWith(fetch(request).catch(()=>caches.open(CACHE).then(cache=>cache.match('/index.html',{ignoreVary:true}))));return;}event.respondWith(caches.open(CACHE).then(async cache=>(await cache.match(request,{ignoreSearch:true,ignoreVary:true}))||fetch(request)));});`;
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&(k.startsWith(PREFIX)||(BASE==='/'&&/^lunaria-v1-[a-f0-9]{12}$/.test(k)))).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',event=>{const request=event.request,url=new URL(request.url);if(request.method!=='GET'||url.origin!==self.location.origin||!url.pathname.startsWith(BASE))return;if(request.mode==='navigate'){event.respondWith(fetch(request).catch(()=>caches.open(CACHE).then(cache=>cache.match(BASE+'index.html',{ignoreVary:true}))));return;}event.respondWith(caches.open(CACHE).then(async cache=>(await cache.match(request,{ignoreSearch:true,ignoreVary:true}))||fetch(request)));});`;
   await writeFile(resolve(dir,'sw.js'),worker);
 }};}
 export default defineConfig({

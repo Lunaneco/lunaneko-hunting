@@ -1,3 +1,4 @@
+import {publicUrl} from './public-url.js';
 import {difficultyName,difficultyCards,stageDifficultyView} from './difficulty-ui.js';
 import './difficulty.css';
 import {fieldFor,heightAt} from './terrain.js';
@@ -77,7 +78,7 @@ $('#app').innerHTML=`
       <div class="start-meta"><button id="difficulty" aria-label="難易度を変更">${icon('shield')} <span>冒険モード</span> ${icon('chevron')}</button><span>1人プレイ <i>·</i> オート攻撃 <i>·</i> 記録を保存</span></div>
     </div>
     <div class="chapter-card"><span class="chapter-index">01</span><div><small>CHAPTER ONE</small><h2>迷子の月と、ふたりの約束</h2><p>親友を探して月の世界を巡る、全4幕。</p></div>${icon('compass')}</div>
-    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO HUNTING / 1.19</span></footer>
+    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO HUNTING / 1.20</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu hidden" tabindex="-1" aria-label="章メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">
@@ -384,10 +385,10 @@ function frame(now){
   if(world&&game){world.render(game,Math.min(dt,.05));drawNumbers();}if(game&&renderFrames%3===0)updateHud();audio.tick(!!game);requestAnimationFrame(frame);
 }
 async function boot(){
-  try{world=new World(canvas,settings);document.body.classList.toggle('reduce-motion',!settings.motion);resize();requestAnimationFrame(frame);await Promise.all([world.ready,...['/assets/key-art-nox.png','/assets/nyanluna-reference.png','/assets/tsukineko-reference.png','/assets/meadow.png'].map(src=>new Promise(resolve=>{const img=new Image();img.onload=resolve;img.onerror=resolve;img.src=src;}))]);$('#loading').classList.add('finished');setTimeout(()=>$('#loading').remove(),650);}
+  try{world=new World(canvas,settings);document.body.classList.toggle('reduce-motion',!settings.motion);resize();requestAnimationFrame(frame);await Promise.all([world.ready,...[publicUrl('assets/key-art-nox.png'),publicUrl('assets/nyanluna-reference.png'),publicUrl('assets/tsukineko-reference.png'),publicUrl('assets/meadow.png')].map(src=>new Promise(resolve=>{const img=new Image();img.onload=resolve;img.onerror=resolve;img.src=src;}))]);$('#loading').classList.add('finished');setTimeout(()=>$('#loading').remove(),650);}
   catch(error){console.error(error);$('#loading').innerHTML=`<div class="loading-moon">☾</div><span>ルナネコハンティング</span><p>3D画面を起動できませんでした。<br>WebGL対応のブラウザで、ページを再読み込みしてください。</p><button class="primary" id="reload">再読み込み</button>`;$('#reload').onclick=()=>location.reload();}
 }
 // The audit bridge is excluded from production builds. It exercises the real simulation.
 if(import.meta.env.DEV){window.__LUNARIA_TEST__={get state(){return game?.snapshot()??{phase:'home'};},get stats(){return world?.stats();},get game(){return game;},get world(){return world;},start(){start({withStory:false});},step(seconds,input={x:0,z:0}){if(!game)return;for(let i=0;i<seconds*60;i++){game.tick(1/60,input);if(game.phase!=='playing')break;}handleEvents(game.drainEvents());updateHud();},skill(id){if(game?.chooseSkill(id)){if($('#modal').open)$('#modal').close();activeDialog=null;$('#modal').classList.remove('wide');handleEvents(game.drainEvents());}},home:goHome};}
-if(import.meta.env.PROD&&'serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));}
+if(import.meta.env.PROD&&'serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register(publicUrl('sw.js'),{scope:import.meta.env.BASE_URL}).catch(()=>{}));}
 boot();

@@ -1,6 +1,6 @@
 {
   "name": "lunaneko-hunting",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,10 @@
     "audit:browser": "node tests/browser-audit.mjs",
     "audit:production": "node tests/production-audit.mjs",
     "dev:lan": "vite --host 0.0.0.0",
-    "preview:lan": "vite preview --host 0.0.0.0"
+    "preview:lan": "vite preview --host 0.0.0.0",
+    "build:pages": "vite build --base=/lunaneko-hunting/ --outDir=dist-pages",
+    "preview:pages": "vite preview --base=/lunaneko-hunting/ --outDir=dist-pages",
+    "audit:pages-build": "node tests/pages-build-audit.mjs"
   },
   "dependencies": {
     "three": "^0.186.0"

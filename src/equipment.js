@@ -1,3 +1,4 @@
+import {publicUrl} from './public-url.js';
 export const WEAPONS=Object.freeze({
   omsolo:{id:'light-saber',name:'ライトセーバー・翠守',kind:'saber',icon:'sword',note:'オムソロ専用。近距離の敵を扇状にまとめて斬り払う緑の光刃。'},
   nyanluna:{id:'luna-staff',name:'月詠の杖・ルナリア',kind:'staff',icon:'moon',note:'にゃんるな専用。敵を追いかける月光弾を放つ。'},
@@ -16,7 +17,7 @@ export const UNIQUE_EQUIPMENT=Object.freeze([
   {id:'guardian-knot',name:'守り手の結び',act:7,area:2,icon:'link',color:'#afffcc',bonus:{hp:35,attack:.10,defense:8},note:'小さな願いに応えた証。最大HP +35／攻撃力 +10%／防御力 +8。'},
 
 ]);
-export const equipmentImage=id=>`/assets/equipment/${id}.${['light-saber','woodland-token','jade-guard','bell-fragment','guardian-knot'].includes(id)?'png':'webp'}`;
+export const equipmentImage=id=>publicUrl(`assets/equipment/${id}.${['light-saber','woodland-token','jade-guard','bell-fragment','guardian-knot'].includes(id)?'png':'webp'}`);
 export const uniqueEquipment=id=>UNIQUE_EQUIPMENT.find(item=>item.id===id);
 const safeId=id=>typeof id==='string'&&/^[a-z0-9_-]{1,64}$/i.test(id)&&!['__proto__','constructor','prototype'].includes(id);
 export function normalizeEquipment(raw){

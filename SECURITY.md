@@ -18,8 +18,10 @@
 - ヘッダーを設定できるホスティングでは `security.config.js` の `SECURITY_HEADERS` を設定してください。特にframe-ancestorsとPermissions-PolicyはHTMLメタタグでは適用できず、HTTPヘッダーが必要です。
 - HTTPSを使用してください。Service Workerは自身のオリジンのゲームファイルだけを保存し、公開ページのセーブを外部へ転送しません。
 
+GitHub Pages版ではHTMLに埋め込んだCSPとReferrer Policyが適用されます。Pagesは任意のHTTPヘッダー設定に対応しないため、ローカルプレビューにあるframe-ancestors・X-Frame-Options・Permissions-Policyは同じ形では設定できません。ゲームにログインや決済などの機密操作はありません。オフラインの対象とキャッシュ更新はゲームの公開パスに限定しています。
+
 ## 公開範囲
 
-`.gitignore` は公開対象を明示する方式です。環境変数ファイル、秘密鍵、バックアップ、監査時のユーザー画面、制作原本はコミットしません。GitHub Actionsは原則contents:readで動作し、公式Actionsを固定コミットで参照します。
+`.gitignore` は公開対象を明示する方式です。環境変数ファイル、秘密鍵、バックアップ、監査時のユーザー画面、制作原本はコミットしません。GitHub Actionsは原則contents:readで動作し、公式Actionsを固定コミットで参照します。Pages公開用のpages:writeとid-token:writeは、mainブランチの検証成功後に実行するデプロイジョブだけに付与します。
 
 [公開前の監査記録](docs/SECURITY-AUDIT.md)
