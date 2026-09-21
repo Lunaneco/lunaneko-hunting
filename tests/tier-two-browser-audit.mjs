@@ -1,0 +1,33 @@
+import {chromium} from '@playwright/test';
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {FIRST_TIER_NODES,SECOND_TIER_NODES} from '../src/talents.js';
+const url=process.env.AUDIT_URL??'http://127.0.0.1:4173/',out='audit/tier-two',key='lunaria-progression-v1';
+await mkdir(out,{recursive:true});
+const browser=await chromium.launch({channel:'chrome',headless:true}),checks=[],errors=[];
+const pass=name=>{checks.push(name);console.log('PASS',name);};
+const fixture=level=>({story:{version:2,actClears:Array(8).fill(true)},characters:Object.fromEntries(['nyanluna','tsukineko','omsolo'].map(id=>[id,{level,xp:0,breaks:3,tree:FIRST_TIER_NODES.map(n=>n.id)}])),inventory:{starBud:10000,moonDew:1000,wardenCore:100,limitStone:3}});
+async function open(level){
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  await context.addInitScript(({profile,key})=>{if(sessionStorage.getItem('tier-fixture'))return;localStorage.setItem(key,JSON.stringify(profile));localStorage.setItem('lunaria-settings-v1',JSON.stringify({quality:'low',sound:false,music:false,motion:false}));sessionStorage.setItem('tier-fixture','1');},{profile:fixture(level),key});
+  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  await page.goto(url);await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.locator('#chapter-menu-open').tap();await page.locator('[data-menu-tab="talent"]').tap();return {page,context};
+}
+const saved=page=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
+try{
+  const locked=await open(29);await locked.page.locator('[data-tree-tier="2"]').tap();assert.equal(await locked.page.locator('[data-unlock-node="ascension"]').isEnabled(),false);assert.match(await locked.page.locator('.talent-requirements').innerText(),/Lv.30/);assert.deepEqual((await saved(locked.page)).inventory,fixture(29).inventory);await locked.context.close();pass('Lv.29 cannot buy tier two despite completing tier one and having enough resources');
+  const {page,context}=await open(50);await page.locator('[data-tree-tier="2"]').tap();assert.equal(await page.locator('.talent-map [data-tree-node]').count(),8);assert.match(await page.locator('.tier-gate').innerText(),/2,760/);
+  for(const size of [{width:320,height:568},{width:390,height:844},{width:844,height:390},{width:1440,height:1000}]){
+    await page.setViewportSize(size);assert.equal(await page.locator('#chapter-menu').evaluate(el=>el.scrollWidth>innerWidth),false);
+    for(const box of await page.locator('[data-tree-node],[data-tree-tier]').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {x:r.x,right:r.right,width:r.width,height:r.height};})))assert.ok(box.width>=44&&box.height>=44&&box.x>=0&&box.right<=size.width,JSON.stringify({size,box}));
+    assert.equal(await page.locator('#talent-detail').evaluate(el=>el.scrollWidth>el.clientWidth),false);await page.locator('.tree-tiers').scrollIntoViewIfNeeded();await page.screenshot({path:`${out}/tier-two-${size.width}.png`});
+  }
+  pass('Both tiers, cost guidance and touch targets fit 320/390 portrait and 844/1440 landscape widths');
+  await page.setViewportSize({width:390,height:844});
+  for(const node of SECOND_TIER_NODES){await page.locator(`[data-tree-node="${node.id}"]`).tap();if(node.id==='ultimateArt'){assert.match(await page.locator('.ultimate-preview').innerText(),/24.*40/s);assert.match(await page.locator('.ultimate-preview').innerText(),/8.5.*10/s);}if(node.id==='transcendence')assert.match(await page.locator('.ultimate-preview').innerText(),/4回.*5回/s);await page.locator(`[data-unlock-node="${node.id}"]`).tap();assert.equal(await page.locator(`[data-unlock-node="${node.id}"]`).isDisabled(),true);}
+  const paid=await saved(page);assert.deepEqual(paid.inventory,{starBud:7240,moonDew:784,wardenCore:34,limitStone:3});assert.equal(paid.characters.nyanluna.tree.length,16);assert.equal(paid.characters.tsukineko.tree.length,8);assert.equal(paid.characters.omsolo.tree.length,8);await page.locator('.tree-tiers').scrollIntoViewIfNeeded();await page.screenshot({path:`${out}/completed-mobile.png`});pass('Every node unlocks once, previews exact ultimate changes and saves only the selected hero');
+  for(const [id,name,fragment] of [['tsukineko','彗星の貫徹','貫通'],['omsolo','翠光の加護','無敵時間']]){await page.locator(`[data-tree-hero="${id}"]`).tap();assert.equal(await page.locator('[data-tree-tier="2"]').getAttribute('aria-pressed'),'true');await page.locator('[data-tree-node="ultimateArt"]').tap();assert.equal(await page.locator('.talent-detail h3').innerText(),name);assert.match(await page.locator('.ultimate-preview').innerText(),new RegExp(fragment));assert.equal(await page.locator('[data-unlock-node="ultimateArt"]').isDisabled(),true);}
+  await page.reload();await page.waitForSelector('#loading',{state:'detached'});assert.deepEqual(await saved(page),paid);await page.locator('#chapter-menu-open').tap();await page.locator('[data-menu-tab="growth"]').tap();assert.match(await page.locator('#growth-nyanluna .hero-signature').innerText(),/5回.*40回復/s);assert.match(await page.locator('#growth-nyanluna .ultimate-tree-bonus').innerText(),/60%/);assert.match(await page.locator('#growth-tsukineko .hero-signature').innerText(),/8連射/);
+  await page.locator('[data-menu-tab="equipment"]').tap();await page.locator('[data-equipment-hero="nyanluna"]').tap();assert.match(await page.locator('#equipment-panel .hero-signature').innerText(),/5回.*40回復/s);pass('Reload retains the tree; growth/equipment show upgraded abilities while other characters keep their original abilities');
+  await context.close();assert.deepEqual(errors,[]);pass('No JavaScript, rendering or resource errors');await writeFile(`${out}/report.json`,JSON.stringify({url,checks,errors},null,2));
+}finally{await browser.close();}

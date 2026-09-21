@@ -12,7 +12,7 @@ export function createSanctuary(effect){
   return group;
 }
 export function updateSanctuary(group,effect){
-  group.position.set(effect.x,0,effect.z);const age=ULTIMATES.nyanluna.duration-effect.remaining;
+  group.position.set(effect.x,0,effect.z);const age=(effect.duration??ULTIMATES.nyanluna.duration)-effect.remaining;
   group.getObjectByName('lunar-rune').rotation.z=age*.7;
   const fade=Math.min(1,effect.remaining/.35);group.children.forEach(mesh=>{if(mesh.userData.opacity===undefined)mesh.userData.opacity=mesh.material.opacity;mesh.material.opacity=mesh.userData.opacity*fade;});
 }

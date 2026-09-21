@@ -8,7 +8,7 @@ export const MATERIALS=Object.freeze({
 export const TREE_RESOURCES=Object.freeze({...MATERIALS,limitStone:{name:'限界突破石',icon:'crystal',source:'章クリア・高難度ミッション',note:'各章の第4幕クリアで毎回1個。各章の時間制限・ノーダメージ試練でも各1個。レベルの道で上限を10ずつ解放。'}});
 export const MATERIAL_DROPS=Object.freeze({...Object.fromEntries(Object.entries(ENEMY_TYPES).map(([id,s])=>[id,{starBud:s.buds}])),boss:{starBud:6,wardenCore:1}});
 // Ordered by prerequisites; both the graph and saved-data validation use this order.
-export const TALENT_NODES=Object.freeze([
+export const FIRST_TIER_NODES=Object.freeze([
   {id:'origin',name:'はじまりの光',branch:'原点',icon:'spark',level:1,parents:[],cost:{starBud:4},bonus:{hp:12},x:50,y:12},
   {id:'attack1',name:'攻撃の星 I',branch:'攻撃',icon:'sword',level:3,parents:['origin'],cost:{starBud:8},bonus:{attack:.06},x:18,y:37},
   {id:'guard1',name:'守護の星 I',branch:'守護',icon:'shield',level:3,parents:['origin'],cost:{starBud:8},bonus:{defense:4},x:50,y:37},
@@ -18,6 +18,17 @@ export const TALENT_NODES=Object.freeze([
   {id:'life2',name:'生命の星 II',branch:'生命',icon:'heart',level:7,parents:['life1'],cost:{starBud:16,moonDew:2},bonus:{hp:40},x:82,y:62},
   {id:'awakening',name:'星の目覚め',branch:'奥義',icon:'moon',level:15,parents:['attack2','guard2','life2'],cost:{starBud:24,moonDew:4,wardenCore:1},bonus:{hp:28,attack:.10,defense:6},x:50,y:85},
 ]);
+export const SECOND_TIER_NODES=Object.freeze([
+  {id:'ascension',tier:2,name:'深星の扉',branch:'覚醒',icon:'star',level:30,parents:['awakening'],cost:{starBud:160,moonDew:12,wardenCore:4},bonus:{hp:40,attack:.10,defense:8},x:50,y:12},
+  {id:'attack3',tier:2,name:'攻撃の星 III',branch:'攻撃',icon:'sword',level:35,parents:['ascension'],cost:{starBud:240,moonDew:18,wardenCore:6},bonus:{attack:.18},x:18,y:37},
+  {id:'guard3',tier:2,name:'守護の星 III',branch:'守護',icon:'shield',level:35,parents:['ascension'],cost:{starBud:240,moonDew:18,wardenCore:6},bonus:{defense:18},x:50,y:37},
+  {id:'life3',tier:2,name:'生命の星 III',branch:'生命',icon:'heart',level:35,parents:['ascension'],cost:{starBud:240,moonDew:18,wardenCore:6},bonus:{hp:90},x:82,y:37},
+  {id:'ultimatePower',tier:2,name:'奥義の威光',branch:'必殺技',icon:'spark',level:40,parents:['attack3'],cost:{starBud:360,moonDew:30,wardenCore:8},bonus:{ultimateDamage:.35},x:18,y:62},
+  {id:'ultimateCharge',tier:2,name:'奥義の共鳴',branch:'必殺技',icon:'moon',level:40,parents:['guard3'],cost:{starBud:360,moonDew:30,wardenCore:8},bonus:{ultimateCharge:.25},x:50,y:62},
+  {id:'ultimateArt',tier:2,name:'奥義の真髄',branch:'固有必殺技',icon:'shield',level:40,parents:['life3'],cost:{starBud:360,moonDew:30,wardenCore:8},bonus:{},x:82,y:62},
+  {id:'transcendence',tier:2,name:'星の超覚醒',branch:'最終奥義',icon:'star',level:50,parents:['ultimatePower','ultimateCharge','ultimateArt'],cost:{starBud:800,moonDew:60,wardenCore:20},bonus:{ultimateDamage:.25},x:50,y:85},
+]);
+export const TALENT_NODES=Object.freeze([...FIRST_TIER_NODES,...SECOND_TIER_NODES]);
 export const LIMIT_BREAK_NODES=Object.freeze(Array.from({length:(LEVEL_RULES.maxLevel-LEVEL_RULES.initialCap)/LEVEL_RULES.capStep},(_,i)=>{
   const level=LEVEL_RULES.initialCap+i*LEVEL_RULES.capStep,cap=level+LEVEL_RULES.capStep;
   return {id:`limit${cap}`,kind:'limit',stage:i+1,name:`限界突破 ${['I','II','III'][i]??i+1}`,branch:'レベルの道',icon:'crystal',level,cap,parents:i?[`limit${level}`]:[],cost:{limitStone:LEVEL_RULES.stoneCost},bonus:{},x:18+i*32,y:40};
@@ -32,6 +43,14 @@ export function talentNode(id,heroId){
   if(id==='awakening'&&heroId==='nyanluna')return {...node,name:'月光の極意',bonus:{hp:20,attack:.12,defense:4}};
   if(id==='awakening'&&heroId==='tsukineko')return {...node,name:'星影の極意',bonus:{hp:36,attack:.08,defense:8}};
   if(id==='awakening'&&heroId==='omsolo')return {...node,name:'翠刃の極意',bonus:{hp:44,attack:.10,defense:10}};
+  if(id==='ultimateArt'){
+    const art={nyanluna:{name:'月華の慈雨',bonus:{ultimateHeal:16,ultimateRadius:1.5}},tsukineko:{name:'彗星の貫徹',bonus:{ultimatePierce:1,ultimateRange:4}},omsolo:{name:'翠光の加護',bonus:{ultimateHeal:12,ultimateImmunity:.6}}}[heroId];
+    if(art)return {...node,...art};
+  }
+  if(id==='transcendence'){
+    const art={nyanluna:{name:'月華・超覚醒',bonus:{ultimatePulses:1}},tsukineko:{name:'彗星・超覚醒',bonus:{ultimateShots:4}},omsolo:{name:'翠光・超覚醒',bonus:{ultimatePulses:2}}}[heroId];
+    if(art)return {...node,name:art.name,bonus:{...node.bonus,...art.bonus}};
+  }
   return node;
 }
 export function normalizeTalentTree(raw,level=50){
@@ -40,8 +59,17 @@ export function normalizeTalentTree(raw,level=50){
   return valid;
 }
 export function talentBonuses(character,heroId){
-  const bonus={hp:0,attack:0,defense:0};
+  return sumBonuses(character,heroId,['hp','attack','defense']);
+}
+export function ultimateBonuses(character,heroId){
+  return sumBonuses(character,heroId,['ultimateDamage','ultimateCharge','ultimateHeal','ultimateRadius','ultimatePierce','ultimateRange','ultimateImmunity','ultimatePulses','ultimateShots']);
+}
+function sumBonuses(character,heroId,keys){
+  const bonus=Object.fromEntries(keys.map(key=>[key,0]));
   for(const id of normalizeTalentTree(character.tree,character.level)){const node=talentNode(id,heroId);for(const stat of Object.keys(bonus))bonus[stat]+=node.bonus[stat]??0;}
   return bonus;
 }
-export function bonusText(bonus){return [bonus.hp?`基礎HP +${bonus.hp}`:'',bonus.attack?`基礎攻撃力 +${Math.round(bonus.attack*100)}%`:'',bonus.defense?`基礎防御力 +${bonus.defense}`:''].filter(Boolean).join(' ／ ');}
+export function bonusText(bonus){return [bonus.hp?`基礎HP +${bonus.hp}`:'',bonus.attack?`基礎攻撃力 +${Math.round(bonus.attack*100)}%`:'',bonus.defense?`基礎防御力 +${bonus.defense}`:'',
+  bonus.ultimateDamage?`必殺技威力 +${Math.round(bonus.ultimateDamage*100)}%`:'',bonus.ultimateCharge?`必殺ゲージ獲得 +${Math.round(bonus.ultimateCharge*100)}%`:'',
+  bonus.ultimateHeal?`必殺技の回復量 +${bonus.ultimateHeal}`:'',bonus.ultimateRadius?`必殺技の半径 +${bonus.ultimateRadius}`:'',bonus.ultimatePierce?`必殺弾の貫通 +${bonus.ultimatePierce}体`:'',bonus.ultimateRange?`必殺弾の射程 +${bonus.ultimateRange}`:'',bonus.ultimateImmunity?`必殺技の無敵時間 +${bonus.ultimateImmunity}秒`:'',bonus.ultimatePulses?`必殺技の攻撃回数 +${bonus.ultimatePulses}回`:'',bonus.ultimateShots?`必殺技の連射数 +${bonus.ultimateShots}発`:'',
+].filter(Boolean).join(' ／ ');}

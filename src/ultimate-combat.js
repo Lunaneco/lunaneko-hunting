@@ -1,4 +1,3 @@
-import {ultimateFor} from './abilities.js';
 const EPSILON=1e-8;
 
 function pulse(game,effect){
@@ -8,16 +7,17 @@ function pulse(game,effect){
   effect.pulsesLeft--;
 }
 function shoot(game,effect){
-  const spec=ultimateFor(effect.heroId),source=game.sourceFor(effect.heroId),target=game.nearest(source.x,source.z,spec.range);
+  const spec=effect.spec,source=game.sourceFor(effect.heroId),target=game.nearest(source.x,source.z,spec.range);
   const angle=target?Math.atan2(target.x-source.x,target.z-source.z):source.face;source.face=angle;
   game.projectiles.push({id:game.ids++,owner:'player',kind:'gun',ultimate:true,heroId:effect.heroId,x:source.x,z:source.z,vx:Math.sin(angle)*spec.speed,vz:Math.cos(angle)*spec.speed,speed:spec.speed,life:(spec.range+2)/spec.speed,damage:effect.damage,crit:true,radius:.32,pierce:spec.pierce,hitIds:[]});
   game.emit('ultimateShot',{x:source.x,z:source.z,angle,heroId:effect.heroId});effect.shotsLeft--;
 }
 export function castUltimate(game){
-  const p=game.player,heroId=game.heroId(p.hero),spec=ultimateFor(heroId);
+  const p=game.player,heroId=game.heroId(p.hero),spec=game.ultimateSpec(p.hero);
   if(game.phase!=='playing'||game.exitOpen||game.travelOpen||game.tutorial?.active||p.charge<100||game.ultimateActive(p.hero))return false;
   p.charge=0;p.invincible=Math.max(p.invincible,spec.immunity);
-  const effect={id:game.ids++,kind:spec.kind,heroId,x:p.x,z:p.z,damage:game.skillDamage(heroId,spec.baseDamage),due:spec.interval,remaining:spec.duration??spec.shots*spec.interval,interval:spec.interval};
+  const duration=spec.duration??spec.shots*spec.interval;
+  const effect={id:game.ids++,kind:spec.kind,heroId,spec,duration,x:p.x,z:p.z,damage:game.skillDamage(heroId,spec.baseDamage),due:spec.interval,remaining:duration,interval:spec.interval};
   game.emit('ultimate',{x:p.x,z:p.z,hero:p.hero,heroId,abilityId:spec.id});
   if(['sanctuary','bladeDance'].includes(spec.kind)){Object.assign(effect,{radius:spec.radius,pulsesLeft:spec.pulses});game.ultimateEffects.push(effect);game.heal(spec.heal);pulse(game,effect);}
   else{effect.shotsLeft=spec.shots;game.ultimateEffects.push(effect);shoot(game,effect);}
@@ -34,6 +34,6 @@ export function tickUltimates(game,dt){
 }
 export function enemySpeedScale(game,enemy){
   let scale=1;
-  for(const effect of game.ultimateEffects)if(effect.kind==='sanctuary'&&Math.hypot(enemy.x-effect.x,enemy.z-effect.z)<=effect.radius+enemy.radius){const spec=ultimateFor(effect.heroId);scale=Math.min(scale,enemy.type==='boss'?spec.bossSlow:spec.slow);}
+  for(const effect of game.ultimateEffects)if(effect.kind==='sanctuary'&&Math.hypot(enemy.x-effect.x,enemy.z-effect.z)<=effect.radius+enemy.radius){const spec=effect.spec;scale=Math.min(scale,enemy.type==='boss'?spec.bossSlow:spec.slow);}
   return scale;
 }

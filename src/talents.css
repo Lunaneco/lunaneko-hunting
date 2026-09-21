@@ -4,7 +4,18 @@
 @media(max-width:360px){.talent-intro h2{font-size:21px}.material-item{padding:11px 7px}.material-item span{font-size:9px}.material-item small{font-size:7px}.material-item>.icon{right:6px;width:18px;height:18px}.material-item strong{font-size:23px}.tree-hero-picker button{padding:10px 8px;gap:7px}.tree-hero-picker .portrait{width:29px;height:29px}.tree-hero-picker strong{font-size:10px}.tree-hero-picker small{font-size:7px}.talent-node{width:79px}.talent-map{margin:0 4px;height:410px}.talent-node>strong{font-size:9px}.talent-map-heading{padding-inline:14px}.talent-map-heading h3{font-size:13px}.talent-map-heading small{font-size:6px}.talent-detail{padding:19px}.talent-legend{gap:8px}}
 @media(max-height:500px) and (orientation:landscape){.tree-workbench{grid-template-columns:minmax(0,1fr) 275px}.talent-detail{position:static}.talent-map{height:435px}.tree-hero-picker button{min-width:190px}.material-wallet{grid-template-columns:repeat(3,1fr)}.material-item{display:flex}.material-item>.icon{position:static}.material-item>div{display:grid}.material-item strong{margin:0}}
 
-/* Level limits form a second path in the same character tree. */
+.tree-workbench.omsolo{--tree-glow:#aaffba;--tree-rgb:170,255,186}
+.tree-tiers{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 18px 0}
+.tree-tiers button{min-height:88px;min-width:0;text-align:left;border:1px solid #a5b7cf40;border-radius:8px;padding:13px;background:#14273c;color:#bfd0df}
+.tree-tiers button[aria-pressed=true]{border-color:#f2d39c;background:linear-gradient(125deg,#b28b4730,#253446);box-shadow:inset 0 0 18px #decba310}
+.tree-tiers small,.tree-tiers strong,.tree-tiers span{display:block}.tree-tiers small{font-size:8px;letter-spacing:1px;color:#ccb895}.tree-tiers strong{font-size:12px;margin:7px 0;color:#f1dfbe;line-height:1.5}.tree-tiers span{font-size:9px;color:#b6c5d7}
+.tier-gate{position:relative;margin:13px 18px 0;padding:16px;border:1px solid #bd9f6659;border-radius:8px;background:#9f67340d}
+.tier-gate>strong{font-size:12px;color:#eace9e}.tier-gate p{font-size:10px;line-height:1.9;color:#bfc9d6;margin:8px 0}.tier-gate>div{display:flex;gap:14px;flex-wrap:wrap;font-size:10px;color:#d1c0a8}.tier-gate.ready>div{color:#b6e4c1}.tier-gate>small{display:block;font-size:9px;line-height:1.9;color:#c4b390;margin-top:10px}
+.ultimate-preview-name{font-size:12px;color:var(--tree-glow);margin:0 0 10px;line-height:1.6}.ultimate-preview{background:#071a2b30;padding:10px;border-radius:6px}.ultimate-preview dt{font-size:10px}.hero-abilities .ultimate-tree-bonus{color:#e7cf9f;font-size:10px;line-height:1.9}
+@media(max-width:760px){.tree-tiers{margin:17px 12px 0;gap:7px}.tree-tiers button{padding:12px 10px}.tree-tiers strong{font-size:11px}.tier-gate{margin:12px 12px 0;padding:13px}.tree-hero-picker{flex-wrap:wrap}.tree-hero-picker button{flex:1 1 135px;width:auto}.tree-hero-picker small{white-space:normal;line-height:1.6}}
+@media(max-width:360px){.tree-tiers{margin-inline:8px}.tree-tiers button{padding-inline:8px}.tree-tiers strong{font-size:10px}.tier-gate{margin-inline:8px}.tier-gate>small{font-size:8px}}
+
+/* Level limits have their own path alongside both ability tiers. */
 .material-wallet{grid-template-columns:repeat(4,minmax(0,1fr))}
 .material-item.limitStone{border-color:#efd49b70;background:#c8a75c0d}.material-item.limitStone>.icon{color:#f4d69b}
 .limit-branch{--tree-glow:#e5c58d;--tree-rgb:229,197,141;position:relative;margin:20px 18px 0;padding:20px 13px 8px;border:1px solid #d9c29750;border-radius:9px;background:radial-gradient(ellipse at 50% 65%,#91764e19,transparent 75%),#14283a66}

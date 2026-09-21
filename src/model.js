@@ -3,13 +3,14 @@ import {ENEMY_TYPES,BOSSES,enemyForSpawn,distanceToHazard,isRangedEnemy} from '.
 import {tickEnemyBehavior} from './enemy-combat.js';
 import {ACTS,isActUnlocked,completeAct} from './acts.js';
 import {castUltimate,tickUltimates,enemySpeedScale} from './ultimate-combat.js';
+import {ultimateFor} from './abilities.js';
 import {advanceMissions,claimActMissions,missionsFor,trialStatus} from './missions.js';
 import {skillsForParty} from './blessings.js';
 import {normalizeParty} from './party.js';
 import {availableHeroes,isHeroUnlocked} from './recruitment.js';
 import {FirstBattleTutorial} from './tutorial.js';
 import {normalizeProgression,characterProgress,combatStats,awardCharacterXp,grantMaterials,grantLimitStone,ENEMY_REWARDS} from './progression.js';
-import {MATERIALS,MATERIAL_DROPS} from './talents.js';
+import {MATERIALS,MATERIAL_DROPS,ultimateBonuses} from './talents.js';
 export const ARENA_RADIUS = 18.5;
 export const ATTACK_DURATION = .35;
 export const MELEE_MIN_DOT = -.15;
@@ -94,7 +95,8 @@ export class Adventure {
   ultimateActive(hero){return this.ultimateEffects.some(effect=>effect.heroId===this.heroId(hero));}
   sourceFor(heroId){return this.heroId(this.player.hero)===heroId?this.player:this.partner;}
   skillDamage(heroId,base){const index=HEROES.findIndex(h=>h.id===heroId);if(index<0)return 0;const hero=HEROES[index];return base*(this.statsFor(index).attack/hero.damage)*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*hero.skillPower;}
-  gainUltimateCharge(heroId,amount){if(!this.party.includes(heroId)||!Number.isFinite(amount)||amount<=0)return;const hero=HEROES.find(h=>h.id===heroId);this.ultimateCharges[heroId]=clamp(this.ultimateCharges[heroId]+amount*hero.chargeRate*(1+this.rank('focus')*.3),0,100);}
+  ultimateSpec(hero=this.player.hero){return ultimateFor(this.heroId(hero),this.progressFor(hero));}
+  gainUltimateCharge(heroId,amount){if(!this.party.includes(heroId)||!Number.isFinite(amount)||amount<=0)return;const hero=HEROES.find(h=>h.id===heroId),bonus=ultimateBonuses(this.progression.characters[heroId],heroId);this.ultimateCharges[heroId]=clamp(this.ultimateCharges[heroId]+amount*hero.chargeRate*(1+this.rank('focus')*.3)*(1+bonus.ultimateCharge),0,100);}
   get hasPartner(){return this.party.length===2;}
   get partnerHero(){return this.partyHeroes.find(hero=>hero!==this.player.hero)??null;}
   progressFor(hero){return characterProgress(this.progression,HEROES[hero].id);}
