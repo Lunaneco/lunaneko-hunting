@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,stat,readdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {VOICE_MANIFEST} from '../src/voice-manifest.js';
 import {ACT_SCENES} from '../src/chapter.js';
 import {TUTORIAL_STEPS} from '../src/tutorial.js';
@@ -11,8 +12,12 @@ test('every story, tutorial and character action has its own shipped voice asset
  lines.push(...Object.values(BATTLE_VOICES).flatMap(events=>Object.values(events).flat()));
  const ids=new Set();
  for(const line of lines){
-  ids.add(line.id);const item=VOICE_MANIFEST[line.id];assert.ok(item,`Missing voice: ${line.id} ${line.text}`);assert.equal(item.text,line.text);assert.equal(item.who,line.who);assert.equal(item.file,`assets/voices/${line.who}/${line.id}.mp3`);assert.ok(item.duration>0&&item.duration<60);
-  const file=new URL(`../public/${item.file}`,import.meta.url);assert.ok((await stat(file)).size>1000);const header=(await readFile(file)).subarray(0,3);assert.ok(header.toString()==='ID3'||header[0]===255,`Invalid MP3 header: ${item.file}`);
+  ids.add(line.id);const item=VOICE_MANIFEST[line.id];assert.ok(item,`Missing voice: ${line.id} ${line.text}`);assert.equal(item.text,line.text);assert.equal(item.who,line.who);assert.ok(item.duration>0&&item.duration<60);
+  const file=new URL(`../public/${item.file}`,import.meta.url);assert.ok((await stat(file)).size>1000);const bytes=await readFile(file),header=bytes.subarray(0,3);assert.ok(header.toString()==='ID3'||header[0]===255,`Invalid MP3 header: ${item.file}`);
+  // Re-recordings get a content-addressed URL so existing browser caches cannot replay an old take.
+  const digest=createHash('sha256').update(bytes).digest('hex').slice(0,12);
+  const original=`assets/voices/${line.who}/${line.id}.mp3`,versioned=`assets/voices/${line.who}/${line.id}-${digest}.mp3`;
+  assert.ok(item.file===versioned||(line.who!=='nyanluna'&&item.file===original),`Stale or incorrect voice URL: ${item.file}`);
  }
  assert.equal(Object.keys(VOICE_MANIFEST).length,ids.size);
 });

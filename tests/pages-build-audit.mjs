@@ -17,12 +17,12 @@ for(const [directory,base] of [['dist','/'],['dist-pages','/lunaneko-hunting/']]
   for(const icon of manifest.icons)assert.ok(new URL(icon.src,manifestUrl).href.startsWith(origin+base));
 
   const handlers={},deleted=[],matches=[];let installed;
-  const cache={addAll:async files=>{installed=files;},match:async request=>{
+  const cache={addAll:async files=>{installed=files.map(request=>{assert.equal(request.cache,'reload');return new URL(request.url).pathname;});},match:async request=>{
     const url=typeof request==='string'?request:request.url;
     matches.push(url);return url===base+'index.html'?new Response('offline game'):undefined;
   }};
   let config;
-  const sandbox={URL,Response,self:{location:{origin},skipWaiting:async()=>{},clients:{claim:async()=>{}},
+  const sandbox={URL,Request,Response,self:{location:{origin},skipWaiting:async()=>{},clients:{claim:async()=>{}},
     addEventListener:(type,handler)=>{handlers[type]=handler;}},
     caches:{open:async()=>cache,keys:async()=>[config.CACHE,config.PREFIX+'previous','unrelated-app','lunaria-v1-other-path-current','lunaria-v1-0123456789ab'],delete:async key=>{deleted.push(key);}},
     fetch:async()=>{throw new Error('network offline');}};

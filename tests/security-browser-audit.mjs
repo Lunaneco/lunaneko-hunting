@@ -37,8 +37,8 @@ try{
  });
  await page.waitForTimeout(100);const blocked=await page.evaluate(()=>({inline:window.__inlineXss,violations:window.__cspViolations,base:document.baseURI}));assert.equal(blocked.inline,undefined);assert.ok(blocked.violations.includes('script-src-elem'));assert.ok(blocked.violations.includes('connect-src'));assert.ok(blocked.violations.includes('base-uri'));assert.ok(blocked.base.startsWith(url));pass('CSP blocks injected inline/external scripts, third-party connections and base URL changes',{violations:blocked.violations});
  if(!hosted){const dev=process.env.LUNARIA_DEV_URL??'http://127.0.0.1:5174';const forbidden=['/.git/config','/audit/model-swap/nyanluna-export.json','/backups/security-base-20260921/README.md','/models/SOURCE_REFERENCE/nyanluna.blend','/docs/LOCAL-DEVELOPMENT-HISTORY.md'];
- const statuses=[];for(const path of forbidden){const r=await fetch(dev+path);statuses.push({path,status:r.status});assert.equal(r.status,403);await r.arrayBuffer();}
- const model=await fetch(dev+'/assets/models/nyanluna.glb');assert.equal(model.status,200);await model.arrayBuffer();pass('Dev server denies private files while allowing the public runtime model',{statuses});}
+ const statuses=[];for(const path of forbidden){const r=await fetch(new URL(path,dev));statuses.push({path,status:r.status});assert.equal(r.status,403,`Private file must be denied: ${path}`);await r.arrayBuffer();}
+ const model=await fetch(new URL('/assets/models/nyanluna.glb',dev));assert.equal(model.status,200);await model.arrayBuffer();pass('Dev server denies private files while allowing the public runtime model',{statuses});}
  assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);assert.deepEqual(outside,[]);pass('No runtime errors, missing assets or requests outside the game path');
  await mkdir('audit/security',{recursive:true});await writeFile(`audit/security/${hosted?'hosted-browser':'browser'}.json`,JSON.stringify({checks,errors},null,2));
 }finally{await browser.close();}

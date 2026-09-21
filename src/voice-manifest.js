@@ -1,25 +1,25 @@
-// Irodori-TTS v4-Small audio; generated locally from fixed character references.
+// Irodori-TTS v4-Small audio; fixed character references. Nyanluna re-recorded in v1.28.
 // Machine checks cover transcription, silence, clipping and pitch outliers; see the voice audit.
 export const VOICE_MANIFEST={
   "nyanluna-cda9dd92": {
-    "file": "assets/voices/nyanluna/nyanluna-cda9dd92.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-cda9dd92-db292b92fe8e.mp3",
     "who": "nyanluna",
     "text": "つきねこだったら、出口を探しに高い場所へ行くはず。わたしも、進まなくちゃ。",
-    "duration": 8.38,
+    "duration": 6.8,
     "kind": "story"
   },
   "nyanluna-a4069723": {
-    "file": "assets/voices/nyanluna/nyanluna-a4069723.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-a4069723-c9e78e1802bf.mp3",
     "who": "nyanluna",
     "text": "わたしも！ もう、すごく心配したんだから。……お話は、こいつを止めてからね。",
-    "duration": 8.36,
+    "duration": 7.19,
     "kind": "story"
   },
   "nyanluna-4ef176f9": {
-    "file": "assets/voices/nyanluna/nyanluna-4ef176f9.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-4ef176f9-670c481063a2.mp3",
     "who": "nyanluna",
     "text": "道が消えた……？ わたしたちがはぐれたのも、そのせいなのかな。",
-    "duration": 6.5,
+    "duration": 5.75,
     "kind": "story"
   },
   "omsolo-dash-2": {
@@ -44,10 +44,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-hurt-1": {
-    "file": "assets/voices/nyanluna/nyanluna-hurt-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-hurt-1-9ebcbe8713e7.mp3",
     "who": "nyanluna",
     "text": "いたっ！",
-    "duration": 1.0,
+    "duration": 1.44,
     "kind": "battle"
   },
   "narrator-be85d016": {
@@ -58,10 +58,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-c5840688": {
-    "file": "assets/voices/nyanluna/nyanluna-c5840688.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-c5840688-4fec24a67624.mp3",
     "who": "nyanluna",
     "text": "うん。この光を追いかけよう。お父さんがつないだ道を、今度はわたしたちが進むんだ。",
-    "duration": 8.26,
+    "duration": 6.96,
     "kind": "story"
   },
   "narrator-465249cc": {
@@ -86,10 +86,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-lowhp-1": {
-    "file": "assets/voices/nyanluna/nyanluna-lowhp-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-lowhp-1-65609d1283f1.mp3",
     "who": "nyanluna",
     "text": "少し、距離をとろう……！",
-    "duration": 2.3,
+    "duration": 1.96,
     "kind": "battle"
   },
   "tsukineko-heal-1": {
@@ -100,10 +100,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-fd3a3903": {
-    "file": "assets/voices/nyanluna/nyanluna-fd3a3903.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-fd3a3903-beb09cdf6fcb.mp3",
     "who": "nyanluna",
     "text": "……会ったら、いっぱい話そう。まずは、この橋を渡らなきゃ。",
-    "duration": 6.49,
+    "duration": 5.54,
     "kind": "story"
   },
   "tsukineko-3e85bbd1": {
@@ -121,10 +121,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-levelup-1": {
-    "file": "assets/voices/nyanluna/nyanluna-levelup-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-levelup-1-1670720256da.mp3",
     "who": "nyanluna",
     "text": "また一つ、強くなれたね！",
-    "duration": 2.79,
+    "duration": 2.71,
     "kind": "battle"
   },
   "omsolo-lowhp-1": {
@@ -149,17 +149,17 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-3198d46c": {
-    "file": "assets/voices/nyanluna/nyanluna-3198d46c.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-3198d46c-31d6ae6b1934.mp3",
     "who": "nyanluna",
     "text": "この道の先が、きっと出口につながってる。つきねこも、ここを目指してたらいいな。",
-    "duration": 8.83,
+    "duration": 7.22,
     "kind": "story"
   },
   "nyanluna-dash-1": {
-    "file": "assets/voices/nyanluna/nyanluna-dash-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-dash-1-1e24f98cfa64.mp3",
     "who": "nyanluna",
     "text": "こっちだよ！",
-    "duration": 1.25,
+    "duration": 1.02,
     "kind": "battle"
   },
   "tsukineko-wave-1": {
@@ -170,24 +170,24 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-82606abc": {
-    "file": "assets/voices/nyanluna/nyanluna-82606abc.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-82606abc-b5e7a5afe486.mp3",
     "who": "nyanluna",
     "text": "今の音……まさか。つきねこ？",
-    "duration": 3.34,
+    "duration": 3.25,
     "kind": "story"
   },
   "nyanluna-58640a3d": {
-    "file": "assets/voices/nyanluna/nyanluna-58640a3d.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-58640a3d-59498b543bb9.mp3",
     "who": "nyanluna",
     "text": "うん。今度は、わたしたちが守る！",
-    "duration": 3.14,
+    "duration": 3.42,
     "kind": "story"
   },
   "nyanluna-equip-1": {
-    "file": "assets/voices/nyanluna/nyanluna-equip-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-equip-1-c4f9253f16c6.mp3",
     "who": "nyanluna",
     "text": "新しい相棒だね。よろしく！",
-    "duration": 3.14,
+    "duration": 2.91,
     "kind": "battle"
   },
   "tsukineko-ultimate-1": {
@@ -205,10 +205,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-start-1": {
-    "file": "assets/voices/nyanluna/nyanluna-start-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-start-1-e1b6029d3873.mp3",
     "who": "nyanluna",
     "text": "月の灯りを探しに、出発！",
-    "duration": 3.0,
+    "duration": 3.21,
     "kind": "battle"
   },
   "narrator-e0160d6b": {
@@ -233,10 +233,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-df12363a": {
-    "file": "assets/voices/nyanluna/nyanluna-df12363a.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-df12363a-8079bf08b49f.mp3",
     "who": "nyanluna",
     "text": "つきねこ……？ さっきまで、手をつないでいたのに。",
-    "duration": 5.55,
+    "duration": 4.82,
     "kind": "story"
   },
   "tsukineko-34dc60a6": {
@@ -261,10 +261,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-1490e56a": {
-    "file": "assets/voices/nyanluna/nyanluna-1490e56a.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-1490e56a-51bb471aadaa.mp3",
     "who": "nyanluna",
     "text": "帰ったら、この時計の話をしよう。つきねこ、きっと目を丸くするよね。",
-    "duration": 7.57,
+    "duration": 6.22,
     "kind": "story"
   },
   "omsolo-start-1": {
@@ -303,10 +303,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-switch-1": {
-    "file": "assets/voices/nyanluna/nyanluna-switch-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-switch-1-8e7082a1101f.mp3",
     "who": "nyanluna",
     "text": "わたしに任せて！",
-    "duration": 1.7,
+    "duration": 1.69,
     "kind": "battle"
   },
   "omsolo-exit-1": {
@@ -317,10 +317,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-attack-1": {
-    "file": "assets/voices/nyanluna/nyanluna-attack-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-attack-1-f9609cab343a.mp3",
     "who": "nyanluna",
     "text": "それっ！",
-    "duration": 1.01,
+    "duration": 1.06,
     "kind": "battle"
   },
   "tsukineko-support-1": {
@@ -345,10 +345,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-d6d6edc9": {
-    "file": "assets/voices/nyanluna/nyanluna-d6d6edc9.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-d6d6edc9-fec2ca0c40ff.mp3",
     "who": "nyanluna",
     "text": "わたしはにゃんるな。月の灯りを探しに行く前に、一緒に動いてみよう！ ここではダメージを受けないから、ゆっくりで大丈夫。",
-    "duration": 11.13,
+    "duration": 9.54,
     "kind": "tutorial"
   },
   "narrator-7e0207cb": {
@@ -366,10 +366,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-treasure-1": {
-    "file": "assets/voices/nyanluna/nyanluna-treasure-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-treasure-1-91ba8a55de97.mp3",
     "who": "nyanluna",
     "text": "見て！ 特別な宝物だよ！",
-    "duration": 3.16,
+    "duration": 3.22,
     "kind": "battle"
   },
   "narrator-649e26c5": {
@@ -380,17 +380,17 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-blessing-1": {
-    "file": "assets/voices/nyanluna/nyanluna-blessing-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-blessing-1-8c4274e8b166.mp3",
     "who": "nyanluna",
     "text": "この光、力を貸してね！",
-    "duration": 2.81,
+    "duration": 2.78,
     "kind": "battle"
   },
   "nyanluna-recruit-1": {
-    "file": "assets/voices/nyanluna/nyanluna-recruit-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-recruit-1-069c23512bd8.mp3",
     "who": "nyanluna",
     "text": "一緒に行こう！ きっと楽しい旅になるよ。",
-    "duration": 4.89,
+    "duration": 3.49,
     "kind": "battle"
   },
   "komusubi-2af428d": {
@@ -408,17 +408,17 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-ad8bf58d": {
-    "file": "assets/voices/nyanluna/nyanluna-ad8bf58d.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-ad8bf58d-5fd5525f04f4.mp3",
     "who": "nyanluna",
     "text": "教えてくれてありがとう。ここから先は危ないから、この光の輪の中で待っていてね。",
-    "duration": 8.02,
+    "duration": 6.73,
     "kind": "story"
   },
   "nyanluna-ae9665f6": {
-    "file": "assets/voices/nyanluna/nyanluna-ae9665f6.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-ae9665f6-c302f7957554.mp3",
     "who": "nyanluna",
     "text": "月を空へ返したら、みんなの道も戻るんだね。わたしたちの帰り道も。",
-    "duration": 7.44,
+    "duration": 6.41,
     "kind": "story"
   },
   "tsukineko-hurt-1": {
@@ -429,10 +429,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-defeat-1": {
-    "file": "assets/voices/nyanluna/nyanluna-defeat-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-defeat-1-862516f90e52.mp3",
     "who": "nyanluna",
     "text": "まだ、あきらめない。また、挑戦しよう。",
-    "duration": 4.61,
+    "duration": 3.69,
     "kind": "battle"
   },
   "narrator-585bc08": {
@@ -450,10 +450,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-dc0b8aa5": {
-    "file": "assets/voices/nyanluna/nyanluna-dc0b8aa5.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-dc0b8aa5-9c6dde52e685.mp3",
     "who": "nyanluna",
     "text": "同じ場所にいたら危ない……！ 刻印をかわして、止まった針を動かそう。",
-    "duration": 7.42,
+    "duration": 5.57,
     "kind": "story"
   },
   "narrator-629c30ea": {
@@ -478,10 +478,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-heal-1": {
-    "file": "assets/voices/nyanluna/nyanluna-heal-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-heal-1-88ff53dfb3c7.mp3",
     "who": "nyanluna",
     "text": "ほっとした。もう大丈夫！",
-    "duration": 2.93,
+    "duration": 2.83,
     "kind": "battle"
   },
   "narrator-e52c2a65": {
@@ -492,10 +492,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-80e6eae7": {
-    "file": "assets/voices/nyanluna/nyanluna-80e6eae7.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-80e6eae7-08e56b1ba56c.mp3",
     "who": "nyanluna",
     "text": "上手！ 次は右下の「回避」を押してみよう。赤い攻撃予告が見えたら、すっと外へ逃げるの。",
-    "duration": 9.41,
+    "duration": 8.14,
     "kind": "tutorial"
   },
   "omsolo-5fa87c23": {
@@ -513,10 +513,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-6a5d88d9": {
-    "file": "assets/voices/nyanluna/nyanluna-6a5d88d9.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-6a5d88d9-993cab7cb4f0.mp3",
     "who": "nyanluna",
     "text": "この世界に来たときの光と、同じ色だ。あそこに行けば、帰り道も見つかるかもしれない。",
-    "duration": 8.91,
+    "duration": 7.45,
     "kind": "story"
   },
   "tsukineko-58b9bfe9": {
@@ -555,10 +555,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-wave-1": {
-    "file": "assets/voices/nyanluna/nyanluna-wave-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-wave-1-9ef5c7e72537.mp3",
     "who": "nyanluna",
     "text": "次の魔物が来るよ。気をつけて！",
-    "duration": 3.09,
+    "duration": 2.88,
     "kind": "battle"
   },
   "tsukineko-241cff32": {
@@ -597,10 +597,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-d1c8fd1b": {
-    "file": "assets/voices/nyanluna/nyanluna-d1c8fd1b.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-d1c8fd1b-643c39510050.mp3",
     "who": "nyanluna",
     "text": "画面の空いている所を指でドラッグしてみて。指を動かした方向へ歩けるよ！",
-    "duration": 6.86,
+    "duration": 6.4,
     "kind": "tutorial"
   },
   "narrator-430816bf": {
@@ -618,10 +618,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-boss-1": {
-    "file": "assets/voices/nyanluna/nyanluna-boss-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-boss-1-aef122d5d87a.mp3",
     "who": "nyanluna",
     "text": "強い気配……。落ち着いて、動きを見よう！",
-    "duration": 4.24,
+    "duration": 4.11,
     "kind": "battle"
   },
   "omsolo-recruit-1": {
@@ -632,24 +632,24 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-7438262c": {
-    "file": "assets/voices/nyanluna/nyanluna-7438262c.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-7438262c-5965ac81d1db.mp3",
     "who": "nyanluna",
     "text": "あわてない。つきねこなら、きっと大丈夫。二人で帰るって決めたんだから。まずは、あの門まで行ってみよう。",
-    "duration": 11.14,
+    "duration": 9.42,
     "kind": "story"
   },
   "nyanluna-1f6da3a7": {
-    "file": "assets/voices/nyanluna/nyanluna-1f6da3a7.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-1f6da3a7-adc1277485ec.mp3",
     "who": "nyanluna",
     "text": "なら、わたしたちも止まれない。次のしるしは、水門の上！",
-    "duration": 5.6,
+    "duration": 5.62,
     "kind": "story"
   },
   "nyanluna-down-1": {
-    "file": "assets/voices/nyanluna/nyanluna-down-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-down-1-d8c32e665638.mp3",
     "who": "nyanluna",
     "text": "ごめん……あとは、お願い……。",
-    "duration": 2.56,
+    "duration": 3.22,
     "kind": "battle"
   },
   "tsukineko-34c8da3e": {
@@ -667,10 +667,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-427f9300": {
-    "file": "assets/voices/nyanluna/nyanluna-427f9300.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-427f9300-39658f7d7f02.mp3",
     "who": "nyanluna",
     "text": "月のボタンが100%になったら、わたしの必殺技「月華の聖域」！ 魔物をすべて倒したら、光る月の門へ進もう。準備はできた？ 一緒に月明かりを取り戻そう！",
-    "duration": 16.55,
+    "duration": 14.24,
     "kind": "tutorial"
   },
   "narrator-6faab652": {
@@ -688,10 +688,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-victory-1": {
-    "file": "assets/voices/nyanluna/nyanluna-victory-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-victory-1-39ba072ff53a.mp3",
     "who": "nyanluna",
     "text": "やったね！ みんな、ありがとう！",
-    "duration": 3.15,
+    "duration": 3.3,
     "kind": "battle"
   },
   "narrator-3e075149": {
@@ -709,10 +709,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-e55d58be": {
-    "file": "assets/voices/nyanluna/nyanluna-e55d58be.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-e55d58be-97fd35bdf62f.mp3",
     "who": "nyanluna",
     "text": "まだ見つからない。でも、道はつながった。つきねこ、待ってて。",
-    "duration": 7.57,
+    "duration": 5.96,
     "kind": "story"
   },
   "tsukineko-victory-2": {
@@ -751,10 +751,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-21c2fa82": {
-    "file": "assets/voices/nyanluna/nyanluna-21c2fa82.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-21c2fa82-004c9c7ba11e.mp3",
     "who": "nyanluna",
     "text": "つきねこも、この空を見てるのかな。あっちでちゃんと、ごはん食べてるかな。",
-    "duration": 7.43,
+    "duration": 6.53,
     "kind": "story"
   },
   "tsukineko-d1f525e5": {
@@ -765,24 +765,24 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-98107377": {
-    "file": "assets/voices/nyanluna/nyanluna-98107377.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-98107377-70a674faa1ba.mp3",
     "who": "nyanluna",
     "text": "ひとりで全部、抱えなくていいんだよ。その手をひらくお手伝い、わたしにさせて。",
-    "duration": 8.27,
+    "duration": 6.68,
     "kind": "story"
   },
   "nyanluna-5cfd1980": {
-    "file": "assets/voices/nyanluna/nyanluna-5cfd1980.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-5cfd1980-620911ea99dd.mp3",
     "who": "nyanluna",
     "text": "いつも一緒だったもんね。今度も、絶対に見つけるよ。",
-    "duration": 5.97,
+    "duration": 4.83,
     "kind": "story"
   },
   "nyanluna-victory-2": {
-    "file": "assets/voices/nyanluna/nyanluna-victory-2.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-victory-2-228f7e7b4b36.mp3",
     "who": "nyanluna",
     "text": "この先へ、一緒に進もう！",
-    "duration": 2.82,
+    "duration": 2.69,
     "kind": "battle"
   },
   "narrator-2b6f1cea": {
@@ -800,10 +800,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-b317d4f2": {
-    "file": "assets/voices/nyanluna/nyanluna-b317d4f2.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-b317d4f2-3a95af172181.mp3",
     "who": "nyanluna",
     "text": "わたしも。帰り道はまだ先みたいだけど、二人なら大丈夫。いつも、そうだったでしょ？",
-    "duration": 8.31,
+    "duration": 7.84,
     "kind": "story"
   },
   "tsukineko-victory-1": {
@@ -877,10 +877,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-730441cf": {
-    "file": "assets/voices/nyanluna/nyanluna-730441cf.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-730441cf-1d9a2f134bf6.mp3",
     "who": "nyanluna",
     "text": "足元の光は、尾が来る合図だね。動きを止めて、渡る隙を作ろう！",
-    "duration": 6.14,
+    "duration": 6.41,
     "kind": "story"
   },
   "omsolo_hurt-cef2544d": {
@@ -891,17 +891,17 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-ab0d70fd": {
-    "file": "assets/voices/nyanluna/nyanluna-ab0d70fd.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-ab0d70fd-40ef65452ccb.mp3",
     "who": "nyanluna",
     "text": "つきねこを探しているの。怖くても、ここで立ち止まるわけにはいかないよ。",
-    "duration": 6.78,
+    "duration": 5.44,
     "kind": "story"
   },
   "nyanluna-bc4aa11b": {
-    "file": "assets/voices/nyanluna/nyanluna-bc4aa11b.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-bc4aa11b-04c9625f6297.mp3",
     "who": "nyanluna",
     "text": "つきねこっ！ 伏せて！",
-    "duration": 2.2,
+    "duration": 2.08,
     "kind": "story"
   },
   "omsolo-down-1": {
@@ -933,10 +933,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-18e6bf0f": {
-    "file": "assets/voices/nyanluna/nyanluna-18e6bf0f.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-18e6bf0f-511ba1882150.mp3",
     "who": "nyanluna",
     "text": "つきねこが結んでくれたリボン……。なくしたと思ってた。",
-    "duration": 6.02,
+    "duration": 4.42,
     "kind": "story"
   },
   "guardian-35b487dc": {
@@ -947,10 +947,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-22a597e1": {
-    "file": "assets/voices/nyanluna/nyanluna-22a597e1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-22a597e1-89ec3f371bc5.mp3",
     "who": "nyanluna",
     "text": "あの鐘を止めないと、奥へ進めない。つきねこ、一緒にひらこう！",
-    "duration": 5.97,
+    "duration": 5.95,
     "kind": "story"
   },
   "tsukineko-7ef8f654": {
@@ -1017,10 +1017,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-e603140e": {
-    "file": "assets/voices/nyanluna/nyanluna-e603140e.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-e603140e-004b3f2f898d.mp3",
     "who": "nyanluna",
     "text": "もちろん。二人で迷い込んだんだもん。帰るときも、絶対に一緒だよ！",
-    "duration": 6.67,
+    "duration": 6.61,
     "kind": "story"
   },
   "tsukineko-switch-1": {
@@ -1031,24 +1031,24 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-7e9c312": {
-    "file": "assets/voices/nyanluna/nyanluna-7e9c312.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-7e9c312-29b3144216d0.mp3",
     "who": "nyanluna",
     "text": "ここを越えたら、きっと会える。もう、待たせない！",
-    "duration": 4.36,
+    "duration": 4.29,
     "kind": "story"
   },
   "nyanluna-749c263b": {
-    "file": "assets/voices/nyanluna/nyanluna-749c263b.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-749c263b-9274fca7434a.mp3",
     "who": "nyanluna",
     "text": "これ、わたしたちの街……！ つきねこが笑ってる。あの光に触れる、少し前だ。",
-    "duration": 9.09,
+    "duration": 7.61,
     "kind": "story"
   },
   "nyanluna-9e40c289": {
-    "file": "assets/voices/nyanluna/nyanluna-9e40c289.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-9e40c289-8f89f597f67a.mp3",
     "who": "nyanluna",
     "text": "あの魔法の的を見て。近くの敵には自動で攻撃するよ。攻撃ボタンはなくて大丈夫、移動と回避に集中してね！",
-    "duration": 10.59,
+    "duration": 9.73,
     "kind": "tutorial"
   },
   "omsolo-wave-1": {
@@ -1150,24 +1150,24 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-4843c41": {
-    "file": "assets/voices/nyanluna/nyanluna-4843c41.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-4843c41-f3dd6ddb2909.mp3",
     "who": "nyanluna",
     "text": "少しだけなら。でも、早く手当てしないと……！ 結界が消える前に、巨神を止めよう！",
-    "duration": 7.41,
+    "duration": 7.97,
     "kind": "story"
   },
   "nyanluna-switch-2": {
-    "file": "assets/voices/nyanluna/nyanluna-switch-2.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-switch-2-37d29a2fdc34.mp3",
     "who": "nyanluna",
     "text": "うん、交代だね！",
-    "duration": 2.08,
+    "duration": 1.87,
     "kind": "battle"
   },
   "nyanluna-a4da81ee": {
-    "file": "assets/voices/nyanluna/nyanluna-a4da81ee.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-a4da81ee-6beb3e878da8.mp3",
     "who": "nyanluna",
     "text": "これ以上、誰も追いかけさせない。道を返して！",
-    "duration": 4.17,
+    "duration": 4.13,
     "kind": "story"
   },
   "narrator-793a659f": {
@@ -1178,10 +1178,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-attack-2": {
-    "file": "assets/voices/nyanluna/nyanluna-attack-2.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-attack-2-ff367b8e5274.mp3",
     "who": "nyanluna",
     "text": "光よ！",
-    "duration": 1.02,
+    "duration": 1.41,
     "kind": "battle"
   },
   "narrator-b3a71b84": {
@@ -1192,17 +1192,17 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-support-1": {
-    "file": "assets/voices/nyanluna/nyanluna-support-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-support-1-bfbffdc11c7c.mp3",
     "who": "nyanluna",
     "text": "こっちから援護するよ！",
-    "duration": 1.91,
+    "duration": 1.56,
     "kind": "battle"
   },
   "nyanluna-9e0d8ef5": {
-    "file": "assets/voices/nyanluna/nyanluna-9e0d8ef5.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-9e0d8ef5-17f7891d424c.mp3",
     "who": "nyanluna",
     "text": "よく見れば、星と星の間を通れる。つきねこ、もう少しでそっちに行けるよ。",
-    "duration": 8.68,
+    "duration": 7.16,
     "kind": "story"
   },
   "narrator-be5d42c2": {
@@ -1227,7 +1227,7 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-dash-2": {
-    "file": "assets/voices/nyanluna/nyanluna-dash-2.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-dash-2-0ffb4fe4f69f.mp3",
     "who": "nyanluna",
     "text": "よっと！",
     "duration": 1.0,
@@ -1276,24 +1276,24 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-b7cb30ca": {
-    "file": "assets/voices/nyanluna/nyanluna-b7cb30ca.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-b7cb30ca-89c7f454ddd2.mp3",
     "who": "nyanluna",
     "text": "「ほどけても結び直せばいい」って、いつも言ってたよね。うん。離れても、また会える。",
-    "duration": 8.84,
+    "duration": 7.09,
     "kind": "story"
   },
   "nyanluna-5e7513fa": {
-    "file": "assets/voices/nyanluna/nyanluna-5e7513fa.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-5e7513fa-0ad47abcd2d2.mp3",
     "who": "nyanluna",
     "text": "こむすび、月灯りがあなたを守るからね。わたしたちは上の道を通って急ぐよ。",
-    "duration": 8.33,
+    "duration": 6.58,
     "kind": "story"
   },
   "nyanluna-ca288209": {
-    "file": "assets/voices/nyanluna/nyanluna-ca288209.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-ca288209-fe3477ecac40.mp3",
     "who": "nyanluna",
     "text": "約束する。あなたの声は、ちゃんとわたしたちに届いたよ。",
-    "duration": 6.36,
+    "duration": 5.11,
     "kind": "story"
   },
   "omsolo-levelup-2": {
@@ -1304,10 +1304,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-f7d99e6f": {
-    "file": "assets/voices/nyanluna/nyanluna-f7d99e6f.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-f7d99e6f-3173953e9d6b.mp3",
     "who": "nyanluna",
     "text": "聞こえた！ つきねこ、あっち！",
-    "duration": 2.71,
+    "duration": 3.33,
     "kind": "story"
   },
   "narrator-a8c8ec0d": {
@@ -1325,24 +1325,24 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-8c169f55": {
-    "file": "assets/voices/nyanluna/nyanluna-8c169f55.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-8c169f55-ad1711322701.mp3",
     "who": "nyanluna",
     "text": "どちらを選んでも、お父さんのもとへつなぐよ。こむすび、もう少しだから。",
-    "duration": 7.12,
+    "duration": 6.23,
     "kind": "story"
   },
   "nyanluna-exit-1": {
-    "file": "assets/voices/nyanluna/nyanluna-exit-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-exit-1-a22120a8f62a.mp3",
     "who": "nyanluna",
     "text": "月の門が開いたよ！",
-    "duration": 1.88,
+    "duration": 1.92,
     "kind": "battle"
   },
   "nyanluna-81da10c": {
-    "file": "assets/voices/nyanluna/nyanluna-81da10c.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-81da10c-244b833aa7a8.mp3",
     "who": "nyanluna",
     "text": "間に合った……！ オムソロさん、もう大丈夫。こむすびが、わたしたちを呼んでくれたの。",
-    "duration": 8.76,
+    "duration": 7.72,
     "kind": "story"
   },
   "narrator-cc96c38c": {
@@ -1353,10 +1353,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-b7a26373": {
-    "file": "assets/voices/nyanluna/nyanluna-b7a26373.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-b7a26373-a98b78403d70.mp3",
     "who": "nyanluna",
     "text": "つきねこは、あっちに落ちたんだ。無事でいて……！",
-    "duration": 4.95,
+    "duration": 3.97,
     "kind": "story"
   },
   "tsukineko-a969cb6e": {
@@ -1367,10 +1367,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-ultimate-1": {
-    "file": "assets/voices/nyanluna/nyanluna-ultimate-1.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-ultimate-1-70d305fef5af.mp3",
     "who": "nyanluna",
     "text": "月の光よ、みんなを守って！ 月華の聖域！",
-    "duration": 5.21,
+    "duration": 4.75,
     "kind": "battle"
   },
   "guardian-1b06c64b": {
@@ -1395,10 +1395,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-levelup-2": {
-    "file": "assets/voices/nyanluna/nyanluna-levelup-2.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-levelup-2-61415f67e98d.mp3",
     "who": "nyanluna",
     "text": "もっと、みんなの力になれる！",
-    "duration": 3.0,
+    "duration": 2.96,
     "kind": "battle"
   },
   "tsukineko-2d021675": {
@@ -1423,10 +1423,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-8b2ed3da": {
-    "file": "assets/voices/nyanluna/nyanluna-8b2ed3da.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-8b2ed3da-7b74718a9df7.mp3",
     "who": "nyanluna",
     "text": "うん。こむすび、お父さんが最後にいた場所を教えて。わたしたちが、必ず迎えに行く。",
-    "duration": 8.97,
+    "duration": 7.47,
     "kind": "story"
   },
   "tsukineko-levelup-1": {
@@ -1437,10 +1437,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-7e7e7f28": {
-    "file": "assets/voices/nyanluna/nyanluna-7e7e7f28.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-7e7e7f28-46c7f1d2a991.mp3",
     "who": "nyanluna",
     "text": "大丈夫。まず、ゆっくり息をしよう。何があったの？",
-    "duration": 5.16,
+    "duration": 5.52,
     "kind": "story"
   },
   "omsolo-dash-1": {
@@ -1451,14 +1451,14 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-hurt-2": {
-    "file": "assets/voices/nyanluna/nyanluna-hurt-2.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-hurt-2-7081e609880b.mp3",
     "who": "nyanluna",
     "text": "まだ、大丈夫！",
-    "duration": 1.63,
+    "duration": 2.04,
     "kind": "battle"
   },
   "nyanluna-attack-3": {
-    "file": "assets/voices/nyanluna/nyanluna-attack-3.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-attack-3-0acd14985411.mp3",
     "who": "nyanluna",
     "text": "届けっ！",
     "duration": 1.13,
@@ -1479,10 +1479,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-5f25ed9a": {
-    "file": "assets/voices/nyanluna/nyanluna-5f25ed9a.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-5f25ed9a-c960f223feb3.mp3",
     "who": "nyanluna",
     "text": "敵を倒すと、そのキャラの経験値が増えるよ。落ちたクリスタルは拾って集めよう。メーターが満ちたら、3つから好きな祝福を選んでね！",
-    "duration": 12.03,
+    "duration": 11.31,
     "kind": "tutorial"
   }
 };

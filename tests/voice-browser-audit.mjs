@@ -1,10 +1,11 @@
 import {chromium} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
+const OUTPUT=process.env.VOICE_AUDIT_DIR||'audit/voices-v127';
 const BASE=process.env.LUNARIA_URL||'http://127.0.0.1:5177/';
 const browser=await chromium.launch({channel:'chrome',headless:true});
 const errors=[],checks=[];const pass=name=>{checks.push(name);console.log('PASS',name);};
-await mkdir('audit/voices-v127',{recursive:true});
+await mkdir(OUTPUT,{recursive:true});
 try{
  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`);});
@@ -17,7 +18,7 @@ try{
  await page.locator('#story-next').tap();await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source&&window.__LUNARIA_TEST__.voice.current.id.startsWith('nyanluna-'));state=await expected();assert.equal(state.text,state.actual);
  await page.evaluate(()=>window.__oldVoiceSource=window.__LUNARIA_TEST__.voice.current.source);await page.locator('#story-voice').tap();await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source&&window.__LUNARIA_TEST__.voice.current.source!==window.__oldVoiceSource);pass('Story advancement changes speaker and replay restarts the current line');
  for(const size of [{width:390,height:844},{width:320,height:568},{width:844,height:390}]){
-  await page.setViewportSize(size);const layout=await page.evaluate(()=>{const els=['#story-voice','#story-next','#story-skip'].map(s=>document.querySelector(s).getBoundingClientRect());return {overflow:document.body.scrollWidth>innerWidth,buttons:els.every(r=>r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1)};});assert.deepEqual(layout,{overflow:false,buttons:true});await page.screenshot({path:`audit/voices-v127/story-${size.width}.png`});
+  await page.setViewportSize(size);const layout=await page.evaluate(()=>{const els=['#story-voice','#story-next','#story-skip'].map(s=>document.querySelector(s).getBoundingClientRect());return {overflow:document.body.scrollWidth>innerWidth,buttons:els.every(r=>r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1)};});assert.deepEqual(layout,{overflow:false,buttons:true});await page.screenshot({path:`${OUTPUT}/story-${size.width}.png`});
  }pass('Replay and story navigation fit narrow phones and landscape');await page.setViewportSize({width:390,height:844});
  await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.voice.current),null);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>!!window.__LUNARIA_TEST__.voice.current?.source);pass('Backgrounding stops the voice and foregrounding resumes dialogue');
  await page.locator('#story-skip').tap();await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.mode==='tutorial'&&!!window.__LUNARIA_TEST__.voice.current?.source);const firstTutorial=await page.evaluate(()=>{const t=window.__LUNARIA_TEST__;return {text:t.game.tutorial.step.text,spoken:t.voice.manifest[t.voice.current.id].text};});assert.equal(firstTutorial.text,firstTutorial.spoken);
@@ -33,5 +34,5 @@ try{
  await page.evaluate(()=>{const t=window.__LUNARIA_TEST__;t.voice.stop();t.voice.cooldowns.clear();t.voice.handle([{type:'ultimate',hero:0},{type:'characterXp',heroId:'tsukineko',before:2,level:3}],t.game);});await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source?.buffer);assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.voice.queue[0]?.id),'tsukineko-levelup-1');pass('An ally level-up waits for the ultimate instead of being lost');
  const decoded=await page.evaluate(async()=>{const v=window.__LUNARIA_TEST__.voice;v.stop();let count=0,maxCache=0;for(const id of Object.keys(v.manifest)){const b=await v.load(id);if(!b||!Number.isFinite(b.duration)||b.duration<=0)throw Error(`Undecodable: ${id} ${v.lastError}`);count++;maxCache=Math.max(maxCache,[...v.cache.values()].reduce((n,b)=>n+b.length*b.numberOfChannels*4,0));}return {count,maxCache};});assert.equal(decoded.count,212);assert.ok(decoded.maxCache<=16*1024*1024);pass('All 212 MP3 files decode in the browser with bounded audio memory');
  await page.evaluate(()=>{const t=window.__LUNARIA_TEST__;t.voice.setMode('battle');t.voice.cooldowns.clear();t.voice.cue('omsolo','ultimate');});await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source);await page.evaluate(()=>window.__LUNARIA_TEST__.voice.configure(false,.44));assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.voice.current),null);assert.deepEqual(errors,[]);pass('Muting stops speech immediately; no browser or asset errors');
- await writeFile('audit/voices-v127/browser-report.json',JSON.stringify({date:new Date().toISOString(),checks,decoded,errors},null,2));await context.close();
+ await writeFile(`${OUTPUT}/browser-report.json`,JSON.stringify({date:new Date().toISOString(),checks,decoded,errors},null,2));await context.close();
 }finally{await browser.close();}
