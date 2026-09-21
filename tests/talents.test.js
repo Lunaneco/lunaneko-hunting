@@ -12,7 +12,7 @@ test('initial defense is character-specific and actually reduces incoming damage
 });
 test('legacy saves preserve level, XP, cap and stones while adding empty trees and materials',()=>{
  const p=normalizeProgression({characters:{nyanluna:{level:22,xp:15,breaks:1},future_hero:{level:7,xp:2,breaks:0}},inventory:{limitStone:3}},HEROES);
- assert.deepEqual(p.characters.nyanluna,{level:22,xp:15,breaks:1,tree:[]});assert.deepEqual(p.characters.future_hero,{level:7,xp:2,breaks:0,tree:[]});assert.deepEqual(p.inventory,{limitStone:3,starBud:0,moonDew:0,wardenCore:0,moonPrism:0,astralCore:0});assert.deepEqual(normalizeProgression(p,HEROES),p);
+ assert.deepEqual(p.characters.nyanluna,{level:22,xp:15,breaks:1,tree:[]});assert.deepEqual(p.characters.future_hero,{level:7,xp:2,breaks:0,tree:[]});assert.deepEqual(p.inventory,{limitStone:3,weaponTicket:0,starBud:0,moonDew:0,wardenCore:0,moonPrism:0,astralCore:0});assert.deepEqual(normalizeProgression(p,HEROES),p);
 });
 test('materials, levels and parents gate unlocks without partially consuming resources',()=>{
  const p=profile(1),before=structuredClone(p.inventory);assert.equal(unlockTalent(p,'nyanluna','guard2'),false);assert.deepEqual(p.inventory,before);

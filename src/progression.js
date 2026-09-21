@@ -2,6 +2,7 @@ import {ENEMY_TYPES} from './enemies.js';
 import {MATERIALS,talentNode,isTalentUnlocked,normalizeTalentTree,talentBonuses} from './talents.js';
 import {LEVEL_RULES} from './level-rules.js';
 import {normalizeEquipment,equipmentBonuses} from './equipment.js';
+import {normalizeWeapons,weaponAttackBonus} from './weapons.js';
 import {normalizeMissions} from './missions.js';
 import {normalizeStory} from './acts.js';
 export {LEVEL_RULES} from './level-rules.js';
@@ -12,7 +13,7 @@ const safeId=id=>typeof id==='string'&&/^[a-z0-9_-]{1,64}$/i.test(id)&&!['__prot
 export function levelCap(character){return Math.min(LEVEL_RULES.maxLevel,LEVEL_RULES.initialCap+character.breaks*LEVEL_RULES.capStep);}
 export function xpRequired(level){return 24+level*12;}
 export function normalizeProgression(raw,roster=[],legacyRecord={}){
-  const result={version:1,story:normalizeStory(raw?.story,legacyRecord),characters:{},inventory:{limitStone:integer(raw?.inventory?.limitStone),...Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,integer(raw?.inventory?.[id])]))},equipment:normalizeEquipment(raw?.equipment),missions:normalizeMissions(raw?.missions)};
+  const result={version:1,story:normalizeStory(raw?.story,legacyRecord),characters:{},inventory:{limitStone:integer(raw?.inventory?.limitStone),weaponTicket:integer(raw?.inventory?.weaponTicket),...Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,integer(raw?.inventory?.[id])]))},equipment:normalizeEquipment(raw?.equipment),weapons:normalizeWeapons(raw?.weapons),missions:normalizeMissions(raw?.missions)};
   const source=raw?.characters&&typeof raw.characters==='object'&&!Array.isArray(raw.characters)?raw.characters:{};
   result.tutorial={firstBattleCompleted:raw?.tutorial?.firstBattleCompleted===true};
   for(const id of new Set([...Object.keys(source),...roster.map(h=>h.id)])){
@@ -43,7 +44,7 @@ export function characterStats(hero,character){
 }
 export function combatStats(profile,hero){
   const base=characterStats(hero,characterProgress(profile,hero.id)),bonus=equipmentBonuses(profile.equipment,hero.id);
-  return {maxHp:base.maxHp+(bonus.hp??0),attack:base.attack*(1+(bonus.attack??0)),defense:base.defense+(bonus.defense??0)};
+  return {maxHp:base.maxHp+(bonus.hp??0),attack:base.attack*(1+(bonus.attack??0))*(1+weaponAttackBonus(profile,hero.id)),defense:base.defense+(bonus.defense??0)};
 }
 export function breakthroughStatus(profile,id){
   const character=characterProgress(profile,id);if(!character)return {canBreak:false};
