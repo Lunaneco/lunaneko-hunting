@@ -2,7 +2,7 @@ import {ENEMY_TYPES} from './enemies.js';
 import {MATERIALS,talentNode,isTalentUnlocked,normalizeTalentTree,talentBonuses} from './talents.js';
 import {LEVEL_RULES} from './level-rules.js';
 import {normalizeEquipment,equipmentBonuses} from './equipment.js';
-import {normalizeWeapons,weaponAttackBonus} from './weapons.js';
+import {normalizeWeapons,weaponAttackBonus,weaponDefenseBonus} from './weapons.js';
 import {normalizeMissions} from './missions.js';
 import {normalizeStory} from './acts.js';
 export {LEVEL_RULES} from './level-rules.js';
@@ -44,7 +44,7 @@ export function characterStats(hero,character){
 }
 export function combatStats(profile,hero){
   const base=characterStats(hero,characterProgress(profile,hero.id)),bonus=equipmentBonuses(profile.equipment,hero.id);
-  return {maxHp:base.maxHp+(bonus.hp??0),attack:base.attack*(1+(bonus.attack??0))*(1+weaponAttackBonus(profile,hero.id)),defense:base.defense+(bonus.defense??0)};
+  return {maxHp:base.maxHp+(bonus.hp??0),attack:base.attack*(1+(bonus.attack??0))*(1+weaponAttackBonus(profile,hero.id)),defense:base.defense+(bonus.defense??0)+weaponDefenseBonus(profile,hero.id)};
 }
 export function breakthroughStatus(profile,id){
   const character=characterProgress(profile,id);if(!character)return {canBreak:false};

@@ -4,7 +4,7 @@ import {tickEnemyBehavior} from './enemy-combat.js';
 import {ACTS,isActUnlocked,completeAct} from './acts.js';
 import {castUltimate,tickUltimates,enemySpeedScale} from './ultimate-combat.js';
 import {ultimateFor} from './abilities.js';
-import {bossWeaponTicket} from './weapons.js';
+import {bossWeaponTicket,weaponAttackProfile,equippedWeapon} from './weapons.js';
 import {advanceMissions,claimActMissions,missionsFor,trialStatus} from './missions.js';
 import {skillsForParty} from './blessings.js';
 import {normalizeParty} from './party.js';
@@ -110,6 +110,7 @@ export class Adventure {
   get hasLivingPartner(){return this.hasPartner&&this.isHeroAlive(this.partnerHero);}
   progressFor(hero){return characterProgress(this.progression,HEROES[hero].id);}
   statsFor(hero){return combatStats(this.progression,HEROES[hero]);}
+  attackProfile(hero){return weaponAttackProfile(this.progression,HEROES[hero]);}
   healthFor(hero){return this.heroHealth[this.heroId(hero)];}
   refreshStats(){
     for(const hero of this.partyHeroes){const health=this.healthFor(hero),maxHp=this.statsFor(hero).maxHp+this.rank('vitality')*40;health.hp=health.hp>0?Math.min(maxHp,health.hp+Math.max(0,maxHp-health.maxHp)):0;health.maxHp=maxHp;}
@@ -205,15 +206,15 @@ export class Adventure {
   ultimate(){return castUltimate(this);}
   attackFrom(source,hero,support=false){
     if(!this.isHeroAlive(hero)||(support&&!this.hasLivingPartner))return false;
-    const stats=HEROES[hero];const range=stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
+    const stats=this.attackProfile(hero);const range=stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
     const angle=Math.atan2(enemy.x-source.x,enemy.z-source.z);source.face=angle;
     const heroId=HEROES[hero].id;let damage=this.statsFor(hero).attack*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*(support?.43*(1+this.rank('echo')*.35+this.rank('starBlade')*.2):1);
     const crit=this.rng()<.05+this.rank('crit')*.15;if(crit)damage*=2;
-    this.emit('attack',{x:source.x,z:source.z,angle,hero,support,range});
+    this.emit('attack',{x:source.x,z:source.z,angle,hero,support,range,color:equippedWeapon(this.progression,heroId)?.weapon.effectColor});
     if(hero===0){
       const id=this.ids++;this.projectiles.push({id,owner:'player',heroId,x:source.x,z:source.z,vx:Math.sin(angle)*15,vz:Math.cos(angle)*15,kind:'magic',speed:15,life:Math.max(1.5,(range+2)/15),damage,crit,target:enemy.id,radius:.28});
     }else if(hero===1){
-      const id=this.ids++;this.projectiles.push({id,owner:'player',kind:'gun',heroId,x:source.x,z:source.z,vx:Math.sin(angle)*28,vz:Math.cos(angle)*28,speed:28,life:(range+2)/28,damage,crit,radius:.23,pierce:2,hitIds:[]});
+      const id=this.ids++;this.projectiles.push({id,owner:'player',kind:'gun',heroId,x:source.x,z:source.z,vx:Math.sin(angle)*28,vz:Math.cos(angle)*28,speed:28,life:(range+2)/28,damage,crit,radius:.23,pierce:stats.pierce,hitIds:[]});
     }else{
       const reach=range;
       for(const target of [...this.enemies]){const dx=target.x-source.x,dz=target.z-source.z,d=Math.hypot(dx,dz);if(target.hp>0&&d-target.radius<=reach&&(d<.01||(dx*Math.sin(angle)+dz*Math.cos(angle))/d>=MELEE_MIN_DOT))this.hit(target,damage*(1+this.rank('saberPower')*.22),source.x,source.z,crit,false,heroId);}
@@ -302,8 +303,8 @@ export class Adventure {
       this.exitDelay=Math.max(0,this.exitDelay-dt);this.crossExit();return;
     }
     if(!training)tickUltimates(this,dt);
-    if(p.attack<=0&&this.attackFrom(p,p.hero))p.attack=HEROES[p.hero].interval*Math.pow(.85,this.rank('haste'));
-    if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=HEROES[this.partnerHero].interval*2.6*Math.pow(.85,this.rank('haste'));
+    if(p.attack<=0&&this.attackFrom(p,p.hero))p.attack=this.attackProfile(p.hero).interval*Math.pow(.85,this.rank('haste'));
+    if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=this.attackProfile(this.partnerHero).interval*2.6*Math.pow(.85,this.rank('haste'));
     if(!training){this.spawnTimer-=dt;if(this.waveSpawned<this.waveGoal&&this.spawnTimer<=0){this.spawn();this.spawnTimer=this.wave===6?100:Math.max(.43,1.15-this.wave*.10);}}
     for(const e of this.enemies){
       if(e.hp<=0)continue;const enemyFrom={x:e.x,z:e.z};e.navTimer-=dt;e.age+=dt;e.hit=Math.max(0,e.hit-dt);e.attack-=dt;

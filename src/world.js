@@ -10,7 +10,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { material,part,bakeGroup,createEnemy,animateEnemy } from './characters.js';
-import { loadHeroes,animateHero,animateWoundedHero } from './hero-assets.js';
+import {equippedWeapon} from './weapons.js';
+import { loadHeroes,animateHero,animateWoundedHero,setHeroWeapon } from './hero-assets.js';
 import { seededRandom,AREAS,ATTACK_DURATION } from './model.js';
 import { FieldEnvironment } from './field-environment.js';
 import {StageGate} from './stage-gate.js';
@@ -110,7 +111,7 @@ export class World {
   handle(events,game){
     if(game){this.surface=game.layout;this.terrain.update(game,this.time);}
     for(const e of events){
-      if(e.type==='attack'){const hero=this.heroes[e.hero];hero.userData.attackTime=ATTACK_DURATION;if(e.hero===1)this.burst(e.x+Math.sin(e.angle)*1.05,e.z+Math.cos(e.angle)*1.05,0xb8f4ff,7,2);if(e.hero===2){const slash=createSwordSlash({...e,color:0x85ffae,name:'omsolo-saber-slash'});slash.mesh.position.y+=game.layout.height;this.fx.add(slash.mesh);this.rings.push(slash);}}
+      if(e.type==='attack'){const hero=this.heroes[e.hero];hero.userData.attackTime=ATTACK_DURATION;if(e.hero===1)this.burst(e.x+Math.sin(e.angle)*1.05,e.z+Math.cos(e.angle)*1.05,0xb8f4ff,7,2);if(e.hero===2){const slash=createSwordSlash({...e,color:e.color??0x85ffae,name:'omsolo-saber-slash'});slash.mesh.position.y+=game.layout.height;this.fx.add(slash.mesh);this.rings.push(slash);}}
       if(e.type==='hit'){this.burst(e.x,e.z,e.crit?0xffdd99:0xc8eef5,e.crit?12:5,2.4);this.numbers.push({x:e.x,y:(this.surface?.height??0)+2.25,z:e.z,text:e.damage,crit:e.crit,life:.7,max:.7});if(this.numbers.length>40)this.numbers.shift();}
       if(e.type==='death'){this.burst(e.x,e.z,e.enemyType==='boss'?0xffe3a8:0xb6ead3,e.enemyType==='boss'?150:23,4);this.ring(e.x,e.z,0xc8f5d3,1.1,.35);}
       if(e.type==='dash'){this.burst(e.x,e.z,0xcde7ff,24,1.8);this.ring(e.x,e.z,0xcdeaff,1.4,.3);}
@@ -135,7 +136,7 @@ export class World {
   render(game,dt){
     this.renderer.info.reset();this.terrain.update(game,this.time);if(game)this.surface=game.layout;this.time+=dt;const t=this.time;this.shake=Math.max(0,this.shake-dt);
     if(game){
-      const p=game.player;this.heroes.forEach((h,i)=>{h.visible=game.isHeroAlive(i);if(h.visible){animateHero(h,{...(i===p.hero?p:game.partner),moving:game.phase==='playing'&&(i===p.hero?p:game.partner).moving},t,dt,i===p.hero);const source=i===p.hero?p:game.partner;h.position.y=heightAt(game.layout,source.x,source.z);}});
+      const p=game.player;this.heroes.forEach((h,i)=>{h.visible=game.isHeroAlive(i);if(h.visible){setHeroWeapon(h,equippedWeapon(game.progression,game.heroId(i)));animateHero(h,{...(i===p.hero?p:game.partner),moving:game.phase==='playing'&&(i===p.hero?p:game.partner).moving},t,dt,i===p.hero);const source=i===p.hero?p:game.partner;h.position.y=heightAt(game.layout,source.x,source.z);}});
       if(game.rescue&&!game.partyHeroes.includes(2)&&game.phase!=='victory'){
         const injured=this.heroes[2];injured.visible=true;animateWoundedHero(injured,game.rescue,t,dt);injured.position.y=game.layout.height;
       }

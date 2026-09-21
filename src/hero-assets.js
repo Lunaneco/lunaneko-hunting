@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { part, bakeGroup } from './characters.js';
 import { ATTACK_DURATION } from './model.js';
+import {createWeaponVariant} from './weapon-models.js';
 
 const files = ['nyanluna', 'tsukineko', 'omsolo'];
 const axisX = new THREE.Vector3(1, 0, 0);
@@ -67,7 +68,16 @@ function createWeapon(hero) {
   weapon.name = ['Moon staff · Lunaria','Star rifle · Nox','Light saber · Suishu'][hero];
   if(hero===1){const flash=new THREE.Mesh(new THREE.OctahedronGeometry(.16),new THREE.MeshBasicMaterial({color:0xc7f8ff,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false}));flash.position.set(0,.15,1.23);flash.scale.set(.65,.65,1.65);flash.visible=false;weapon.add(flash);weapon.userData.muzzle=flash;}
 
+  weapon.userData.family=['luna-staff','nox-rifle','light-saber'][hero];
   return weapon;
+}
+
+export function setHeroWeapon(root,item){
+  const d=root.userData;if(!item||d.weapon.userData.family===item.weapon.id)return;
+  d.weaponCache??=new Map([[d.weapon.userData.family,d.weapon]]);
+  let next=d.weaponCache.get(item.weapon.id);
+  if(!next){next=item.weapon.style==='均衡型'?createWeapon(d.hero):createWeaponVariant(item);d.weaponCache.set(item.weapon.id,next);}
+  d.rig.remove(d.weapon);d.rig.add(next);d.weapon=next;
 }
 
 function createHero(asset, hero) {
