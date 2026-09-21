@@ -24,3 +24,16 @@
 @media(min-width:761px) and (max-width:1100px){.material-item{gap:10px;padding:14px 10px}.material-item>.icon{width:22px;height:22px}.material-item span{font-size:10px}.material-item strong{font-size:23px}.material-item>div{gap:6px 8px}.limit-node{width:88px}.limit-node>strong{font-size:10px}}
 @media(max-width:760px){.material-wallet{grid-template-columns:repeat(2,minmax(0,1fr))}.material-item{padding:12px 13px}.material-item>div{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding-left:26px}.material-item>.icon{top:15px;left:11px;right:auto;width:18px;height:18px}.material-item strong{margin:0;font-size:23px}.material-item span{font-size:10px;align-self:center}.material-item small{grid-column:1/-1;font-size:8px}.limit-branch{margin:17px 12px 0;padding:17px 7px 6px}.limit-branch h4{font-size:13px;letter-spacing:1px}.limit-branch>p{font-size:8px}.limit-branch header>span{font-size:8px}.limit-branch header>span b{font-size:20px}.limit-map{height:133px}.limit-node{width:88px}.limit-node>small{font-size:7px}.limit-cap-number{font-size:24px}.talent-path-label{padding:23px 19px 0;gap:9px}.talent-path-label strong{font-size:10px}.limit-detail .talent-effect{font-size:14px}}
 @media(max-width:360px){.material-item{padding:11px 9px}.material-item>.icon{left:9px;top:14px;width:16px;height:16px}.material-item>div{padding-left:21px;gap:5px}.material-item span{font-size:9px}.material-item strong{font-size:22px}.limit-branch{margin-inline:8px;padding-inline:4px}.limit-node{width:74px}.limit-node>small{font-size:6.5px}.limit-node>strong{font-size:9px}.limit-branch>p{font-size:7.5px}.limit-branch header>span b{font-size:18px}}
+
+/* Rarity remains readable without relying on color; cap stones are a separate item. */
+.material-wallet{grid-template-columns:repeat(3,minmax(0,1fr))}
+.material-item>div{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
+.material-item span{white-space:normal;line-height:1.6}
+.rarity-tag{display:block;width:fit-content;margin-bottom:6px;padding:2px 6px;border:1px solid #b8d0c650;border-radius:4px;font:normal 9px/1.5 system-ui;color:#c3e1d2;background:#9cbeb210;letter-spacing:.3px}
+.rarity-2{border-color:#75d6e575;background:#4dacc212}.rarity-2>.icon{color:#8feafa}.rarity-2 .rarity-tag{color:#abf2ff;border-color:#73d1e780;background:#4caac524}
+.rarity-special .rarity-tag{color:#f2d8a5;border-color:#dbbf7860;background:#baa44c12}
+.material-item strong{font-size:25px}.material-item small{line-height:1.7;letter-spacing:0}
+.talent-cost b{white-space:nowrap}.talent-cost .cost-source{display:block;font-size:9px;line-height:1.7;margin-top:3px;color:#a6bfd0}
+.tier-one-guide{border-color:#9ecbb13d;background:#86b39f0a}.tier-one-guide>strong{color:#cce4d0}
+@media(max-width:760px){.material-wallet{grid-template-columns:repeat(2,minmax(0,1fr))}.material-item{padding:12px}.material-item>div{padding-left:0;grid-template-columns:1fr;gap:4px}.material-item>.icon{left:auto;right:12px;top:60px}.material-item strong{font-size:25px}.material-item span{font-size:11px}.material-item small{font-size:9px}.rarity-tag{font-size:8px}.material-item small{padding-right:0}}
+@media(min-width:761px) and (max-width:1100px){.material-item>div{grid-template-columns:1fr}.material-item strong{font-size:25px}}

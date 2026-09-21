@@ -13,5 +13,5 @@ export function updateTerrainUi(game){
  map.querySelector('#map-targets').innerHTML=targets.map(t=>`<circle cx="${t.x}" cy="${t.z}" r="1.65" fill="#${t.color.toString(16).padStart(6,'0')}"/>`).join('');
  guide.classList.toggle('hidden',!game.travelOpen);guide.classList.toggle('compact',!!game.travelOrigin&&Math.hypot(game.player.x-game.travelOrigin.x,game.player.z-game.travelOrigin.z)>1.5);
  const signature=game.travelOpen??'';
- if(guide.dataset.kind!==signature){guide.dataset.kind=signature;guide.innerHTML=signature==='stairs'?'<small>LOWER FLOOR CLEAR</small><strong>青い階段から、上のフロアへ</strong><span>祝福・HP・クリスタルを引き継ぎます</span>':signature==='branch'?'<small>CHOOSE YOUR PATH</small><strong>進む道を、歩いて選ぼう</strong><div><span class="safe">左 · 緑の門<br><b>通常ルート</b></span><span class="elite">右 · 赤の門<br><b>強ボスルート</b></span></div><p>強ボス撃破：星の芽20・月のしずく4・核1を追加<br>門を通ると、この出撃では道を戻れません</p>':'';}
+ if(guide.dataset.kind!==signature){guide.dataset.kind=signature;guide.innerHTML=signature==='stairs'?'<small>LOWER FLOOR CLEAR</small><strong>青い階段から、上のフロアへ</strong><span>祝福・HP・クリスタルを引き継ぎます</span>':signature==='branch'?'<small>CHOOSE YOUR PATH</small><strong>進む道を、歩いて選ぼう</strong><div><span class="safe">左 · 緑の門<br><b>通常ルート</b></span><span class="elite">右 · 赤の門<br><b>強ボスルート</b></span></div><p>強ボス撃破：★2 深星の核1個<br>★1 星の芽20・月のしずく4・守護者の核1を追加<br>門を通ると、この出撃では道を戻れません</p>':'';}
 }

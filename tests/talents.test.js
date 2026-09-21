@@ -12,7 +12,7 @@ test('initial defense is character-specific and actually reduces incoming damage
 });
 test('legacy saves preserve level, XP, cap and stones while adding empty trees and materials',()=>{
  const p=normalizeProgression({characters:{nyanluna:{level:22,xp:15,breaks:1},future_hero:{level:7,xp:2,breaks:0}},inventory:{limitStone:3}},HEROES);
- assert.deepEqual(p.characters.nyanluna,{level:22,xp:15,breaks:1,tree:[]});assert.deepEqual(p.characters.future_hero,{level:7,xp:2,breaks:0,tree:[]});assert.deepEqual(p.inventory,{limitStone:3,starBud:0,moonDew:0,wardenCore:0});assert.deepEqual(normalizeProgression(p,HEROES),p);
+ assert.deepEqual(p.characters.nyanluna,{level:22,xp:15,breaks:1,tree:[]});assert.deepEqual(p.characters.future_hero,{level:7,xp:2,breaks:0,tree:[]});assert.deepEqual(p.inventory,{limitStone:3,starBud:0,moonDew:0,wardenCore:0,moonPrism:0,astralCore:0});assert.deepEqual(normalizeProgression(p,HEROES),p);
 });
 test('materials, levels and parents gate unlocks without partially consuming resources',()=>{
  const p=profile(1),before=structuredClone(p.inventory);assert.equal(unlockTalent(p,'nyanluna','guard2'),false);assert.deepEqual(p.inventory,before);
@@ -37,7 +37,7 @@ test('different awakenings apply the advertised permanent bonuses without stacki
 });
 test('enemy drops are separate from XP and crystals and are awarded only once',()=>{
  const g=new RecruitedAdventure();g.drainEvents();const e=kill(g);assert.equal(g.progressFor(0).xp,3);assert.equal(g.stageCrystals,0);assert.equal(g.orbs[0].value,1);assert.equal(g.progression.inventory.starBud,1);g.hit(e,9999,0,0);assert.equal(g.progression.inventory.starBud,1);
- kill(g,'golem','tsukineko');assert.equal(g.progression.inventory.starBud,3);kill(g,'boss');assert.equal(g.progression.inventory.starBud,9);assert.equal(g.progression.inventory.wardenCore,1);assert.deepEqual(g.earnedMaterials,{starBud:9,moonDew:0,wardenCore:1});
+ kill(g,'golem','tsukineko');assert.equal(g.progression.inventory.starBud,3);kill(g,'boss');assert.equal(g.progression.inventory.starBud,9);assert.equal(g.progression.inventory.wardenCore,1);assert.deepEqual(g.earnedMaterials,{starBud:9,moonDew:0,wardenCore:1,moonPrism:0,astralCore:0});
 });
 test('a capped character still earns materials; death cannot grant late drops',()=>{
  const p=profile();p.characters.nyanluna.level=50;p.characters.nyanluna.breaks=3;const g=new RecruitedAdventure({progression:p});kill(g);assert.equal(g.progressFor(0).xp,0);assert.equal(g.earnedMaterials.starBud,1);

@@ -11,7 +11,7 @@ async function open(profile,{production=false}={}){
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  await page.goto(`http://127.0.0.1:${production?4173:5174}/?v=talent-audit`);await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.click('#chapter-menu-open');return {context,page};
 }
-const advanced={version:1,characters:{nyanluna:{level:15,xp:12,breaks:0},tsukineko:{level:15,xp:5,breaks:0}},inventory:{starBud:100,moonDew:10,wardenCore:1,limitStone:2}};
+const advanced={version:1,characters:{nyanluna:{level:15,xp:12,breaks:0},tsukineko:{level:15,xp:5,breaks:0}},inventory:{starBud:100,moonDew:10,wardenCore:1,moonPrism:0,astralCore:0,limitStone:2}};
 try{
  const {page,context}=await open(advanced);
  await page.click('[data-menu-tab="growth"]');assert.match(await page.locator('#growth-nyanluna .defense-breakdown').innerText(),/固有 8.*レベル 14.*ツリー 0/);assert.match(await page.locator('#growth-tsukineko .defense-breakdown').innerText(),/固有 14/);
@@ -33,7 +33,7 @@ try{
  assert.equal((await saved(page)).inventory.moonDew,8);await page.locator('[data-tree-node="awakening"]').tap();assert.equal(await page.locator('[data-unlock-node="awakening"]').isDisabled(),true);assert.match(await page.locator('.talent-requirements').innerText(),/攻撃の星 II.*生命の星 II/);
  for(const id of ['attack1','attack2','life1','life2']){await page.locator(`[data-tree-node="${id}"]`).tap();await page.locator(`[data-unlock-node="${id}"]`).tap();}
  await page.locator('[data-tree-node="awakening"]').tap();assert.equal(await page.locator('[data-unlock-node="awakening"]').isEnabled(),true);assert.match(await page.locator('.talent-detail h3').innerText(),/月光の極意/);assert.match(await page.locator('.talent-effect').innerText(),/12%/);await page.locator('[data-unlock-node="awakening"]').tap();
- let profile=await saved(page);assert.equal(profile.characters.nyanluna.tree.length,8);assert.deepEqual(profile.inventory,{limitStone:2,starBud:0,moonDew:0,wardenCore:0});await page.locator('.talent-map-heading').scrollIntoViewIfNeeded();await page.screenshot({path:`${out}/completed-mobile.png`});
+ let profile=await saved(page);assert.equal(profile.characters.nyanluna.tree.length,8);assert.deepEqual(profile.inventory,{limitStone:2,starBud:0,moonDew:0,wardenCore:0,moonPrism:0,astralCore:0});await page.locator('.talent-map-heading').scrollIntoViewIfNeeded();await page.screenshot({path:`${out}/completed-mobile.png`});
  await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>document.querySelector('#chapter-menu').scrollTop=0);await page.screenshot({path:`${out}/completed-desktop.png`});check('All three branches lead to the character awakening and consume exactly the advertised materials');
  await page.locator('[data-tree-hero="tsukineko"]').click();assert.equal(await page.locator('.talent-node.unlocked').count(),0);assert.equal(await page.locator('[data-unlock-node="origin"]').isDisabled(),true);assert.match(await page.locator('.talent-requirements').innerText(),/星の芽が4個不足/);
  await page.locator('[data-tree-node="awakening"]').click();assert.match(await page.locator('.talent-detail h3').innerText(),/星影の極意/);assert.match(await page.locator('.talent-effect').innerText(),/防御力 \+8/);

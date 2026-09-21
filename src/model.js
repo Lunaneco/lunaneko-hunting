@@ -10,7 +10,7 @@ import {normalizeParty} from './party.js';
 import {availableHeroes,isHeroUnlocked} from './recruitment.js';
 import {FirstBattleTutorial} from './tutorial.js';
 import {normalizeProgression,characterProgress,combatStats,awardCharacterXp,grantMaterials,grantLimitStone,ENEMY_REWARDS} from './progression.js';
-import {MATERIALS,MATERIAL_DROPS,ultimateBonuses} from './talents.js';
+import {MATERIALS,enemyMaterials,gateMaterials,ultimateBonuses} from './talents.js';
 export const ARENA_RADIUS = 18.5;
 export const ATTACK_DURATION = .35;
 export const MELEE_MIN_DOT = -.15;
@@ -147,7 +147,7 @@ export class Adventure {
     if(this.phase!=='playing'||!this.exitOpen||this.exitDelay>0||this.pendingBlessings>0||Math.hypot(this.player.x-this.exitPoint.x,this.player.z-this.exitPoint.z)>this.exitPoint.radius)return false;
     this.exitOpen=false;this.stagesCleared=this.area+1;this.trackMission('clears');
     for(const mission of missionsFor(this.area,this.act))if(mission.trial&&trialStatus(mission,this).eligible)this.pendingTrials.add(mission.id);
-    this.collectMaterials({moonDew:this.area+1},'gate');this.combo=0;this.comboTimer=0;this.player.dash=0;this.player.moving=false;this.partner.moving=false;
+    this.collectMaterials(gateMaterials(this.area,this.act,this.difficulty),'gate');this.combo=0;this.comboTimer=0;this.player.dash=0;this.player.moving=false;this.partner.moving=false;
     if(this.wave===6){
       this.claimMissions();
       if(completeAct(this.progression,this.act)){this.recruitedHeroId=this.actConfig.recruit;this.emit('recruited',{heroId:this.recruitedHeroId});}
@@ -217,7 +217,7 @@ export class Adventure {
       if(canCharge)this.gainUltimateCharge(heroId,4);
       const earned=awardCharacterXp(this.progression,heroId,ENEMY_REWARDS[e.type]?.xp??0);
       if(earned){this.earnedXp[heroId]=(this.earnedXp[heroId]??0)+earned.amount;if(heroId===HEROES[this.player.hero].id)this.refreshStats();this.emit('characterXp',earned);}
-      this.collectMaterials(MATERIAL_DROPS[e.type],'enemy');
+      this.collectMaterials(enemyMaterials(e,this.act,this.difficulty),'enemy');
       if(e.elite){this.collectMaterials(ROUTE_REWARD,'route');this.routeRewards.push(this.area);this.emit('routeReward',{rewards:ROUTE_REWARD});}
       this.emit('death',{id:e.id,x:e.x,z:e.z,enemyType:e.type,heroId});
       if(this.rank('leech')&&this.kills%6===0)this.heal(8*this.rank('leech'));

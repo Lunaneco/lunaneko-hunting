@@ -4,11 +4,11 @@ import {HEROES,AREAS} from './model.js';
 import {ACTS,actLabel} from './acts.js';
 import {STAGE_MISSIONS,missionsFor,missionsForAct,missionIndex,trialStatus} from './missions.js';
 import {WEAPONS,UNIQUE_EQUIPMENT,equipmentImage,uniqueEquipment,equipmentOwner,equipmentBonuses,equipmentBonusText} from './equipment.js';
-import {TREE_RESOURCES} from './talents.js';
+import {resourceLabel} from './talents.js';
 import {combatStats} from './progression.js';
 import {icon} from './icons.js';
 
-export function missionRewardText(mission){return [...Object.entries(mission.rewards).map(([id,n])=>`${TREE_RESOURCES[id].name} ×${n}`),...(mission.equipment?[uniqueEquipment(mission.equipment).name]:[])].join(' ／ ');}
+export function missionRewardText(mission){return [...Object.entries(mission.rewards).map(([id,n])=>`${resourceLabel(id)} ×${n}`),...(mission.equipment?[uniqueEquipment(mission.equipment).name]:[])].join(' ／ ');}
 function missionRow(profile,mission,game){
   const claimed=profile.missions.claimed.includes(mission.id),value=profile.missions.stages[missionIndex(mission.act,mission.area)][mission.metric],trial=game&&mission.act===game.act&&mission.area===game.area?trialStatus(mission,game):null;
   return `<article class="mission-row ${claimed?'claimed':''} ${mission.trial?'challenge-mission':''}" data-mission="${mission.id}"><span class="mission-status">${icon(claimed?'check':mission.trial?'trophy':'compass')}</span><div><div class="mission-name"><h4>${mission.name}</h4>${mission.trial?'<span>高難度</span>':''}</div><p>${mission.description}</p>${!claimed&&trial?`<small class="trial-live ${trial.eligible?'eligible':'failed'}">${trial.hard?'チャレンジモード':'チャレンジモードが必要'} · ${trial.seconds.toFixed(1)} / ${mission.trial.seconds}秒 · 被弾 ${trial.hits} / ${mission.trial.hits}回${trial.eligible?' · 達成圏内':' · この挑戦は条件未達'}</small>`:''}<div class="mission-reward">${icon(mission.equipment?'star':mission.rewards.limitStone?'crystal':'spark')}${missionRewardText(mission)}</div><div class="mission-progress"><i style="width:${Math.min(100,value/mission.goal*100)}%"></i></div><small class="mission-progress-label">${claimed?'✓ 達成・受取済み':value>=mission.goal?'条件達成 · 幕クリアで受取':mission.trial?'条件を満たし、全6WAVEクリアで受取':`${value} / ${mission.goal}${mission.metric==='clears'?'回':mission.metric==='kills'?'体':'個'}`}</small></div></article>`;

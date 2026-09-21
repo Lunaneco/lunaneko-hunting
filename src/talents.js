@@ -1,12 +1,19 @@
 import {ENEMY_TYPES} from './enemies.js';
 import {LEVEL_RULES} from './level-rules.js';
 export const MATERIALS=Object.freeze({
-  starBud:{name:'星の芽',icon:'spark',source:'敵撃破',note:'草の魔物・コウモリ・弓兵から1個、ゴーレム・魔導士・突撃獣から2個。第2章の通常敵から3〜4個。ボスから6個。'},
-  moonDew:{name:'月のしずく',icon:'moon',source:'ステージ突破',note:'月の門を通ると入手。草原1個、遺跡2個、聖域3個。'},
-  wardenCore:{name:'守護者の核',icon:'star',source:'守護者撃破',note:'各幕のボスを倒すと1個。各キャラの奥義の解放に使用。'},
+  starBud:{rarity:1,name:'星の芽',icon:'spark',source:'敵撃破',note:'通常敵から1〜4個、ボスから6個。両段の強化に使用。'},
+  moonDew:{rarity:1,name:'月のしずく',icon:'moon',source:'月の門を突破',note:'各幕の1・2・3つ目の月の門で、それぞれ1・2・3個。1段目の強化に使用。'},
+  wardenCore:{rarity:1,name:'守護者の核',icon:'star',source:'ボス撃破',note:'各幕のボスを倒すと1個。1段目の最後の星に使用。'},
+  moonPrism:{rarity:2,name:'月虹のしずく',icon:'moon',source:'第2章・チャレンジの門',note:'第2章、または全章のチャレンジモードで、1・2・3つ目の月の門から1・2・3個。毎回入手でき、第2章の突破ミッションでも獲得。2段目に使用。'},
+  astralCore:{rarity:2,name:'深星の核',icon:'star',source:'第2章・高難度のボス',note:'第2章またはチャレンジモードのボス、全章の分岐の強ボスから毎回1個。第2章の最終エリア突破ミッションでも1個。2段目に使用。'},
 });
-export const TREE_RESOURCES=Object.freeze({...MATERIALS,limitStone:{name:'限界突破石',icon:'crystal',source:'章クリア・高難度ミッション',note:'各章の第4幕クリアで毎回1個。各章の時間制限・ノーダメージ試練でも各1個。レベルの道で上限を10ずつ解放。'}});
+export const TREE_RESOURCES=Object.freeze({...MATERIALS,limitStone:{name:'限界突破石',icon:'crystal',source:'章クリア・高難度試練',note:'各章の第4幕クリアで毎回1個。各章の時間制限・ノーダメージ試練でも各1個。レベルの道で上限を10ずつ解放。'}});
 export const MATERIAL_DROPS=Object.freeze({...Object.fromEntries(Object.entries(ENEMY_TYPES).map(([id,s])=>[id,{starBud:s.buds}])),boss:{starBud:6,wardenCore:1}});
+// Higher-rarity rewards supplement normal drops; replaying an eligible stage earns them again.
+export function enemyMaterials(enemy,act,difficulty){return {...MATERIAL_DROPS[enemy.type],...(enemy.type==='boss'&&(act>=4||difficulty==='hard'||enemy.elite)?{astralCore:1}:{})};}
+export function gateMaterials(area,act,difficulty){return {moonDew:area+1,...(act>=4||difficulty==='hard'?{moonPrism:area+1}:{})};}
+export function resourceLabel(id){const m=TREE_RESOURCES[id];return `${m.rarity?`★${m.rarity} `:''}${m.name}`;}
+export function tierMaterialCost(nodes){const total={};for(const node of nodes)for(const [id,n] of Object.entries(node.cost))total[id]=(total[id]??0)+n;return total;}
 // Ordered by prerequisites; both the graph and saved-data validation use this order.
 export const FIRST_TIER_NODES=Object.freeze([
   {id:'origin',name:'はじまりの光',branch:'原点',icon:'spark',level:1,parents:[],cost:{starBud:4},bonus:{hp:12},x:50,y:12},
@@ -19,14 +26,14 @@ export const FIRST_TIER_NODES=Object.freeze([
   {id:'awakening',name:'星の目覚め',branch:'奥義',icon:'moon',level:15,parents:['attack2','guard2','life2'],cost:{starBud:24,moonDew:4,wardenCore:1},bonus:{hp:28,attack:.10,defense:6},x:50,y:85},
 ]);
 export const SECOND_TIER_NODES=Object.freeze([
-  {id:'ascension',tier:2,name:'深星の扉',branch:'覚醒',icon:'star',level:30,parents:['awakening'],cost:{starBud:160,moonDew:12,wardenCore:4},bonus:{hp:40,attack:.10,defense:8},x:50,y:12},
-  {id:'attack3',tier:2,name:'攻撃の星 III',branch:'攻撃',icon:'sword',level:35,parents:['ascension'],cost:{starBud:240,moonDew:18,wardenCore:6},bonus:{attack:.18},x:18,y:37},
-  {id:'guard3',tier:2,name:'守護の星 III',branch:'守護',icon:'shield',level:35,parents:['ascension'],cost:{starBud:240,moonDew:18,wardenCore:6},bonus:{defense:18},x:50,y:37},
-  {id:'life3',tier:2,name:'生命の星 III',branch:'生命',icon:'heart',level:35,parents:['ascension'],cost:{starBud:240,moonDew:18,wardenCore:6},bonus:{hp:90},x:82,y:37},
-  {id:'ultimatePower',tier:2,name:'奥義の威光',branch:'必殺技',icon:'spark',level:40,parents:['attack3'],cost:{starBud:360,moonDew:30,wardenCore:8},bonus:{ultimateDamage:.35},x:18,y:62},
-  {id:'ultimateCharge',tier:2,name:'奥義の共鳴',branch:'必殺技',icon:'moon',level:40,parents:['guard3'],cost:{starBud:360,moonDew:30,wardenCore:8},bonus:{ultimateCharge:.25},x:50,y:62},
-  {id:'ultimateArt',tier:2,name:'奥義の真髄',branch:'固有必殺技',icon:'shield',level:40,parents:['life3'],cost:{starBud:360,moonDew:30,wardenCore:8},bonus:{},x:82,y:62},
-  {id:'transcendence',tier:2,name:'星の超覚醒',branch:'最終奥義',icon:'star',level:50,parents:['ultimatePower','ultimateCharge','ultimateArt'],cost:{starBud:800,moonDew:60,wardenCore:20},bonus:{ultimateDamage:.25},x:50,y:85},
+  {id:'ascension',tier:2,name:'深星の扉',branch:'覚醒',icon:'star',level:30,parents:['awakening'],cost:{starBud:160,moonPrism:12,astralCore:4},bonus:{hp:40,attack:.10,defense:8},x:50,y:12},
+  {id:'attack3',tier:2,name:'攻撃の星 III',branch:'攻撃',icon:'sword',level:35,parents:['ascension'],cost:{starBud:240,moonPrism:18,astralCore:6},bonus:{attack:.18},x:18,y:37},
+  {id:'guard3',tier:2,name:'守護の星 III',branch:'守護',icon:'shield',level:35,parents:['ascension'],cost:{starBud:240,moonPrism:18,astralCore:6},bonus:{defense:18},x:50,y:37},
+  {id:'life3',tier:2,name:'生命の星 III',branch:'生命',icon:'heart',level:35,parents:['ascension'],cost:{starBud:240,moonPrism:18,astralCore:6},bonus:{hp:90},x:82,y:37},
+  {id:'ultimatePower',tier:2,name:'奥義の威光',branch:'必殺技',icon:'spark',level:40,parents:['attack3'],cost:{starBud:360,moonPrism:30,astralCore:8},bonus:{ultimateDamage:.35},x:18,y:62},
+  {id:'ultimateCharge',tier:2,name:'奥義の共鳴',branch:'必殺技',icon:'moon',level:40,parents:['guard3'],cost:{starBud:360,moonPrism:30,astralCore:8},bonus:{ultimateCharge:.25},x:50,y:62},
+  {id:'ultimateArt',tier:2,name:'奥義の真髄',branch:'固有必殺技',icon:'shield',level:40,parents:['life3'],cost:{starBud:360,moonPrism:30,astralCore:8},bonus:{},x:82,y:62},
+  {id:'transcendence',tier:2,name:'星の超覚醒',branch:'最終奥義',icon:'star',level:50,parents:['ultimatePower','ultimateCharge','ultimateArt'],cost:{starBud:800,moonPrism:60,astralCore:20},bonus:{ultimateDamage:.25},x:50,y:85},
 ]);
 export const TALENT_NODES=Object.freeze([...FIRST_TIER_NODES,...SECOND_TIER_NODES]);
 export const LIMIT_BREAK_NODES=Object.freeze(Array.from({length:(LEVEL_RULES.maxLevel-LEVEL_RULES.initialCap)/LEVEL_RULES.capStep},(_,i)=>{
