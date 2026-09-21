@@ -35,7 +35,13 @@ export class Adventure {
     this.party=Object.freeze(normalizeParty(party,availableHeroes(this.progression,HEROES)));this.partyHeroes=this.party.map(id=>HEROES.findIndex(h=>h.id===id));hero=this.partyHeroes.includes(hero)?hero:this.partyHeroes[0];this.skillPool=Object.freeze(skillsForParty(this.party));
     this.earnedMissions=[];this.earnedXp=Object.fromEntries(HEROES.map(h=>[h.id,0]));this.earnedMaterials=Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,0]));
     this.rng=seededRandom(seed);this.seed=seed;this.difficulty=difficulty;this.phase='playing';this.events=[];this.ids=1;
-    this.player={x:0,z:3,hp:180,maxHp:180,hero,face:Math.PI,invincible:1,dash:0,dashCooldown:0,dx:0,dz:-1,attack:0,charge:0,switchCooldown:0};
+    this.heroHealth=Object.fromEntries(HEROES.map(h=>{const maxHp=combatStats(this.progression,h).maxHp;return [h.id,{hp:maxHp,maxHp}];}));
+    this.player={x:0,z:3,hero,face:Math.PI,invincible:1,dash:0,dashCooldown:0,dx:0,dz:-1,attack:0,charge:0,switchCooldown:0};
+    // HP follows the controlled character; switching never copies another character's damage.
+    Object.defineProperties(this.player,{
+      hp:{enumerable:true,get:()=>this.healthFor(this.player.hero).hp,set:value=>{if(Number.isFinite(value))this.healthFor(this.player.hero).hp=clamp(value,0,this.player.maxHp);}},
+      maxHp:{enumerable:true,get:()=>this.healthFor(this.player.hero).maxHp,set:value=>{if(Number.isFinite(value)&&value>0)this.healthFor(this.player.hero).maxHp=value;}},
+    });
     this.ultimateCharges=Object.fromEntries(HEROES.map(h=>[h.id,0]));this.ultimateEffects=[];
     Object.defineProperty(this.player,'charge',{enumerable:true,get:()=>this.chargeFor(this.player.hero),set:value=>{this.ultimateCharges[this.heroId(this.player.hero)]=Number.isFinite(value)?clamp(value,0,100):0;}});
     this.partner={x:-1.7,z:4.5,attack:0,face:Math.PI};this.enemies=[];this.projectiles=[];this.orbs=[];this.hazards=[];
@@ -99,11 +105,13 @@ export class Adventure {
   gainUltimateCharge(heroId,amount){if(!this.party.includes(heroId)||!Number.isFinite(amount)||amount<=0)return;const hero=HEROES.find(h=>h.id===heroId),bonus=ultimateBonuses(this.progression.characters[heroId],heroId);this.ultimateCharges[heroId]=clamp(this.ultimateCharges[heroId]+amount*hero.chargeRate*(1+this.rank('focus')*.3)*(1+bonus.ultimateCharge),0,100);}
   get hasPartner(){return this.party.length===2;}
   get partnerHero(){return this.partyHeroes.find(hero=>hero!==this.player.hero)??null;}
+  isHeroAlive(hero){return this.partyHeroes.includes(hero)&&this.healthFor(hero).hp>0;}
+  get hasLivingPartner(){return this.hasPartner&&this.isHeroAlive(this.partnerHero);}
   progressFor(hero){return characterProgress(this.progression,HEROES[hero].id);}
   statsFor(hero){return combatStats(this.progression,HEROES[hero]);}
-  refreshStats({preserveRatio=false}={}){
-    const p=this.player,maxHp=this.statsFor(p.hero).maxHp+this.rank('vitality')*40,old=p.maxHp;
-    p.maxHp=maxHp;p.hp=preserveRatio?p.hp/old*maxHp:Math.min(maxHp,p.hp+Math.max(0,maxHp-old));
+  healthFor(hero){return this.heroHealth[this.heroId(hero)];}
+  refreshStats(){
+    for(const hero of this.partyHeroes){const health=this.healthFor(hero),maxHp=this.statsFor(hero).maxHp+this.rank('vitality')*40;health.hp=health.hp>0?Math.min(maxHp,health.hp+Math.max(0,maxHp-health.maxHp)):0;health.maxHp=maxHp;}
   }
   rank(id){return this.skills[id]||0;}
   collectMaterials(rewards,source){const amounts=grantMaterials(this.progression,rewards);for(const [id,value] of Object.entries(amounts))this.earnedMaterials[id]+=value;if(Object.keys(amounts).length)this.emit('materials',{amounts,source});}
@@ -125,6 +133,7 @@ export class Adventure {
   meetTsukineko(){
     if(this.act!==3||this.wave!==6||this.guestHeroId||isHeroUnlocked(this.progression,'tsukineko'))return false;
     this.guestHeroId='tsukineko';this.party=Object.freeze(['nyanluna','tsukineko']);this.partyHeroes=[0,1];this.skillPool=Object.freeze(skillsForParty(this.party));
+    this.refreshStats();
     Object.assign(this.partner,{x:this.player.x-1.7,z:this.player.z+1.5,attack:0,face:Math.PI});
     this.emit('guestJoin',{heroId:'tsukineko'});return true;
   }
@@ -180,16 +189,21 @@ export class Adventure {
     this.spawnEnemy(type,x,z,{elite});this.waveSpawned++;
   }
   nearest(x,z,range){let best=null,dist=range;for(const e of this.enemies){if(e.hp<=0)continue;const d=Math.hypot(e.x-x,e.z-z);if(d-e.radius<dist){best=e;dist=d-e.radius;}}return best;}
-  heal(amount){this.player.hp=Math.min(this.player.maxHp,this.player.hp+amount);}
+  heal(amount){if(this.player.hp>0)this.player.hp=Math.min(this.player.maxHp,this.player.hp+amount);}
   dash(dx,dz){
     const p=this.player;if(this.phase!=='playing'||p.dashCooldown>0||this.tutorial?.active&&this.tutorial.step.id!=='dash')return false;
     const d=Math.hypot(dx,dz);p.dx=d>.01?dx/d:Math.sin(p.face);p.dz=d>.01?dz/d:Math.cos(p.face);
     p.dash=.22;p.dashCooldown=Math.max(.65,1.5-this.rank('stride')*.2);p.invincible=.5;this.emit('dash',{x:p.x,z:p.z,hero:p.hero});this.observeTutorial('dash');return true;
   }
-  switchHero(){const p=this.player;if(this.phase!=='playing'||!this.hasPartner||p.switchCooldown>0)return false;p.hero=this.partnerHero;this.refreshStats({preserveRatio:true});p.switchCooldown=.65;p.attack=.05;p.invincible=Math.max(p.invincible,.32);this.emit('switch',{hero:p.hero,x:p.x,z:p.z});return true;}
+  switchHero(){if(this.phase!=='playing'||!this.hasLivingPartner||this.player.switchCooldown>0)return false;this.activateHero(this.partnerHero);return true;}
+  activateHero(hero,automatic=false){
+    const p=this.player;p.hero=hero;this.refreshStats();p.switchCooldown=.65;p.attack=.05;p.invincible=Math.max(p.invincible,automatic?1.5:.32);
+    if(automatic){p.dash=0;this.partner.moving=false;}
+    this.emit('switch',{hero:p.hero,x:p.x,z:p.z,automatic});
+  }
   ultimate(){return castUltimate(this);}
   attackFrom(source,hero,support=false){
-    if(!this.partyHeroes.includes(hero)||(support&&!this.hasPartner))return false;
+    if(!this.isHeroAlive(hero)||(support&&!this.hasLivingPartner))return false;
     const stats=HEROES[hero];const range=stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
     const angle=Math.atan2(enemy.x-source.x,enemy.z-source.z);source.face=angle;
     const heroId=HEROES[hero].id;let damage=this.statsFor(hero).attack*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*(support?.43*(1+this.rank('echo')*.35+this.rank('starBlade')*.2):1);
@@ -216,7 +230,7 @@ export class Adventure {
       this.kills++;this.trackMission('kills');this.combo++;this.comboTimer=4;this.maxCombo=Math.max(this.maxCombo,this.combo);
       if(canCharge)this.gainUltimateCharge(heroId,4);
       const earned=awardCharacterXp(this.progression,heroId,ENEMY_REWARDS[e.type]?.xp??0);
-      if(earned){this.earnedXp[heroId]=(this.earnedXp[heroId]??0)+earned.amount;if(heroId===HEROES[this.player.hero].id)this.refreshStats();this.emit('characterXp',earned);}
+      if(earned){this.earnedXp[heroId]=(this.earnedXp[heroId]??0)+earned.amount;this.refreshStats();this.emit('characterXp',earned);}
       this.collectMaterials(enemyMaterials(e,this.act,this.difficulty),'enemy');
       if(e.elite){this.collectMaterials(ROUTE_REWARD,'route');this.routeRewards.push(this.area);this.emit('routeReward',{rewards:ROUTE_REWARD});}
       this.emit('death',{id:e.id,x:e.x,z:e.z,enemyType:e.type,heroId});
@@ -229,7 +243,17 @@ export class Adventure {
   hurt(amount,x,z){
     const p=this.player;if(p.invincible>0||this.phase!=='playing'||this.exitOpen||this.travelOpen||this.tutorial?.active)return false;
     const damage=amount*Math.pow(.85,(this.rank('ward')+this.rank('saberGuard')))*100/(100+this.statsFor(p.hero).defense);p.hp=Math.max(0,p.hp-damage);p.invincible=.8;this.combo=0;if(damage>0){this.stageTrial.hits++;this.runHits++;}
-    this.emit('hurt',{damage:Math.round(damage),x,z});if(p.hp<=0){this.phase='defeat';this.ultimateEffects=[];this.projectiles=[];this.hazards=[];this.emit('defeat');}return true;
+    this.emit('hurt',{damage:Math.round(damage),hero:p.hero,x,z});
+    if(p.hp<=0){
+      const heroId=this.heroId(p.hero);this.emit('heroDown',{hero:p.hero,heroId});
+      this.ultimateEffects=this.ultimateEffects.filter(effect=>effect.heroId!==heroId);
+      // Mark in-flight shots too: a knockout can happen during the projectile loop.
+      for(const bullet of this.projectiles)if(bullet.owner==='player'&&bullet.heroId===heroId)bullet.life=0;
+      this.projectiles=this.projectiles.filter(bullet=>bullet.life>0);
+      if(this.hasLivingPartner)this.activateHero(this.partnerHero,true);
+      else{this.phase='defeat';this.ultimateEffects=[];this.projectiles=[];this.hazards=[];this.emit('defeat');}
+    }
+    return true;
   }
   addCrystals(value){if(this.phase==='victory'||this.phase==='defeat'||!Number.isFinite(value)||value<=0)return;value=Math.floor(value);this.trackMission('crystals',value);this.stageCrystals+=value;this.totalCrystals+=value;while(this.stageCrystals>=this.crystalGoal){this.stageCrystals-=this.crystalGoal;this.blessingTier++;this.crystalGoal=Math.round(this.crystalGoal*1.25+2);this.pendingBlessings++;}}
   collectAll(){for(const orb of this.orbs)this.addCrystals(orb.value);this.orbs=[];}
@@ -264,7 +288,7 @@ export class Adventure {
     Object.assign(p,moveWithin(this.walkLayout,{x:fromX,z:fromZ},p.x,p.z));
     const partner=this.partner;const targetX=p.x-Math.cos(p.face)*1.7-Math.sin(p.face),targetZ=p.z+Math.sin(p.face)*1.7-Math.cos(p.face);
     const partnerFrom={x:partner.x,z:partner.z};
-    if(this.hasPartner){if(!clearPath(this.walkLayout,partner,{x:targetX,z:targetZ},.55)){const d=navigation(this.walkLayout,partner,{x:targetX,z:targetZ}),length=Math.hypot(d.x,d.z)||1;partner.x+=d.x/length*6*dt;partner.z+=d.z/length*6*dt;}partner.moving=Math.hypot(partner.x-targetX,partner.z-targetZ)>.3;partner.x+=(targetX-partner.x)*Math.min(1,dt*5);partner.z+=(targetZ-partner.z)*Math.min(1,dt*5);partner.attack=Math.max(0,partner.attack-dt);}else partner.moving=false;
+    if(this.hasLivingPartner){if(!clearPath(this.walkLayout,partner,{x:targetX,z:targetZ},.55)){const d=navigation(this.walkLayout,partner,{x:targetX,z:targetZ}),length=Math.hypot(d.x,d.z)||1;partner.x+=d.x/length*6*dt;partner.z+=d.z/length*6*dt;}partner.moving=Math.hypot(partner.x-targetX,partner.z-targetZ)>.3;partner.x+=(targetX-partner.x)*Math.min(1,dt*5);partner.z+=(targetZ-partner.z)*Math.min(1,dt*5);partner.attack=Math.max(0,partner.attack-dt);}else partner.moving=false;
     Object.assign(partner,moveWithin(this.walkLayout,partnerFrom,partner.x,partner.z,.55));
     if(training){this.observeTutorial('move',Math.hypot(p.x-fromX,p.z-fromZ));if(this.tutorial.step.id!=='attack')return;}
     if(this.travelOpen){
@@ -277,7 +301,7 @@ export class Adventure {
     }
     if(!training)tickUltimates(this,dt);
     if(p.attack<=0&&this.attackFrom(p,p.hero))p.attack=HEROES[p.hero].interval*Math.pow(.85,this.rank('haste'));
-    if(this.hasPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=HEROES[this.partnerHero].interval*2.6*Math.pow(.85,this.rank('haste'));
+    if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=HEROES[this.partnerHero].interval*2.6*Math.pow(.85,this.rank('haste'));
     if(!training){this.spawnTimer-=dt;if(this.waveSpawned<this.waveGoal&&this.spawnTimer<=0){this.spawn();this.spawnTimer=this.wave===6?100:Math.max(.43,1.15-this.wave*.10);}}
     for(const e of this.enemies){
       if(e.hp<=0)continue;const enemyFrom={x:e.x,z:e.z};e.navTimer-=dt;e.age+=dt;e.hit=Math.max(0,e.hit-dt);e.attack-=dt;
@@ -291,6 +315,7 @@ export class Adventure {
       if(d<min){const k=(min-d)*dt*2.5;a.x-=x/d*k;a.z-=z/d*k;b.x+=x/d*k;b.z+=z/d*k;Object.assign(a,projectInside(this.walkLayout,a.x,a.z,.55));Object.assign(b,projectInside(this.walkLayout,b.x,b.z,.55));}
     }
     for(const bullet of this.projectiles){
+      if(bullet.life<=0)continue;
       bullet.life-=dt;if(bullet.owner==='player'&&bullet.kind!=='gun'){
         const target=this.enemies.find(e=>e.id===bullet.target&&e.hp>0);if(target){const x=target.x-bullet.x,z=target.z-bullet.z,d=Math.hypot(x,z)||1;bullet.vx=x/d*15;bullet.vz=z/d*15;}
       }
@@ -321,5 +346,5 @@ export class Adventure {
     }
     if(this.pendingBlessings>0){this.offerSkills();return;}
   }
-  snapshot(){return {rescue:this.rescue?{...this.rescue}:null,layout:this.layout.id,travelOpen:this.travelOpen,travelTargets:this.travelTargets,route:this.route,routeRewards:[...this.routeRewards],act:this.act,actTitle:this.actConfig.title,phase:this.phase,ultimateCharges:{...this.ultimateCharges},ultimateEffects:this.ultimateEffects.map(e=>({...e})),tutorial:this.tutorial?{active:this.tutorial.active,step:this.tutorial.step.id,distance:this.tutorial.distance}:null,guestHeroId:this.guestHeroId,recruitedHeroId:this.recruitedHeroId,party:[...this.party],partnerHero:this.partnerHero,skillPool:this.skillPool.map(s=>s.id),exitOpen:this.exitOpen,stagesCleared:this.stagesCleared,wave:this.wave,area:this.area,kills:this.kills,time:this.time,characterLevels:Object.fromEntries(HEROES.map((h,i)=>[h.id,{...this.progressFor(i)}])),earnedXp:{...this.earnedXp},stageCrystals:this.stageCrystals,crystalGoal:this.crystalGoal,blessingTier:this.blessingTier,blessingsTaken:this.blessingsTaken,player:{...this.player},enemyCount:this.enemies.length,projectiles:this.projectiles.length,earnedMissions:[...this.earnedMissions],skills:{...this.skills},offers:this.offers.map(s=>s.id),boss:this.enemies.find(e=>e.type==='boss')?.hp||0};}
+  snapshot(){return {heroHealth:Object.fromEntries(this.party.map(id=>[id,{...this.heroHealth[id]}])),rescue:this.rescue?{...this.rescue}:null,layout:this.layout.id,travelOpen:this.travelOpen,travelTargets:this.travelTargets,route:this.route,routeRewards:[...this.routeRewards],act:this.act,actTitle:this.actConfig.title,phase:this.phase,ultimateCharges:{...this.ultimateCharges},ultimateEffects:this.ultimateEffects.map(e=>({...e})),tutorial:this.tutorial?{active:this.tutorial.active,step:this.tutorial.step.id,distance:this.tutorial.distance}:null,guestHeroId:this.guestHeroId,recruitedHeroId:this.recruitedHeroId,party:[...this.party],partnerHero:this.partnerHero,skillPool:this.skillPool.map(s=>s.id),exitOpen:this.exitOpen,stagesCleared:this.stagesCleared,wave:this.wave,area:this.area,kills:this.kills,time:this.time,characterLevels:Object.fromEntries(HEROES.map((h,i)=>[h.id,{...this.progressFor(i)}])),earnedXp:{...this.earnedXp},stageCrystals:this.stageCrystals,crystalGoal:this.crystalGoal,blessingTier:this.blessingTier,blessingsTaken:this.blessingsTaken,player:{...this.player},enemyCount:this.enemies.length,projectiles:this.projectiles.length,earnedMissions:[...this.earnedMissions],skills:{...this.skills},offers:this.offers.map(s=>s.id),boss:this.enemies.find(e=>e.type==='boss')?.hp||0};}
 }

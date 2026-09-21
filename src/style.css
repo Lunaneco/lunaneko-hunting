@@ -41,3 +41,7 @@ h1.game-title{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;fon
 @media(max-width:760px){.hero-heading{gap:3px}.hero-heading .lead-status{font-size:7px;padding:1px 3px}.switch-action{right:90px;bottom:101px;width:66px;height:66px}.action-button.switch-action>.portrait{width:32px;height:32px}.switch-action>.switch-label{font-size:9px}.switch-action>.switch-target{font-size:9px}}
 @media(max-width:380px){.hero-heading{letter-spacing:.3px}.hero-heading .lead-status{padding:1px 2px}}
 @media(max-height:500px) and (orientation:landscape){.switch-action{position:relative;right:auto;bottom:auto;width:64px;height:64px;margin-right:5px}.switch-action>.switch-target{top:calc(100% + 3px);font-size:8px}}
+
+/* A defeated companion remains visible in the HUD, but cannot be selected. */
+#switch-action:disabled{opacity:.5;filter:grayscale(1)}
+#switch-action:disabled .cooldown-mask{display:none}

@@ -135,7 +135,7 @@ export class World {
   render(game,dt){
     this.renderer.info.reset();this.terrain.update(game,this.time);if(game)this.surface=game.layout;this.time+=dt;const t=this.time;this.shake=Math.max(0,this.shake-dt);
     if(game){
-      const p=game.player;this.heroes.forEach((h,i)=>{h.visible=game.partyHeroes.includes(i);if(h.visible){animateHero(h,{...(i===p.hero?p:game.partner),moving:game.phase==='playing'&&(i===p.hero?p:game.partner).moving},t,dt,i===p.hero);const source=i===p.hero?p:game.partner;h.position.y=heightAt(game.layout,source.x,source.z);}});
+      const p=game.player;this.heroes.forEach((h,i)=>{h.visible=game.isHeroAlive(i);if(h.visible){animateHero(h,{...(i===p.hero?p:game.partner),moving:game.phase==='playing'&&(i===p.hero?p:game.partner).moving},t,dt,i===p.hero);const source=i===p.hero?p:game.partner;h.position.y=heightAt(game.layout,source.x,source.z);}});
       if(game.rescue&&!game.partyHeroes.includes(2)&&game.phase!=='victory'){
         const injured=this.heroes[2];injured.visible=true;animateWoundedHero(injured,game.rescue,t,dt);injured.position.y=game.layout.height;
       }

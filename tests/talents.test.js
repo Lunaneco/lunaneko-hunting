@@ -40,7 +40,7 @@ test('enemy drops are separate from XP and crystals and are awarded only once',(
  kill(g,'golem','tsukineko');assert.equal(g.progression.inventory.starBud,3);kill(g,'boss');assert.equal(g.progression.inventory.starBud,9);assert.equal(g.progression.inventory.wardenCore,1);assert.deepEqual(g.earnedMaterials,{starBud:9,moonDew:0,wardenCore:1,moonPrism:0,astralCore:0});
 });
 test('a capped character still earns materials; death cannot grant late drops',()=>{
- const p=profile();p.characters.nyanluna.level=50;p.characters.nyanluna.breaks=3;const g=new RecruitedAdventure({progression:p});kill(g);assert.equal(g.progressFor(0).xp,0);assert.equal(g.earnedMaterials.starBud,1);
+ const p=profile();p.characters.nyanluna.level=50;p.characters.nyanluna.breaks=3;const g=new RecruitedAdventure({progression:p,party:['nyanluna']});kill(g);assert.equal(g.progressFor(0).xp,0);assert.equal(g.earnedMaterials.starBud,1);
  const e=g.spawnEnemy('boss',0,5);g.player.invincible=0;g.hurt(99999,0,0);g.hit(e,99999,0,0);assert.equal(g.earnedMaterials.wardenCore,0);
 });
 test('each gate grants its dew once, including the final gate, and retains the tree',()=>{
@@ -51,7 +51,7 @@ test('each gate grants its dew once, including the final gate, and retains the t
 test('tree attack, HP and defense affect combat and survive a new departure and character swaps',()=>{
  const p=profile();for(const id of ['origin','attack1','guard1'])unlockTalent(p,'tsukineko',id);const g=new RecruitedAdventure({hero:1,progression:p});g.rng=()=>.9;
  const stats=g.statsFor(1);const e=g.spawnEnemy('boss',0,5);g.attackFrom(g.player,1);g.player.attack=g.partner.attack=1000;g.tick(.05);assert.ok(Math.abs(e.maxHp-e.hp-stats.attack)<1e-8);assert.equal(g.player.maxHp,306);
- g.player.hp=g.player.maxHp/2;g.switchHero();assert.equal(g.player.hp/g.player.maxHp,.5);g.player.switchCooldown=0;g.switchHero();assert.equal(g.player.hp,153);
+ g.player.hp=g.player.maxHp/2;g.switchHero();assert.equal(g.player.hp/g.player.maxHp,1);g.player.switchCooldown=0;g.switchHero();assert.equal(g.player.hp,153);
  g.skills.ward=1;g.player.invincible=0;const hp=g.player.hp;g.hurt(100,0,0);assert.ok(Math.abs(hp-g.player.hp-100*.85*100/(100+stats.defense))<1e-8);const next=new RecruitedAdventure({hero:1,progression:g.progression});assert.deepEqual(next.skills,{});assert.deepEqual(next.statsFor(1),stats);
 });
 test('corrupt or incomplete trees and materials are sanitized without phantom bonuses',()=>{

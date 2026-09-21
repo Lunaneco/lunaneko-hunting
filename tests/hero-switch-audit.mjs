@@ -34,7 +34,7 @@ const page=await context.newPage();watch(page);
  await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:60,y:590,id:1}]});
  await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:105,y:590,id:1}]});
  await page.waitForTimeout(180);
- const before=await page.evaluate(()=>({...window.__LUNARIA_TEST__.game.player,time:window.__LUNARIA_TEST__.game.time}));
+ const before=await page.evaluate(()=>{const g=window.__LUNARIA_TEST__.game;g.player.hp=120;return {...g.player,partnerHp:g.healthFor(g.partnerHero).hp,time:g.time};});
  const box=await page.locator('#switch-action').boundingBox();
  await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:105,y:590,id:1},{x:box.x+box.width/2,y:box.y+box.height/2,id:2}]});
  // Update the active set to lift only the second finger. touchEnd would
@@ -42,10 +42,10 @@ const page=await context.newPage();watch(page);
  await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:105,y:590,id:1}]});
  await page.waitForFunction(time=>window.__LUNARIA_TEST__.game.time>time+.3,before.time);
  const after=await page.evaluate(()=>({...window.__LUNARIA_TEST__.game.player}));
- assert.equal(after.hero,1);assert.ok(Math.hypot(after.x-before.x,after.z-before.z)>.5,JSON.stringify({before,after,events:await page.evaluate(()=>window.__pointerLog)}));assert.ok(Math.abs(after.hp/after.maxHp-before.hp/before.maxHp)<1e-8);
+ assert.equal(after.hero,1);assert.ok(Math.hypot(after.x-before.x,after.z-before.z)>.5,JSON.stringify({before,after,events:await page.evaluate(()=>window.__pointerLog)}));assert.equal(after.hp,before.partnerHp);assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.game.healthFor(0).hp),120);
  assert.equal(await page.locator('#joystick').isVisible(),true);
  await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.equal(await page.locator('#joystick').isVisible(),false);
- check('Real two-finger input switches the controlled hero without interrupting movement or shared HP');
+ check('Real two-finger input switches the controlled hero without interrupting movement or individual HP');
  await ready(page);await page.locator('#switch').tap();assert.equal(await lead(page),0);check('Existing portrait shortcut still switches both ways');
  for(const size of [{width:390,height:844},{width:320,height:568},{width:844,height:390},{width:1440,height:900}]){
   await page.setViewportSize(size);await ready(page);

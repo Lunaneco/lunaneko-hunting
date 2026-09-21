@@ -6,7 +6,7 @@ import {ultimateFor} from '../src/abilities.js';
 import {enemySpeedScale} from '../src/ultimate-combat.js';
 import {normalizeProgression,characterStats} from '../src/progression.js';
 const near=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-6,`${actual} != ${expected}`);
-const quiet=(hero=0)=>{const g=new RecruitedAdventure({hero,seed:41});g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.player.attack=g.partner.attack=999;g.drainEvents();return g;};
+const quiet=(hero=0,party)=>{const g=new RecruitedAdventure({hero,seed:41,party});g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.player.attack=g.partner.attack=999;g.drainEvents();return g;};
 const tick=(g,n)=>{for(let i=0;i<n;i++)g.tick(1/60);};
 const target=(g,type='boss',x=0,z=8)=>{const e=g.spawnEnemy(type,x,z);e.hp=e.maxHp=10000;e.speed=0;e.attack=e.special=999;return e;};
 
@@ -47,7 +47,7 @@ test('delayed casts keep their owner after swapping and ultimate-triggered nova 
  for(const hero of [0,1]){const g=quiet(hero);g.skills.nova=1;g.player.charge=100;g.ultimate();g.switchHero();g.player.attack=g.partner.attack=999;const e=g.spawnEnemy('moss',0,6);e.hp=1;e.speed=0;const b=g.spawnEnemy('bat',.5,6);b.hp=1;b.speed=0;tick(g,90);assert.equal(g.kills,2);assert.equal(g.earnedXp[HEROES[hero].id],7);assert.equal(g.earnedXp[HEROES[1-hero].id],0);assert.equal(g.chargeFor(0),0);assert.equal(g.chargeFor(1),0);}
 });
 test('pause, upgrade, defeat and gate transitions cannot leak delayed shots or area effects',()=>{
- for(const hero of [0,1]){const g=quiet(hero),e=target(g);g.player.charge=100;g.ultimate();g.pause();const before=g.snapshot();tick(g,300);assert.deepEqual(g.snapshot(),before);g.resume();g.phase='upgrade';const effect=structuredClone(g.ultimateEffects);tick(g,100);assert.deepEqual(g.ultimateEffects,effect);g.phase='playing';g.player.invincible=0;g.hurt(9999,0,0);assert.equal(g.ultimateEffects.length,0);assert.equal(g.projectiles.length,0);const hp=e.hp;tick(g,200);assert.equal(e.hp,hp);}
+ for(const hero of [0,1]){const g=quiet(hero,[HEROES[hero].id]),e=target(g);g.player.charge=100;g.ultimate();g.pause();const before=g.snapshot();tick(g,300);assert.deepEqual(g.snapshot(),before);g.resume();g.phase='upgrade';const effect=structuredClone(g.ultimateEffects);tick(g,100);assert.deepEqual(g.ultimateEffects,effect);g.phase='playing';g.player.invincible=0;g.hurt(9999,0,0);assert.equal(g.ultimateEffects.length,0);assert.equal(g.projectiles.length,0);const hp=e.hp;tick(g,200);assert.equal(e.hp,hp);}
  const g=quiet();g.wave=2;g.player.charge=100;g.ultimate();g.ultimateCharges.tsukineko=70;g.openExit();assert.equal(g.ultimateEffects.length,0);g.exitDelay=0;Object.assign(g.player,{x:g.exitPoint.x,z:g.exitPoint.z});g.crossExit();g.advanceStage();assert.equal(g.ultimateEffects.length,0);assert.equal(g.chargeFor(1),70);
 });
 test('equipment and permanent growth scale skill damage once while each signature retains its identity',()=>{

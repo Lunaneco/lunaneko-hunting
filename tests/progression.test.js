@@ -32,7 +32,7 @@ test('ultimate and orbit credit the controlled hero',()=>{
  g.skills.orbit=1;const angle=(g.time+1/60)*2.3;const e=g.spawnEnemy('moss',g.player.x+Math.cos(angle)*2.5,g.player.z+Math.sin(angle)*2.5);e.hp=1;tick(g);assert.equal(g.progressFor(1).xp,6);assert.equal(g.progressFor(0).xp,0);
 });
 test('defeat cannot award a late projectile kill',()=>{
- const g=new RecruitedAdventure();quiet(g);const e=g.spawnEnemy('boss',10,10);g.player.invincible=0;g.hurt(999,0,0);g.hit(e,9999,0,0);assert.equal(g.kills,0);assert.equal(g.progressFor(0).xp,0);
+ const g=new RecruitedAdventure({party:['nyanluna']});quiet(g);const e=g.spawnEnemy('boss',10,10);g.player.invincible=0;g.hurt(999,0,0);g.hit(e,9999,0,0);assert.equal(g.kills,0);assert.equal(g.progressFor(0).xp,0);
 });
 test('permanent stats apply to attack, defense and new adventure HP',()=>{
  const p=fresh();p.characters.tsukineko.level=10;const g=new RecruitedAdventure({hero:1,progression:p});quiet(g);g.rng=()=>.99;
@@ -40,9 +40,9 @@ test('permanent stats apply to attack, defense and new adventure HP',()=>{
  const e=g.spawnEnemy('golem',0,5);g.attackFrom(g.player,1);g.player.attack=g.partner.attack=1000;g.tick(.05);assert.ok(Math.abs(e.maxHp-e.hp-stats.attack)<1e-8);
  g.player.invincible=0;const before=g.player.hp;g.hurt(100,0,0);assert.ok(Math.abs(before-g.player.hp-10000/(100+stats.defense))<1e-8);
 });
-test('unequal character levels retain the shared health ratio across repeated swaps',()=>{
+test('unequal character levels retain individual health across repeated swaps',()=>{
  const p=fresh();p.characters.tsukineko.level=20;const g=new RecruitedAdventure({progression:p});g.player.hp=90;
- for(let i=0;i<10;i++){g.player.switchCooldown=0;g.switchHero();assert.equal(g.player.hp/g.player.maxHp,.5);}
+ for(let i=0;i<10;i++){g.player.switchCooldown=0;g.switchHero();assert.equal(g.player.hp/g.player.maxHp,g.player.hero===0?.5:1);}
  assert.equal(g.player.hp,90);
 });
 test('wave changes retain blessings and crossing a stage retains them and preserves character progress',()=>{

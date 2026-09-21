@@ -48,13 +48,13 @@ test('locked, wrong-owner and duplicate relic slots are rejected; invalid saves 
   assert.equal(equipUnique(e,'tsukineko','meadow-charm'),false);assert.equal(equipUnique(e,'nyanluna','ruins-lens'),false);assert.equal(equipUnique(e,'nyanluna','nox-rifle'),false);assert.equal(equipUnique(e,'unknown','meadow-charm'),false);
   assert.equal(equipUnique(e,'nyanluna',''),true);assert.equal(equipUnique(e,'tsukineko','meadow-charm'),true);
 });
-test('relic stats affect only their wearer in real attacks and defense while swaps preserve shared HP ratio',()=>{
+test('relic stats affect only their wearer in real attacks and defense while swaps preserve individual HP',()=>{
   const profile=normalizeProgression({},HEROES);profile.equipment.owned=['meadow-charm','ruins-lens','dawn-seal'];equipUnique(profile.equipment,'nyanluna','meadow-charm');equipUnique(profile.equipment,'tsukineko','ruins-lens');
-  const g=quiet(new RecruitedAdventure({progression:profile}));assert.equal(g.player.maxHp,210);assert.equal(g.statsFor(1).maxHp,210);assert.equal(g.statsFor(1).attack,26*1.12);g.player.hp=105;g.switchHero();assert.equal(g.player.maxHp,210);assert.equal(g.player.hp,105);
+  const g=quiet(new RecruitedAdventure({progression:profile}));assert.equal(g.player.maxHp,210);assert.equal(g.statsFor(1).maxHp,210);assert.equal(g.statsFor(1).attack,26*1.12);g.player.hp=105;g.switchHero();assert.equal(g.player.maxHp,210);assert.equal(g.player.hp,210);
   g.rng=()=>.9;const target=g.spawnEnemy('golem',0,6);g.attackFrom(g.player,1);g.player.attack=g.partner.attack=999;for(let i=0;i<7;i++)g.tick(1/60);assert.ok(Math.abs(target.maxHp-target.hp-g.statsFor(1).attack)<1e-8);
   equipUnique(profile.equipment,'tsukineko','dawn-seal');const armored=new RecruitedAdventure({hero:1,progression:profile});armored.player.invincible=0;armored.hurt(100,0,0);assert.ok(Math.abs(210-armored.player.hp-10000/126)<1e-8);assert.equal(characterStats(HEROES[1],profile.characters.tsukineko).defense,14);assert.equal(combatStats(profile,HEROES[1]).defense,26);
   const restored=normalizeProgression(JSON.parse(JSON.stringify(profile)),HEROES);assert.deepEqual(restored.equipment,profile.equipment);
 });
 test('defeat does not count late kills or crystals towards missions',()=>{
-  const g=quiet(new RecruitedAdventure()),enemy=g.spawnEnemy('moss',0,8);g.player.invincible=0;g.hurt(999,0,0);const before=structuredClone(g.progression);g.hit(enemy,999,0,0);g.addCrystals(50);assert.deepEqual(g.progression,before);
+  const g=quiet(new RecruitedAdventure({party:['nyanluna']})),enemy=g.spawnEnemy('moss',0,8);g.player.invincible=0;g.hurt(999,0,0);const before=structuredClone(g.progression);g.hit(enemy,999,0,0);g.addCrystals(50);assert.deepEqual(g.progression,before);
 });

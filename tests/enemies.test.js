@@ -6,7 +6,7 @@ import {ENEMY_TYPES,BOSSES,enemyForSpawn,distanceToHazard} from '../src/enemies.
 import {ENEMY_REWARDS} from '../src/progression.js';
 import {MATERIAL_DROPS} from '../src/talents.js';
 import {createEnemy,animateEnemy} from '../src/characters.js';
-function quiet(act=0){const g=new Adventure({seed:4,act,progression:{story:{version:2,actClears:[true,true,true,true],tsukinekoUnlocked:true}}});g.enemies=[];g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.player.attack=g.partner.attack=999;g.player.invincible=0;g.drainEvents();return g;}
+function quiet(act=0,party){const g=new Adventure({seed:4,act,party,progression:{story:{version:2,actClears:[true,true,true,true],tsukinekoUnlocked:true}}});g.enemies=[];g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.player.attack=g.partner.attack=999;g.player.invincible=0;g.drainEvents();return g;}
 const tick=(g,seconds)=>{for(let i=0;i<Math.ceil(seconds*60)&&g.phase==='playing';i++)g.tick(1/60);};
 test('twelve regular enemy types have unique roles and complete XP, crystal and material rewards',()=>{
  assert.equal(Object.keys(ENEMY_TYPES).length,12);
@@ -44,11 +44,11 @@ test('enemy projectiles use swept collision and cannot jump over the player',()=
 });
 test('pause freezes enemy casting; gates and defeat clear queued danger',()=>{
  const g=quiet(),e=g.spawnEnemy('mage',0,-5);e.special=0;g.tick(1/60);g.pause();const cast=structuredClone(e.cast),hazards=structuredClone(g.hazards);for(let i=0;i<120;i++)g.tick(1/60);assert.deepEqual(e.cast,cast);assert.deepEqual(g.hazards,hazards);g.resume();g.openExit();assert.equal(g.hazards.length,0);assert.equal(g.projectiles.length,0);
- const dead=quiet(),mage=dead.spawnEnemy('mage',0,-5);mage.special=0;dead.tick(1/60);dead.hurt(99999,0,0);assert.equal(dead.phase,'defeat');assert.equal(dead.hazards.length,0);
+ const dead=quiet(0,['nyanluna']),mage=dead.spawnEnemy('mage',0,-5);mage.special=0;dead.tick(1/60);dead.hurt(99999,0,0);assert.equal(dead.phase,'defeat');assert.equal(dead.hazards.length,0);
 });
 test('a fatal hit stops the same frame before another caster or nearby crystals can act',()=>{
  for(const cause of ['melee','projectile','magic']){
-  const g=quiet();g.player.hp=1;g.orbs=[{id:100,x:0,z:3,value:1,age:0}];
+  const g=quiet(0,['nyanluna']);g.player.hp=1;g.orbs=[{id:100,x:0,z:3,value:1,age:0}];
   if(cause==='melee'){const e=g.spawnEnemy('moss',0,3);e.attack=0;const mage=g.spawnEnemy('mage',0,-5);mage.special=0;}
   if(cause==='projectile')g.projectiles=[{id:101,owner:'enemy',x:0,z:3,vx:0,vz:0,life:1,radius:.2,damage:10}];
   if(cause==='magic')g.hazards=[{id:102,x:0,z:3,radius:2,timer:0,total:1,damage:10}];
