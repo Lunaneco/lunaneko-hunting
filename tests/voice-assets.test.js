@@ -7,8 +7,11 @@ import {ACT_SCENES} from '../src/chapter.js';
 import {TUTORIAL_STEPS} from '../src/tutorial.js';
 import {BATTLE_VOICES,dialogueVoiceId} from '../src/voice-catalog.js';
 
-test('every story, tutorial and character action has its own shipped voice asset',async()=>{
- const lines=[...ACT_SCENES.flatMap(s=>Object.values(s).flatMap(scene=>scene.lines)),...TUTORIAL_STEPS.map(s=>({who:'nyanluna',text:s.text}))].map(line=>({...line,id:dialogueVoiceId(line.who,line.text)}));
+test('only selected story lines, tutorials and character actions ship voice assets',async()=>{
+ const story=ACT_SCENES.flatMap(s=>Object.values(s).flatMap(scene=>scene.lines));
+ assert.equal(story.length,125);assert.equal(story.filter(line=>line.voiced).length,47);
+ for(const line of story.filter(line=>!line.voiced))assert.equal(VOICE_MANIFEST[dialogueVoiceId(line.who,line.text)],undefined,`Unselected story voice: ${line.text}`);
+ const lines=[...story.filter(line=>line.voiced),...TUTORIAL_STEPS.map(s=>({who:'nyanluna',text:s.text}))].map(line=>({...line,id:dialogueVoiceId(line.who,line.text)}));
  lines.push(...Object.values(BATTLE_VOICES).flatMap(events=>Object.values(events).flat()));
  const ids=new Set();
  for(const line of lines){

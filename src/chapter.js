@@ -2,15 +2,15 @@ import {SECOND_CHAPTER_SCENES} from './chapter-two-story.js';
 import {storySpeaker,preloadStoryCast} from './story-cast.js';
 import {ACTS,actLabel} from './acts.js';
 export const CHAPTER={title:'迷子の月と、ふたりの約束',summary:'大の仲良しの二人が、一緒に迷い込んだ月の世界。はぐれた親友を探す、全4幕の物語。',stages:ACTS[0].stages};
-const line=(who,text)=>({who,text});
-const scene=(act,area,kicker,title,next,lines)=>({act,area,kicker:`ACT 0${act+1} · ${kicker}`,title,next,lines:lines.map(([who,text])=>line(who,text))});
+const line=(who,text,voiced)=>({who,text,voiced});
+const scene=(act,area,kicker,title,next,lines,voiced=false)=>({act,area,kicker:`ACT 0${act+1} · ${kicker}`,title,next,lines:lines.map(([who,text])=>line(who,text,voiced))});
 export const ACT_SCENES=[{
  opening:scene(0,0,'はじまり','離れてしまった手。','草原へ出発',[
  ['narrator','にゃんるなとつきねこは、昔から大の仲良し。いつもの帰り道、不思議な月の光をのぞき込んだ二人は、一緒に見知らぬ世界へ落ちてしまった。'],
  ['nyanluna','つきねこ……？ さっきまで、手をつないでいたのに。'],
  ['narrator','落ちる途中で光の流れが分かれた。目を覚ましたにゃんるなの隣に、親友の姿はない。空には欠けた月と、浮かぶ島々。'],
  ['nyanluna','あわてない。つきねこなら、きっと大丈夫。二人で帰るって決めたんだから。まずは、あの門まで行ってみよう。'],
- ]),
+ ],true),
  ruins:scene(0,1,'最初の月の門','見知らぬ街の記憶。','遺跡へ進む',[
  ['narrator','光る輪をくぐると、音の消えた街に出た。石碑に残った光が、古い言葉を映し出す。'],
  ['guardian','「月を閉ざせ。嵐から島を守れ。道が消えても、ここを離れるな。」'],
@@ -58,7 +58,7 @@ export const ACT_SCENES=[{
  ['narrator','途切れた橋の根元に、細い糸が引っかかっていた。落ちるときに切れた、にゃんるなのリボンだった。'],
  ['nyanluna','つきねこが結んでくれたリボン……。なくしたと思ってた。'],
  ['nyanluna','「ほどけても結び直せばいい」って、いつも言ってたよね。うん。離れても、また会える。'],
- ]),
+ ],true),
  sanctuary:scene(2,2,'星渡りの橋','星の雨を越えて。','橋へ進む',[
  ['narrator','対岸を守る番人が腕を広げた。雲間から星の弾が広がり、橋を渡る道をふさいでいく。'],
  ['nyanluna','よく見れば、星と星の間を通れる。つきねこ、もう少しでそっちに行けるよ。'],
@@ -93,7 +93,7 @@ export const ACT_SCENES=[{
  ['nyanluna','わたしも！ もう、すごく心配したんだから。……お話は、こいつを止めてからね。'],
  ['tsukineko','うん。いつもどおり、にゃんるなが光でひらいて、わたしが狙う。背中、任せて！'],
  ['nyanluna','もちろん。二人で迷い込んだんだもん。帰るときも、絶対に一緒だよ！'],
- ]),
+ ],true),
  ending:scene(3,2,'第1章クリア · ふたりの約束','もう一度、手をつないで。','報酬を受け取りメニューへ',[
  ['narrator','最後の光を門へ届けると、守護者の腕がほどけた。月が空へ昇り、島々をつなぐ銀色の道が戻ってくる。'],
  ['guardian','ひとりで守ろうとして……道を、閉ざしていたのか。ありがとう。小さな旅人たち。'],
@@ -101,7 +101,7 @@ export const ACT_SCENES=[{
  ['nyanluna','わたしも。帰り道はまだ先みたいだけど、二人なら大丈夫。いつも、そうだったでしょ？'],
  ['tsukineko','うん。道がなかったら、一緒に探そう。約束ね。'],
  ['narrator','二人は、もう一度しっかりと手をつないだ。つきねこと自由に編成できるようになった。元の世界への旅は、ここから二人で。――第1章、おわり。'],
- ]),
+ ],true),
 },...SECOND_CHAPTER_SCENES];
 export const SCENES=ACT_SCENES[0];
 export class ChapterStory{
@@ -109,15 +109,15 @@ export class ChapterStory{
     preloadStoryCast();
     this.dialog=document.createElement('dialog');this.dialog.id='story-dialog';this.dialog.className='story-dialog';this.dialog.setAttribute('aria-labelledby','story-title');document.body.append(this.dialog);
     this.dialog.addEventListener('cancel',e=>e.preventDefault());
-    this.dialog.addEventListener('click',e=>{const button=e.target.closest('button');if(button?.id==='story-next')this.next();if(button?.id==='story-skip')this.finish();if(button?.id==='story-voice')this.onVoice?.(this.scene.lines[this.index]);});
+    this.dialog.addEventListener('click',e=>{const button=e.target.closest('button');if(button?.id==='story-next')this.next();if(button?.id==='story-skip')this.finish();if(button?.id==='story-voice'&&this.scene.lines[this.index]?.voiced)this.onVoice?.(this.scene.lines[this.index]);});
   }
   show(scene,onFinish){this.scene=scene;this.index=0;this.onFinish=onFinish;this.render();if(!this.dialog.open)this.dialog.showModal();this.dialog.querySelector('#story-next').focus();}
   render(){
     const entry=this.scene.lines[this.index],speaker=storySpeaker(entry.who),last=this.index===this.scene.lines.length-1;
     this.dialog.style.setProperty('--story-image',`url('${ACTS[entry.act??this.scene.act??0].stages[entry.area??this.scene.area].image}')`);
     this.dialog.style.setProperty('--speaker-color',speaker.color);this.dialog.dataset.speaker=entry.who;
-    this.dialog.innerHTML=`<div class="story-art"></div><div class="story-vignette"></div><header class="story-header"><span>${this.scene.kicker}</span><button id="story-skip">会話をスキップ</button></header><div class="story-title-block"><small>${actLabel(entry.act??this.scene.act??0)}</small><h2 id="story-title">${this.scene.title}</h2></div><div class="story-body"><figure class="story-cast ${entry.who}"><img class="story-character-image" src="${speaker.image}" alt="${speaker.alt}" decoding="sync" width="1024" height="1536"></figure><section class="story-dialogue" aria-live="polite"><div class="story-speaker ${entry.who}"><span class="speaker-light" aria-hidden="true"></span><div><small>${speaker.role}</small><strong>${speaker.name}</strong></div></div><p>${entry.text}</p><button id="story-voice" class="story-voice" aria-label="${speaker.name}の台詞をもう一度聞く">♪ もう一度聞く</button><footer><span class="story-progress">${String(this.index+1).padStart(2,'0')} <i>/</i> ${String(this.scene.lines.length).padStart(2,'0')}</span><button id="story-next">${last?this.scene.next:'つづきを読む'} <span aria-hidden="true">→</span></button></footer></section></div>`;
-    this.onVoice?.(entry,this.scene.lines.slice(this.index+1,this.index+3));
+    this.dialog.innerHTML=`<div class="story-art"></div><div class="story-vignette"></div><header class="story-header"><span>${this.scene.kicker}</span><button id="story-skip">会話をスキップ</button></header><div class="story-title-block"><small>${actLabel(entry.act??this.scene.act??0)}</small><h2 id="story-title">${this.scene.title}</h2></div><div class="story-body"><figure class="story-cast ${entry.who}"><img class="story-character-image" src="${speaker.image}" alt="${speaker.alt}" decoding="sync" width="1024" height="1536"></figure><section class="story-dialogue" aria-live="polite"><div class="story-speaker ${entry.who}"><span class="speaker-light" aria-hidden="true"></span><div><small>${speaker.role}</small><strong>${speaker.name}</strong></div></div><p>${entry.text}</p>${entry.voiced?`<button id="story-voice" class="story-voice" aria-label="${speaker.name}の台詞をもう一度聞く">♪ もう一度聞く</button>`:''}<footer><span class="story-progress">${String(this.index+1).padStart(2,'0')} <i>/</i> ${String(this.scene.lines.length).padStart(2,'0')}</span><button id="story-next">${last?this.scene.next:'つづきを読む'} <span aria-hidden="true">→</span></button></footer></section></div>`;
+    this.onVoice?.(entry,this.scene.lines.slice(this.index+1,this.index+3).filter(line=>line.voiced));
   }
   next(){if(++this.index>=this.scene.lines.length)this.finish();else{this.render();this.dialog.querySelector('#story-next').focus();}}
   finish(){const done=this.onFinish;this.onFinish=null;this.onVoiceStop?.();this.dialog.close();done?.();}

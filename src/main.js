@@ -65,7 +65,7 @@ let selectedHero=Math.max(0,HEROES.findIndex(h=>h.id===(selectedParty.includes(s
 let lastSkills='',lastHero=-1;
 const audio=new Soundscape();audio.enabled=settings.sound;audio.music=settings.music;
 const voice=new VoicePlayer(audio,{enabled:settings.voice,volume:settings.voiceVolume,onCaption:item=>{const el=$('#voice-caption');if(!el)return;el.classList.toggle('visible',!!item&&voice.mode==='battle');el.textContent=item?`${HEROES.find(h=>h.id===item.who)?.name??''}「${item.text}」`:'';}});
-story.onVoice=(entry,next=[])=>{const available=voice.enabled&&audio.enabled&&voice.volume>0,button=story.dialog.querySelector('#story-voice');if(button){button.disabled=!available;button.textContent=available?'♪ もう一度聞く':'♪ ボイスOFF';}void voice.dialogue(entry.who,entry.text);voice.preload(next.map(line=>dialogueVoiceId(line.who,line.text)));};
+story.onVoice=(entry,next=[])=>{voice.setMode('story');if(!entry.voiced){voice.stop();return;}const available=voice.enabled&&audio.enabled&&voice.volume>0,button=story.dialog.querySelector('#story-voice');if(button){button.disabled=!available;button.textContent=available?'♪ もう一度聞く':'♪ ボイスOFF';}void voice.dialogue(entry.who,entry.text);voice.preload(next.map(line=>dialogueVoiceId(line.who,line.text)));};
 story.onVoiceStop=()=>voice.stop();
 tutorialView.onVoice=step=>{void voice.dialogue('nyanluna',step.text,'tutorial');};
 document.addEventListener('pointerdown',()=>{voice.init();if(voice.suspended&&activeDialog!=='pause')voice.resume();},{passive:true});
@@ -89,7 +89,7 @@ $('#app').innerHTML=`
       <div class="start-meta"><button id="difficulty" aria-label="難易度を変更">${icon('shield')} <span>冒険モード</span> ${icon('chevron')}</button><span>1人プレイ <i>·</i> オート攻撃 <i>·</i> 記録を保存</span></div>
     </div>
     <div class="chapter-card"><span class="chapter-index">01</span><div><small>CHAPTER ONE</small><h2>迷子の月と、ふたりの約束</h2><p>親友を探して月の世界を巡る、全4幕。</p></div>${icon('compass')}</div>
-    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.28</span></footer>
+    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.29</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu hidden" tabindex="-1" aria-label="章メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">
