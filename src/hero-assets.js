@@ -1,0 +1,206 @@
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { part, bakeGroup } from './characters.js';
+import { ATTACK_DURATION } from './model.js';
+
+const files = ['nyanluna', 'tsukineko', 'omsolo'];
+const axisX = new THREE.Vector3(1, 0, 0);
+const axisY = new THREE.Vector3(0, 1, 0);
+const axisZ = new THREE.Vector3(0, 0, 1);
+const rotation = new THREE.Quaternion();
+const delta = new THREE.Quaternion();
+const handPosition = new THREE.Vector3();
+const handRotation = new THREE.Quaternion();
+const rigRotation = new THREE.Quaternion();
+
+export async function loadHeroes() {
+  const loader = new GLTFLoader();
+  const assets = await Promise.all(files.map(name => loader.loadAsync(`/assets/models/${name}.glb`)));
+  return assets.map((asset, hero) => createHero(asset, hero));
+}
+
+function starGeometry(radius) {
+  const shape = new THREE.Shape();
+  for (let i = 0; i < 10; i++) {
+    const angle = i * Math.PI / 5 + Math.PI / 2;
+    const r = i % 2 ? radius * .43 : radius;
+    if (i === 0) shape.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+    else shape.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+  }
+  shape.closePath();
+  return new THREE.ExtrudeGeometry(shape, { depth: .045, bevelEnabled: true,
+    bevelSegments: 1, steps: 1, bevelSize: .015, bevelThickness: .01 });
+}
+
+function createWeapon(hero) {
+  const weapon = new THREE.Group();
+  const gold = 0xd2ad6b;
+  if (hero === 0) {
+    part(weapon, new THREE.CylinderGeometry(.028, .034, 1.64, 10), gold, 0, .40, 0);
+    part(weapon, new THREE.TorusGeometry(.25, .052, 8, 28, Math.PI * 1.62),
+      0xf5da96, 0, 1.25, 0, null, .20, .5).rotation.z = .5;
+    part(weapon, starGeometry(.14), 0xd8bdff, 0, 1.23, .04, null, 1.5);
+    part(weapon, new THREE.SphereGeometry(1, 12, 8), 0xddc4ff, 0, -.41, 0, [.07, .095, .07]);
+  } else if(hero===2){
+    part(weapon,new THREE.CylinderGeometry(.09,.10,.48,12),0x9ca9b0,0,0,0,null,0,.7);
+    for(const y of [-.18,-.08,.02])part(weapon,new THREE.TorusGeometry(.097,.023,6,14),0x263339,0,y,0).rotation.x=Math.PI/2;
+    part(weapon,new THREE.CylinderGeometry(.125,.1,.11,12),0xdcebe1,0,.28,0,null,0,.8);
+    part(weapon,new THREE.SphereGeometry(.037,8,6),0x8dffad,0,.08,.095,null,1.8);
+    const blade=part(weapon,new THREE.CapsuleGeometry(.055,2.0,5,10),0xb3ffc4,0,1.36,0,null,1.8);blade.userData.dynamic=true;
+    const glow=new THREE.Mesh(new THREE.CapsuleGeometry(.12,2.04,5,10),new THREE.MeshBasicMaterial({color:0x20ff55,transparent:true,opacity:.56,depthWrite:false,blending:THREE.AdditiveBlending}));glow.position.y=1.36;glow.userData.dynamic=true;weapon.add(glow);
+    weapon.userData.blade=blade;weapon.userData.glow=glow;
+  } else {
+    // The rifle points along local +Z; its grip follows the right-hand bone.
+    part(weapon,new THREE.BoxGeometry(.23,.24,.65),0x23354b,0,.13,.30);
+    part(weapon,new THREE.BoxGeometry(.18,.19,.31),0xe2ecf1,0,.16,-.15);
+    part(weapon,new THREE.BoxGeometry(.13,.29,.15),0x1b293b,0,-.06,.05).rotation.x=-.20;
+    part(weapon,new THREE.CylinderGeometry(.065,.075,.59,12),gold,0,.15,.90).rotation.x=Math.PI/2;
+    part(weapon,new THREE.BoxGeometry(.27,.065,.45),0x9ceeff,0,.27,.35,null,1.0);
+    part(weapon,new THREE.BoxGeometry(.07,.035,.54),0x83dfff,.145,.14,.34,null,1.4);
+    part(weapon,new THREE.BoxGeometry(.07,.035,.54),0x83dfff,-.145,.14,.34,null,1.4);
+    part(weapon,new THREE.CylinderGeometry(.075,.075,.28,10),0x31445c,0,.36,.18).rotation.x=Math.PI/2;
+    part(weapon,new THREE.SphereGeometry(.065,8,6),0x8fe5ff,0,.36,.34,null,1.6);
+    part(weapon,starGeometry(.09),gold,.13,.11,.27);
+  }
+  bakeGroup(weapon);
+  weapon.name = ['Moon staff · Lunaria','Star rifle · Nox','Light saber · Suishu'][hero];
+  if(hero===1){const flash=new THREE.Mesh(new THREE.OctahedronGeometry(.16),new THREE.MeshBasicMaterial({color:0xc7f8ff,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false}));flash.position.set(0,.15,1.23);flash.scale.set(.65,.65,1.65);flash.visible=false;weapon.add(flash);weapon.userData.muzzle=flash;}
+
+  return weapon;
+}
+
+function createHero(asset, hero) {
+  const root = new THREE.Group();
+  root.name = files[hero];
+  const rig = new THREE.Group();
+  root.add(rig);
+  const model = asset.scene;
+  model.name = `${files[hero]}_supplied_model`;
+  model.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(model, true);
+  const height = bounds.max.y - bounds.min.y;
+  if (!Number.isFinite(height) || height < .1) throw new Error(`Invalid character bounds: ${files[hero]}`);
+  const scale = (hero===2?2.8:3.1) / height;
+  model.scale.multiplyScalar(scale);
+  model.position.set(-(bounds.min.x + bounds.max.x) * .5 * scale, -bounds.min.y * scale,
+    -(bounds.min.z + bounds.max.z) * .5 * scale);
+  rig.add(model);
+  const bones = new Map();
+  const metrics = { triangles: 0, meshes: 0, skinnedMeshes: 0, vertices: 0 };
+  root.updateMatrixWorld(true);
+  model.traverse(object => {
+    if (object.isBone) {
+      const parentRest = object.parent.getWorldQuaternion(new THREE.Quaternion());
+      bones.set(object.userData.name ?? object.name, { bone: object, rest: object.quaternion.clone(),
+        parentRest, inverseParentRest: parentRest.clone().invert() });
+    }
+    if (object.isMesh) {
+      object.castShadow = true;
+      // The source has overlapping fine hair strands. Avoid shadow-map acne on
+      // those strands while preserving their cast shadows on the ground.
+      object.receiveShadow = false;
+      // Skin bounds change with poses; a pair of always-present heroes need no frustum culling.
+      object.frustumCulled = false;
+      object.material.roughness = .83;
+      object.material.metalness = 0;
+      // A soft albedo fill keeps the supplied facial colours legible beneath the
+      // large fringe at the elevated gameplay camera, without flattening all lighting.
+      object.material.onBeforeCompile = shader => {
+        shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>',
+          'outgoingLight = mix(outgoingLight, diffuseColor.rgb, 0.28);\n#include <opaque_fragment>');
+      };
+      object.material.customProgramCacheKey = () => 'lunaria-character-fill-v1';
+      metrics.meshes++;
+      metrics.skinnedMeshes += Number(object.isSkinnedMesh);
+      metrics.vertices += object.geometry.attributes.position.count;
+      metrics.triangles += (object.geometry.index?.count ?? object.geometry.attributes.position.count) / 3;
+    }
+  });
+  for (const required of ['head', 'upper_arm.L', 'upper_arm.R', 'thigh.L', 'thigh.R', 'hand.R']) {
+    if (!bones.has(required)) throw new Error(`Character bone missing: ${files[hero]} / ${required}`);
+  }
+  const weapon = createWeapon(hero);
+  rig.add(weapon);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.6, .66, 48),
+    new THREE.MeshBasicMaterial({ color: hero === 0 ? 0xd5adff : hero===1?0x8ce9ff:0x8affaf,
+      transparent: true, opacity: .65, side: THREE.DoubleSide, depthWrite: false }));
+  ring.rotation.x = -Math.PI / 2;
+  root.add(ring);
+  root.userData = { rig, model, bones, weapon, ring, hero, attackTime: 0,
+    metrics, source: `/assets/models/${files[hero]}.glb`, movement: 0 };
+  animateHero(root, { x: 0, z: 0, face: 0, moving: false, invincible: 0 }, 0, 0, hero === 0);
+  return root;
+}
+
+// Rotations are expressed in character space, then converted into each source bone's
+// own rest basis. The two source rigs have different arm orientations and bone rolls.
+function pose(data, name, x = 0, y = 0, z = 0) {
+  const entry = data.bones.get(name);
+  if (!entry) return;
+  delta.setFromAxisAngle(axisX, x);
+  delta.multiply(rotation.setFromAxisAngle(axisY, y));
+  delta.multiply(rotation.setFromAxisAngle(axisZ, z));
+  entry.bone.quaternion.copy(entry.inverseParentRest).multiply(delta)
+    .multiply(entry.parentRest).multiply(entry.rest);
+}
+
+export function animateHero(root, state, time, dt, active) {
+  const d = root.userData;
+  d.rig.rotation.set(0,0,0);d.rig.position.x=0;d.weapon.visible=true;
+  root.position.set(state.x, 0, state.z);
+  const turn = Math.atan2(Math.sin(state.face - root.rotation.y), Math.cos(state.face - root.rotation.y));
+  root.rotation.y += turn * Math.min(1, dt * 14);
+  d.movement = THREE.MathUtils.damp(d.movement, state.moving ? 1 : 0, 13, dt);
+  const stride = Math.sin(time * 13) * d.movement;
+  const ground = Math.hypot(state.x, state.z) < 6.3 ? .105 : .025;
+  d.rig.position.y = ground + Math.abs(Math.sin(time * 13)) * .045 * d.movement;
+  d.attackTime = Math.max(0, d.attackTime - dt);
+  const attack = d.attackTime > 0 ? Math.sin(d.attackTime / ATTACK_DURATION * Math.PI) : 0;
+  pose(d, 'thigh.L', stride * .30);
+  pose(d, 'thigh.R', -stride * .30);
+  pose(d, 'shin.L', Math.max(0, -stride) * .16);
+  pose(d, 'shin.R', Math.max(0, stride) * .16);
+  pose(d, 'chest', Math.sin(time * 2.2) * .013, attack * -.06, stride * .014);
+  pose(d, 'head', 0, Math.sin(time * 1.8) * .025, Math.sin(time * 2) * .015);
+  // Nyanluna is authored in A pose, Tsukineko in T pose.
+  const lowerArm = d.hero > 0 ? 1.02 : .06;
+  pose(d, 'upper_arm.L', -stride * .18, 0, -lowerArm);
+  pose(d, 'upper_arm.R', d.hero===1?-.95+attack*.14:stride*.14-attack*.70, d.hero===1?-.12:attack*-.22, d.hero===1?.78:lowerArm-attack*.13);
+  pose(d, 'forearm.L', -.12);
+  pose(d, 'forearm.R', d.hero===1?-.48-attack*.09:-.20-attack*.20);
+  if(d.hero===2){
+    pose(d,'upper_arm.R',-.28-attack*.55,attack*.45,1.05-attack*.35);
+    pose(d,'forearm.R',-.5-attack*.15);pose(d,'upper_arm.L',stride*.12,0,-1.06);
+    for(const side of ['L','R']){const leg=side==='L'?stride:-stride;pose(d,`robe.front.${side}`,Math.max(0,leg)*.22);pose(d,`robe.back.${side}`,Math.min(0,leg)*.15);}
+    pose(d,'tail.01',0,Math.sin(time*2)*.07);
+  }
+  for (const side of ['L', 'R', 'back']) {
+    pose(d, `hair_mid.${side}`, Math.sin(time * 2.8 + (side === 'R' ? 1 : 0)) * .014 + stride * .018);
+    pose(d, `hair_tip.${side}`, Math.sin(time * 3.2) * .02);
+  }
+  root.updateMatrixWorld(true);
+  d.bones.get('hand.R').bone.getWorldPosition(handPosition);
+  d.rig.worldToLocal(handPosition);
+  d.weapon.position.copy(handPosition).addScaledVector(axisZ, .06);
+  if(d.hero===1){d.weapon.rotation.set(-attack*.075,0,0);d.weapon.position.z-=attack*.10;d.weapon.userData.muzzle.visible=d.attackTime>ATTACK_DURATION-.09;}
+  else if(d.hero===2){
+    // Calibrate once in the idle grip, then keep the hilt rigidly attached to
+    // the hand. Its blade points forward and away from the face, not backwards.
+    d.bones.get('hand.R').bone.getWorldQuaternion(handRotation);
+    d.rig.getWorldQuaternion(rigRotation).invert();handRotation.premultiply(rigRotation);
+    if(!d.saberGrip){const inverse=handRotation.clone().invert();d.saberGrip={rotation:inverse.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(.22,0,.44))),offset:new THREE.Vector3(0,-.015,.09).applyQuaternion(inverse)};}
+    d.weapon.position.copy(handPosition).add(d.saberGrip.offset.clone().applyQuaternion(handRotation));
+    d.weapon.quaternion.copy(handRotation).multiply(d.saberGrip.rotation);
+    d.weapon.userData.glow.material.opacity=.55+Math.sin(time*12)*.05;
+  }
+  else d.weapon.rotation.set(-attack*1.25+.08,-attack*.25,.13);
+  d.ring.position.y = ground + .016;
+  d.ring.material.opacity = active ? .6 : .22;
+  d.ring.scale.setScalar(active ? 1 : .8);
+  d.rig.visible = !(active && state.invincible > .05 && state.invincible < .8 && Math.floor(time * 22) % 3 === 0);
+}
+
+export function animateWoundedHero(root,state,time,dt){
+ animateHero(root,{...state,face:.7,moving:false,invincible:0},time,dt,false);
+ const d=root.userData;d.rig.rotation.z=-1.45;d.rig.position.set(-1.2,1.05,0);d.weapon.visible=false;d.ring.material.opacity=.1;
+}

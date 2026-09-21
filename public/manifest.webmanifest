@@ -1,0 +1,14 @@
+{
+  "id": "/",
+  "name": "ルナネコハンティング",
+  "short_name": "ルナネコ",
+  "description": "にゃんるなとつきねこが主人公の3Dローグライトアクション。",
+  "lang": "ja",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#13292e",
+  "theme_color": "#172b32",
+  "icons": [{"src":"/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]
+}
