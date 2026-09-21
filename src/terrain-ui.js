@@ -1,5 +1,6 @@
 import {fieldFor} from './terrain.js';
-export const fieldSummary=(act,area)=>fieldFor(act,area).note;
+import {ELITE_BOSS_LABEL} from './enemies.js';
+export const fieldSummary=(act,area)=>{const field=fieldFor(act,area);return field.note+(field.kind==='branch'?`（強ボス ${ELITE_BOSS_LABEL}）`:'');};
 export function mapSvg(layout,extra=''){
  return `<svg viewBox="-28 -28 56 56" aria-hidden="true"><polygon points="${layout.points.map(p=>p.join(',')).join(' ')}" fill="#456776" stroke="#c1d5bd" stroke-width=".7"/>${extra}</svg>`;
 }
@@ -13,5 +14,5 @@ export function updateTerrainUi(game){
  map.querySelector('#map-targets').innerHTML=targets.map(t=>`<circle cx="${t.x}" cy="${t.z}" r="1.65" fill="#${t.color.toString(16).padStart(6,'0')}"/>`).join('');
  guide.classList.toggle('hidden',!game.travelOpen);guide.classList.toggle('compact',!!game.travelOrigin&&Math.hypot(game.player.x-game.travelOrigin.x,game.player.z-game.travelOrigin.z)>1.5);
  const signature=game.travelOpen??'';
- if(guide.dataset.kind!==signature){guide.dataset.kind=signature;guide.innerHTML=signature==='stairs'?'<small>LOWER FLOOR CLEAR</small><strong>青い階段から、上のフロアへ</strong><span>祝福・HP・クリスタルを引き継ぎます</span>':signature==='branch'?'<small>CHOOSE YOUR PATH</small><strong>進む道を、歩いて選ぼう</strong><div><span class="safe">左 · 緑の門<br><b>通常ルート</b></span><span class="elite">右 · 赤の門<br><b>強ボスルート</b></span></div><p>強ボス撃破：★2 深星の核1個<br>★1 星の芽20・月のしずく4・守護者の核1を追加<br>門を通ると、この出撃では道を戻れません</p>':'';}
+ if(guide.dataset.kind!==signature){guide.dataset.kind=signature;guide.innerHTML=signature==='stairs'?'<small>LOWER FLOOR CLEAR</small><strong>青い階段から、上のフロアへ</strong><span>祝福・HP・クリスタルを引き継ぎます</span>':signature==='branch'?`<small>CHOOSE YOUR PATH</small><strong>進む道を、歩いて選ぼう</strong><div><span class="safe">左 · 緑の門<br><b>通常ルート</b></span><span class="elite">右 · 赤の門<br><b>強ボスルート</b><small class="elite-stats">${ELITE_BOSS_LABEL}</small></span></div><p>強ボス撃破：★2 深星の核1個<br>★1 星の芽20・月のしずく4・守護者の核1を追加<br>門を通ると、この出撃では道を戻れません</p>`:'';}
 }

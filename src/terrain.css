@@ -7,3 +7,5 @@
 .hud:has(.passage-guide:not(.hidden)) .stage-crystal-hud{visibility:hidden}
 
 @media(max-height:500px) and (orientation:landscape){.chapter-stage .terrain-preview{display:none}}
+
+.passage-guide .elite-stats{display:block;margin-top:4px;font-size:10px;line-height:1.6;color:#ffcfbd;white-space:nowrap}

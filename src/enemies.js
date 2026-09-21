@@ -1,4 +1,6 @@
 // Combat data is shared by the simulation, readable HUD hints and the renderer.
+export const ELITE_BOSS_MULTIPLIER=2;
+export const ELITE_BOSS_LABEL=`HP×${ELITE_BOSS_MULTIPLIER}・攻撃威力×${ELITE_BOSS_MULTIPLIER}`;
 export const ENEMY_TYPES=Object.freeze({
   moss:{name:'草の魔物',hp:29,speed:1.4,damage:9,radius:.64,role:'近接',hint:'近づいて体当たりする。距離を取ろう。',xp:3,crystals:1,buds:1},
   bat:{name:'月影コウモリ',hp:23,speed:2.35,damage:7,radius:.52,role:'飛行',hint:'素早く接近する。囲まれる前に倒そう。',xp:4,crystals:1,buds:1},

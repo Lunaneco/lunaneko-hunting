@@ -1,8 +1,9 @@
-import {BOSSES} from './enemies.js';
+import {BOSSES,ELITE_BOSS_MULTIPLIER} from './enemies.js';
 import {countryEnemyAttack} from './chapter-two-combat.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const hard=g=>g.difficulty==='hard'?1.3:1;
-const damageScale=(g,e)=>hard(g)*(e.type==='boss'&&g.act>=4?1.7*(e.elite?1.25:1):1);
+// Apply the same route multiplier to spells, beams and projectiles as body/charge damage.
+const damageScale=(g,e)=>hard(g)*(e.type==='boss'&&g.act>=4?1.7:1)*(e.type==='boss'&&e.elite?ELITE_BOSS_MULTIPLIER:1);
 function circle(g,e,x,z,radius,delay,damage,color){g.hazards.push({id:g.ids++,sourceId:e.id,kind:'sigil',x,z,radius,timer:delay,total:delay,damage:damage*damageScale(g,e),color});}
 function line(g,e,angle,length,width,delay,damage,color,kind='beam'){
  g.hazards.push({id:g.ids++,sourceId:e.id,kind,shape:'line',angle,x:e.x+Math.sin(angle)*length/2,z:e.z+Math.cos(angle)*length/2,length,width,radius:width/2,timer:delay,total:delay,damage:damage*damageScale(g,e),color});

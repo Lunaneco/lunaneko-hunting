@@ -1,5 +1,5 @@
 import {fieldFor,layoutFor,walkingLayout,heightAt,contains,projectInside,moveWithin,navigation,clearPath,spawnPoint,ROUTE_PORTALS,ROUTE_REWARD} from './terrain.js';
-import {ENEMY_TYPES,BOSSES,enemyForSpawn,distanceToHazard,isRangedEnemy} from './enemies.js';
+import {ENEMY_TYPES,BOSSES,ELITE_BOSS_MULTIPLIER,enemyForSpawn,distanceToHazard,isRangedEnemy} from './enemies.js';
 import {tickEnemyBehavior} from './enemy-combat.js';
 import {ACTS,isActUnlocked,completeAct} from './acts.js';
 import {castUltimate,tickUltimates,enemySpeedScale} from './ultimate-combat.js';
@@ -163,10 +163,10 @@ export class Adventure {
     this.projectiles=[];this.hazards=[];this.enemies=[];this.startWave();Object.assign(this.player,projectInside(this.walkLayout,this.layout.entrance.x,this.layout.entrance.z));Object.assign(this.partner,projectInside(this.walkLayout,this.player.x-1.7,this.player.z+1.5));this.emit('stageEntered',{area:this.area});return true;
   }
   spawnEnemy(type,x,z,{elite=false}={}){
-    const boss=type==='boss';const hard=this.difficulty==='hard'?1.3:1;
+    const boss=type==='boss';const hard=this.difficulty==='hard'?1.3:1,power=boss&&elite?ELITE_BOSS_MULTIPLIER:1;
     const spec=boss?BOSSES[this.actConfig.bossId]:ENEMY_TYPES[type];if(!spec)throw new Error(`Unknown enemy: ${type}`);
-    const hp=(boss?this.actConfig.bossHp*(elite?(this.wave===6?1.5:1.1):1):spec.hp)*(boss?1:(1+(this.wave-1)*.14)*(1+this.act*.08))*hard;
-    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:spec.name+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed,damage:(boss?(this.act>=4?45:22):spec.damage)*hard*(elite?1.3:1),radius:spec.radius*(elite?1.12:1),hit:0,attack:1+this.rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:boss?3:1.4+this.rng(),cast:null,rush:null,recovery:0,enraged:false,navTimer:0};
+    const hp=(boss?this.actConfig.bossHp:spec.hp)*(boss?1:(1+(this.wave-1)*.14)*(1+this.act*.08))*hard*power;
+    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:spec.name+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed,damage:(boss?(this.act>=4?45:22):spec.damage)*hard*power,radius:spec.radius*(elite?1.12:1),hit:0,attack:1+this.rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:boss?3:1.4+this.rng(),cast:null,rush:null,recovery:0,enraged:false,navTimer:0};
     this.enemies.push(e);this.emit('spawn',{id:e.id,x,z,boss});return e;
   }
   spawn(){
