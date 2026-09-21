@@ -78,7 +78,7 @@ $('#app').innerHTML=`
       <div class="start-meta"><button id="difficulty" aria-label="難易度を変更">${icon('shield')} <span>冒険モード</span> ${icon('chevron')}</button><span>1人プレイ <i>·</i> オート攻撃 <i>·</i> 記録を保存</span></div>
     </div>
     <div class="chapter-card"><span class="chapter-index">01</span><div><small>CHAPTER ONE</small><h2>迷子の月と、ふたりの約束</h2><p>親友を探して月の世界を巡る、全4幕。</p></div>${icon('compass')}</div>
-    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO HUNTING / 1.20</span></footer>
+    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO HUNTING / 1.20.1</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu hidden" tabindex="-1" aria-label="章メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">
@@ -258,6 +258,8 @@ document.addEventListener('click',event=>{
   if(target.id==='difficulty')openDialog('difficulty');
 });
 document.addEventListener('pointerdown',event=>{const button=event.target.closest('button[data-action]');if(button&&event.button===0&&game?.phase==='playing'){event.preventDefault();action(button.dataset.action);}});
+// Suppress browser selection/image menus without cancelling taps or pointer movement.
+for(const type of ['selectstart','dragstart','contextmenu'])document.addEventListener(type,event=>event.preventDefault());
 $('.brand').addEventListener('click',e=>e.preventDefault());
 $('#modal').addEventListener('cancel',e=>{e.preventDefault();closeDialog();});
 window.addEventListener('keydown',e=>{
@@ -278,7 +280,7 @@ canvas.addEventListener('pointerdown',e=>{
 });
 canvas.addEventListener('pointermove',e=>{if(e.pointerId!==stick.id)return;const dx=e.clientX-stick.cx,dy=e.clientY-stick.cy,d=Math.hypot(dx,dy),m=Math.min(1,52/(d||1));stick.x=dx*m/52;stick.y=dy*m/52;$('#joystick i').style.transform=`translate(calc(-50% + ${dx*m}px),calc(-50% + ${dy*m}px))`;});
 const endPointer=e=>{if(e.pointerId===stick.id){stick.id=null;stick.x=stick.y=0;$('#joystick').classList.add('hidden');}};
-canvas.addEventListener('pointerup',endPointer);canvas.addEventListener('pointercancel',endPointer);canvas.addEventListener('lostpointercapture',endPointer);canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('pointerup',endPointer);canvas.addEventListener('pointercancel',endPointer);canvas.addEventListener('lostpointercapture',endPointer);
 function handleEvents(events){
   world.handle(events,game);
   let growthChanged=false;
