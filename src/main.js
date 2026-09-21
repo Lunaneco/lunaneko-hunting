@@ -36,6 +36,9 @@ import {growthCards} from './progression-ui.js';
 import { Adventure,HEROES,SKILLS,AREAS,STAGE_EXIT } from './model.js';
 import { World } from './world.js';
 import { Soundscape } from './audio.js';
+import {VoicePlayer} from './voice-player.js';
+import {dialogueVoiceId,BATTLE_VOICES} from './voice-catalog.js';
+import './voices.css';
 import { icon } from './icons.js';
 import {ACT_SCENES,ChapterStory} from './chapter.js';
 const story=new ChapterStory();
@@ -45,7 +48,7 @@ const read=(key,fallback)=>{try{const raw=JSON.parse(localStorage.getItem(key));
 let storageAvailable=true;
 const save=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{storageAvailable=false;return false;}};
 const savedSettings=read('lunaria-settings-v1',{});
-const settings={sound:savedSettings.sound!==false,music:savedSettings.music!==false,quality:savedSettings.quality==='low'?'low':'high',motion:savedSettings.motion!==false};
+const settings={voice:savedSettings.voice!==false,voiceVolume:typeof savedSettings.voiceVolume==='number'?Math.max(0,Math.min(1,savedSettings.voiceVolume)):.85,sound:savedSettings.sound!==false,music:savedSettings.music!==false,quality:savedSettings.quality==='low'?'low':'high',motion:savedSettings.motion!==false};
 const rawRecord=read('lunaria-record-v1',{});
 const num=(v)=>typeof v==='number'&&Number.isFinite(v)&&v>=0?Math.floor(v):0;
 let record={chapterOneCleared:rawRecord.chapterOneCleared===true,runs:num(rawRecord.runs),wins:num(rawRecord.wins),best:num(rawRecord.best),crystals:num(rawRecord.crystals),bestCombo:num(rawRecord.bestCombo)};
@@ -61,6 +64,11 @@ const savedParty=read(PARTY_KEY,{});let selectedParty=normalizeParty(savedParty.
 let selectedHero=Math.max(0,HEROES.findIndex(h=>h.id===(selectedParty.includes(savedParty.lead)?savedParty.lead:selectedParty[0]))),difficulty='normal',game=null,world=null,last=performance.now(),accumulator=0,activeDialog=null,returnFocus=null,resultSaved=false,toastTimer=0,bannerTimer=0,ultimateBannerTimer=0,renderFrames=0,storyEnabled=true,pendingStory=null;
 let lastSkills='',lastHero=-1;
 const audio=new Soundscape();audio.enabled=settings.sound;audio.music=settings.music;
+const voice=new VoicePlayer(audio,{enabled:settings.voice,volume:settings.voiceVolume,onCaption:item=>{const el=$('#voice-caption');if(!el)return;el.classList.toggle('visible',!!item&&voice.mode==='battle');el.textContent=item?`${HEROES.find(h=>h.id===item.who)?.name??''}「${item.text}」`:'';}});
+story.onVoice=(entry,next=[])=>{const available=voice.enabled&&audio.enabled&&voice.volume>0,button=story.dialog.querySelector('#story-voice');if(button){button.disabled=!available;button.textContent=available?'♪ もう一度聞く':'♪ ボイスOFF';}void voice.dialogue(entry.who,entry.text);voice.preload(next.map(line=>dialogueVoiceId(line.who,line.text)));};
+story.onVoiceStop=()=>voice.stop();
+tutorialView.onVoice=step=>{void voice.dialogue('nyanluna',step.text,'tutorial');};
+document.addEventListener('pointerdown',()=>{voice.init();if(voice.suspended&&activeDialog!=='pause')voice.resume();},{passive:true});
 const keys=new Set();const stick={id:null,x:0,y:0,cx:0,cy:0};const previousPad={};
 const portrait=(hero,cls='')=>`<span class="portrait ${HEROES[hero].id} ${cls}" role="img" aria-label="${HEROES[hero].name}"></span>`;
 const minutes=t=>`${Math.floor(t/60).toString().padStart(2,'0')}:${Math.floor(t%60).toString().padStart(2,'0')}`;
@@ -81,7 +89,7 @@ $('#app').innerHTML=`
       <div class="start-meta"><button id="difficulty" aria-label="難易度を変更">${icon('shield')} <span>冒険モード</span> ${icon('chevron')}</button><span>1人プレイ <i>·</i> オート攻撃 <i>·</i> 記録を保存</span></div>
     </div>
     <div class="chapter-card"><span class="chapter-index">01</span><div><small>CHAPTER ONE</small><h2>迷子の月と、ふたりの約束</h2><p>親友を探して月の世界を巡る、全4幕。</p></div>${icon('compass')}</div>
-    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.26</span></footer>
+    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.27</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu hidden" tabindex="-1" aria-label="章メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">
@@ -102,6 +110,7 @@ $('#app').innerHTML=`
   <div id="joystick" class="joystick hidden"><i></i></div>
   <canvas id="numbers" class="numbers"></canvas><div id="damage-flash"></div>
   <div id="wave-banner" class="wave-banner"><span></span><strong></strong><small></small></div>
+  <div id="voice-caption" class="voice-caption" aria-hidden="true"></div>
   <div id="ultimate-banner" class="ultimate-banner"><span>CHARACTER ULTIMATE</span><strong>月華の聖域</strong></div>
   <div id="toast" class="toast" role="status"></div>
   <dialog id="modal" class="modal"><div id="modal-content"></div></dialog>
@@ -109,7 +118,7 @@ $('#app').innerHTML=`
 const dialogs={
   party:()=>partyView(selectedParty,selectedHero,HEROES,heroLevel,progression),
   guide:()=>`<div class="modal-heading"><span class="eyebrow">ADVENTURE GUIDE</span><h2>ふたりなら、もっと遠くへ。</h2><p>移動に集中。攻撃は、仲間にまかせよう。</p></div><div class="guide-grid"><article>${icon('compass')}<h3>撃って、かわして</h3><p><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> または画面をドラッグして移動。近くの敵へ自動攻撃。<kbd>Space</kbd> で無敵時間のある回避。</p></article><article>${icon('swap')}<h3>ふたりの力を重ねる</h3><p>最初はにゃんるなだけで出発。第4幕の最後で親友のつきねこと再会・共闘し、クリアすると正式加入します。加入後はタイトルやメニューの「編成・祝福」で1〜2体を選択。2体編成なら右下の「交代」で、表示された仲間の操作に切り替え。移動しながらでも押せます。<kbd>Q</kbd> または左上の顔でも交代。にゃんるなは遠距離魔法、つきねこは貫通する銃撃。第2章の最後ではオムソロを救出し、クリア後に近接の光剣使いとして加入します。登場人物が増えても出撃は最大2人です。控えの仲間も援護します。HPはキャラ別。援護中の仲間は無敵。倒れると生存中の相方へ自動交代し、全員が倒れると終了します。戦闘不能からの復帰は次の冒険です。</p></article><article>${icon('spark')}<h3>経験値とクリスタル</h3><p>敵を倒したキャラに経験値が入り、レベルと基礎能力が成長。援護の撃破も、その仲間に加算。落ちたクリスタルを集めると、出撃メンバーに応じた候補から3つの祝福を提示。共通・キャラ由来・2体の連携があり、効果は編成内で共有します。祝福は同じ幕の全6WAVEで維持されます。にゃんるなはスキルダメージ+50%・ゲージ獲得+25%。つきねこは基礎HP・攻撃力・防御力と通常射撃に優れます。</p></article><article>${icon('moon')}<h3>キャラ固有の必殺技</h3><p>攻撃した本人のゲージが増加し、100%で <kbd>E</kbd> または右下の必殺ボタン。にゃんるな「月華の聖域」は範囲攻撃・減速・HP回復。つきねこ「星銃・彗星連射」は貫通弾の8連射。オムソロ「翠光・守り手の円舞」は周囲への連続斬撃と回復・短い無敵。ゲージはキャラ別に保持し、援護でも蓄積。必殺技自体では増えません。</p></article></div><div class="guide-note">全2章・各章4幕・各幕6WAVE。地形はステージごとに変化。2フロアでは下階を制圧して青い階段から上階へ。分岐では左の緑の門が通常、右の赤い門が強ボスと追加素材。強ボスは同じ難易度の通常ボスに対して${ELITE_BOSS_LABEL}。地図を見て歩いて選ぼう。2WAVEごとに月の門が開きます。光る輪へ移動して次へ進もう。各幕の最後の門でクリア。ミッション報酬を受け取り、メニューから次の幕へ進みます。橙の照準線・突進の帯、紫や桃色の魔法陣から離れよう。<br>ゲームパッド：左スティック移動 / A回避 / B交代 / Y必殺 / Start一時停止。<br>祝福・クリスタルは新しい出撃でリセット。キャラ別のレベル・経験値・限界突破石はこのブラウザに自動保存されます。成長ツリーは素材を使ってキャラごとに解放。星の芽は敵、月のしずくは月の門、守護者の核はボスから入手。1段目はレア度1素材のみ。2段目には第2章・チャレンジモードで集めるレア度2素材も必要です。防御力はキャラ固有値＋レベル成長＋ツリー効果で被ダメージを軽減します。初期上限Lv.20。各章の第4幕クリアでもらえる石1個で上限を10ずつ、最大Lv.50まで解放できます。上限到達後の経験値も蓄積されます。<br>ステージミッションで育成素材を入手。ユニーク装備は全キャラ共通の各1枠。同じ装備は一人だけ使用でき、装備画面で仲間どうしの付け替えが可能です。チャレンジモードの時間・被弾条件を達成して入手します。専用武器は別枠の★1〜★4。ボスは5%で専用武器ガチャ券を落とし、メニュー「武器ガチャ」で1枚につき1回使えます。3人の専用武器から均等に抽選。★2が75%、★3が20%、★4が5%。★2〜★4は各キャラ・各レア度に性能の違う3種類。装備画面で自由に付け替えられます。同じ武器・同じレア度の重複だけを星の芽に変換。ガチャでは装備を変更しません。高難度の章ミッションでは追加の限界突破石も入手できます。</div><button id="tutorial-replay" class="secondary">にゃんるなと操作を練習する</button><p class="tutorial-replay-note">にゃんるな1体で最初の戦闘から開始。育成・所持品は引き継ぎます。</p><button class="primary" data-close>準備はできた ${icon('arrow')}</button>`,
-  settings:()=>`<div class="modal-heading"><span class="eyebrow">SETTINGS</span><h2>あなたの冒険に合わせて。</h2></div><div class="settings-list"><label><span>${icon('volume')}効果音・サウンド</span><input id="setting-sound" type="checkbox" ${settings.sound?'checked':''}></label><label><span>${icon('moon')}BGM</span><input id="setting-music" type="checkbox" ${settings.music?'checked':''}></label><label><span>${icon('spark')}画質</span><select id="setting-quality"><option value="high" ${settings.quality==='high'?'selected':''}>高画質</option><option value="low" ${settings.quality==='low'?'selected':''}>軽量</option></select></label><label><span>${icon('wind')}画面の揺れ・演出</span><input id="setting-motion" type="checkbox" ${settings.motion?'checked':''}></label></div><p class="subtle">動きが重い場合は「軽量」を選択してください。設定は自動保存されます。</p><button class="primary" data-close>閉じる ${icon('check')}</button>`,
+  settings:()=>`<div class="modal-heading"><span class="eyebrow">SETTINGS</span><h2>あなたの冒険に合わせて。</h2></div><div class="settings-list"><label><span>${icon('volume')}全体サウンド</span><input id="setting-sound" type="checkbox" ${settings.sound?'checked':''}></label><label><span>${icon('volume')}キャラクターボイス</span><input id="setting-voice" type="checkbox" ${settings.voice?'checked':''}></label><label class="voice-volume-setting"><span>ボイス音量 <output id="voice-volume-value">${Math.round(settings.voiceVolume*100)}%</output></span><input id="setting-voice-volume" aria-label="ボイス音量" type="range" min="0" max="100" value="${Math.round(settings.voiceVolume*100)}"></label><label><span>${icon('moon')}BGM</span><input id="setting-music" type="checkbox" ${settings.music?'checked':''}></label><label><span>${icon('spark')}画質</span><select id="setting-quality"><option value="high" ${settings.quality==='high'?'selected':''}>高画質</option><option value="low" ${settings.quality==='low'?'selected':''}>軽量</option></select></label><label><span>${icon('wind')}画面の揺れ・演出</span><input id="setting-motion" type="checkbox" ${settings.motion?'checked':''}></label></div><p class="subtle">動きが重い場合は「軽量」を選択してください。設定は自動保存されます。</p><button class="primary" data-close>閉じる ${icon('check')}</button>`,
   records:()=>`<div class="modal-heading"><span class="eyebrow">YOUR ADVENTURE</span><h2>星が覚えている、ふたりの軌跡。</h2></div><div class="record-feature">${icon('trophy')}<small>BEST SCORE</small><strong>${record.best.toLocaleString()}</strong></div><div class="record-grid"><div><strong>${record.runs}</strong><span>冒険した回数</span></div><div><strong>${record.wins}</strong><span>守護者の討伐</span></div><div><strong>${record.bestCombo}</strong><span>最大チェイン</span></div><div><strong>${progression.inventory.limitStone}</strong><span>所持する限界突破石</span></div></div><p class="subtle">${record.runs?'次の冒険が、新しい記録になる。':'物語はこれから。最初の冒険へ出発しよう。'}</p><button class="primary" data-close>閉じる ${icon('arrow')}</button>`,
   difficulty:()=>`<div class="modal-heading"><span class="eyebrow">CHOOSE YOUR JOURNEY</span><h2>出撃モードを選ぶ</h2><p>ステージ選択画面でも、いつでも切り替えられます。</p></div>${difficultyCards(difficulty)}`,
 };
@@ -146,11 +155,12 @@ function renderPartyDialog(){if(activeDialog!=='party')return;$('#modal-content'
 function openDialog(type){
   if(activeDialog||(type==='party'&&game))return;audio.init();audio.play('click');returnFocus=document.activeElement;activeDialog=type;$('#modal-content').innerHTML=dialogs[type]()+`<button class="dialog-close icon-button" data-close aria-label="閉じる">${icon('close')}</button>`;$('#modal').showModal();bindSettings();
 }
-function closeDialog(){if(['upgrade','result','story'].includes(activeDialog))return;if(activeDialog==='pause')game?.resume();$('#modal').close();activeDialog=null;tutorialView.render(game);resetInput();returnFocus?.focus?.();}
+function closeDialog(){if(['upgrade','result','story'].includes(activeDialog))return;if(activeDialog==='pause'){game?.resume();voice.resume();}$('#modal').close();activeDialog=null;tutorialView.render(game);resetInput();returnFocus?.focus?.();}
 function bindSettings(){
-  ['sound','music','quality','motion'].forEach(key=>{const el=$(`#setting-${key}`);if(!el)return;el.addEventListener('change',()=>{settings[key]=key==='quality'?el.value:el.checked;audio.setEnabled(settings.sound);audio.music=settings.music;world.settings.motion=settings.motion;world.setQuality(settings.quality);document.body.classList.toggle('reduce-motion',!settings.motion);save('lunaria-settings-v1',settings);});});
+  ['sound','music','quality','motion','voice'].forEach(key=>{const el=$(`#setting-${key}`);if(!el)return;el.addEventListener('change',()=>{settings[key]=key==='quality'?el.value:el.checked;audio.setEnabled(settings.sound);audio.music=settings.music;voice.configure(settings.voice,settings.voiceVolume);world.settings.motion=settings.motion;world.setQuality(settings.quality);document.body.classList.toggle('reduce-motion',!settings.motion);save('lunaria-settings-v1',settings);});});
+  $('#setting-voice-volume')?.addEventListener('input',e=>{settings.voiceVolume=Number(e.target.value)/100;voice.configure(settings.voice,settings.voiceVolume);$('#voice-volume-value').textContent=`${e.target.value}%`;save('lunaria-settings-v1',settings);});
 }
-function pause(){if(!game||!game.pause())return;resetInput();activeDialog='pause';tutorialView.render(game,true);audio.play('click');$('#modal-content').innerHTML=`<div class="pause-symbol">${icon('moon')}</div><div class="modal-heading"><span class="eyebrow">TAKE A BREATH</span><h2>月明かりの下で、ひと休み。</h2><p>WAVE ${game.wave} / 6 <i>·</i> ${minutes(game.time)}</p></div><div class="run-materials"><small>この冒険で獲得した成長素材</small><p>${materialsText(game.earnedMaterials)}</p>${ticketRewardText(game.earnedWeaponTickets)}</div><button id="resume" class="primary">冒険をつづける ${icon('play')}</button><button id="quit" class="secondary">冒険を終了してメニューへ</button><p class="subtle">キャラの成長・獲得素材は保存済み。クリスタルと祝福は終了時にリセットされます。</p><div class="enemy-guide"><h3>この幕のボス · ${game.actConfig.boss}</h3><p>${BOSSES[game.actConfig.bossId].hint}</p><h3>新しい敵の見分け方</h3>${(game.act>=4?enemyRosterForAct(game.act):['archer','mage','charger']).map(id=>`<p><b>${ENEMY_TYPES[id].name}</b> ${ENEMY_TYPES[id].hint}</p>`).join('')}</div>${currentMissions(progression,game)}`;$('#modal').showModal();}
+function pause(){if(!game||!game.pause())return;voice.suspend();resetInput();activeDialog='pause';tutorialView.render(game,true);audio.play('click');$('#modal-content').innerHTML=`<div class="pause-symbol">${icon('moon')}</div><div class="modal-heading"><span class="eyebrow">TAKE A BREATH</span><h2>月明かりの下で、ひと休み。</h2><p>WAVE ${game.wave} / 6 <i>·</i> ${minutes(game.time)}</p></div><div class="run-materials"><small>この冒険で獲得した成長素材</small><p>${materialsText(game.earnedMaterials)}</p>${ticketRewardText(game.earnedWeaponTickets)}</div><button id="resume" class="primary">冒険をつづける ${icon('play')}</button><button id="quit" class="secondary">冒険を終了してメニューへ</button><p class="subtle">キャラの成長・獲得素材は保存済み。クリスタルと祝福は終了時にリセットされます。</p><div class="enemy-guide"><h3>この幕のボス · ${game.actConfig.boss}</h3><p>${BOSSES[game.actConfig.bossId].hint}</p><h3>新しい敵の見分け方</h3>${(game.act>=4?enemyRosterForAct(game.act):['archer','mage','charger']).map(id=>`<p><b>${ENEMY_TYPES[id].name}</b> ${ENEMY_TYPES[id].hint}</p>`).join('')}</div>${currentMissions(progression,game)}`;$('#modal').showModal();}
 function upgrade(){
   activeDialog='upgrade';resetInput();$('#modal-content').innerHTML=`<div class="modal-heading upgrade-heading"><span class="eyebrow">CRYSTAL BLESSING · STAGE 0${game.area+1}</span><h2>クリスタルの祝福を選ぶ</h2><p>この幕の最後まで、出撃メンバーを強くする力をひとつ。</p><div class="blessing-party">${icon(game.hasPartner?'link':'star')}<span>${partyTitle(game.party,HEROES)}</span><b>${game.party.length}体編成</b></div><div class="blessing-affinity">${game.party.includes('nyanluna')?'にゃんるなの必殺技・星屑・周回星は威力1.5倍':game.party.includes('omsolo')?'オムソロは扇状の近接斬撃と守りが得意':'つきねこは高い基礎能力と貫通射撃が得意'}</div></div><div class="skill-options">${game.offers.map(s=>`<button class="skill-card" data-skill="${s.id}"><span class="skill-type">${s.type}<span>${game.rank(s.id)?`Lv. ${game.rank(s.id)+1}`:'NEW'}</span></span><div class="skill-emblem">${icon(s.icon)}</div><h3>${s.name}</h3><small class="blessing-source" data-source="${s.requires?.length===2?'pair':s.requires?.[0]??'common'}">${blessingSource(s,HEROES)}</small><p>${s.text}</p><span class="skill-select">この力を選ぶ ${icon('arrow')}</span></button>`).join('')}</div><div class="upgrade-footer">${icon('link')} 祝福はこの幕の全6WAVEで継続。新しい出撃でリセット。</div>`;$('#modal').classList.add('wide');if(!$('#modal').open)$('#modal').showModal();
 }
@@ -164,19 +174,19 @@ function showResult(victory){
   activeDialog='result';$('#modal').classList.remove('wide');$('#modal-content').innerHTML=`<div class="result ${victory?'victory':'defeat'}"><div class="result-symbol">${icon(victory?'trophy':'moon')}</div><span class="eyebrow">${victory?'THE MOON GATE IS OPEN':'EVERY JOURNEY MAKES US STRONGER'}</span><h2>${victory?'VICTORY':'JOURNEY ENDS'}</h2>${recruited?recruitmentBanner(recruited):''}<p class="result-copy">${victory?'月の門は、ふたりの未来へ。':game.rescue?.remaining===0?'結界が尽き、救出に間に合いませんでした。育成と装備を整えて、もう一度。':'この経験も、次の一歩になる。'}</p><div class="result-portraits">${game.partyHeroes.map(i=>portrait(i)).join(icon('link'))}</div><div class="result-score"><small>${best?'NEW BEST SCORE':'TOTAL SCORE'}</small><strong>${score.toLocaleString()}</strong></div><div class="result-stats"><div><b>${game.kills}</b><span>撃破数</span></div><div><b>${game.maxCombo}</b><span>最大CHAIN</span></div><div><b>${minutes(game.time)}</b><span>冒険時間</span></div></div><div class="reward">${stones?`${icon('crystal')} 限界突破石 <strong>+${stones}</strong>`:'キャラの成長は次の冒険へ'}<span>${earnedXpText(earnedXp)}</span><span class="result-materials">${materialsText(earnedMaterials)}</span>${ticketRewardText(earnedWeaponTickets)}<span>${storageAvailable?'レベル・経験値を保存しました':'この環境では記録を保存できません'}</span></div>${missionRunSummary(earnedMissions)}<button id="retry" class="primary">もう一度、冒険へ ${icon('reset')}</button><button id="home-button" class="secondary">メニューへ戻る</button></div>`;if(!$('#modal').open)$('#modal').showModal();announce(victory?`${actLabel(act)}をクリアしました。`:'冒険が終了しました。');
 }
 function start({withStory=true,withTutorial=withStory&&selectedAct===0&&needsFirstBattleTutorial(progression),skipOpening=false}={}){
-  if(!world?.assetsReady)return;story.cancel();pendingStory=null;storyEnabled=withStory;$('#chapter-menu').classList.add('hidden');audio.init();audio.play('wave');$('#modal').close();$('#modal').classList.remove('wide');activeDialog=null;persistProgression();game=new Adventure({hero:selectedHero,difficulty,progression,party:selectedParty,tutorial:withTutorial,act:selectedAct});selectedAct=game.act;lastHero=-1;lastSkills='';progression=game.progression;resultSaved=false;world.reset();$('#home').classList.add('hidden');$('#hud').classList.remove('hidden');document.body.classList.add('playing');$('#control-hint').classList.remove('hidden');accumulator=0;resetInput();$('#start').blur();handleEvents(game.drainEvents());updateHud();if(withStory&&!skipOpening)playStory('opening');
+  if(!world?.assetsReady)return;voice.stop();voice.cooldowns.clear();voice.suspended=false;voice.setMode('battle');story.cancel();pendingStory=null;storyEnabled=withStory;$('#chapter-menu').classList.add('hidden');audio.init();audio.play('wave');$('#modal').close();$('#modal').classList.remove('wide');activeDialog=null;persistProgression();game=new Adventure({hero:selectedHero,difficulty,progression,party:selectedParty,tutorial:withTutorial,act:selectedAct});selectedAct=game.act;lastHero=-1;lastSkills='';progression=game.progression;resultSaved=false;world.reset();$('#home').classList.add('hidden');$('#hud').classList.remove('hidden');document.body.classList.add('playing');$('#control-hint').classList.remove('hidden');accumulator=0;resetInput();$('#start').blur();handleEvents(game.drainEvents());voice.preload(selectedParty.flatMap(who=>['attack','hurt','ultimate','switch'].map(event=>BATTLE_VOICES[who]?.[event]?.[0]?.id).filter(Boolean)));updateHud();if(withStory&&!skipOpening)playStory('opening');
 }
-function goHome(){persistProgression();updateGrowthLabels();story.cancel();pendingStory=null;$('#chapter-menu').classList.add('hidden');$('#exit-guide').classList.add('hidden');game=null;tutorialView.render(null);updatePartyLabels();numberContext.clearRect(0,0,numberCanvas.width,numberCanvas.height);$('#modal').close();$('#modal').classList.remove('wide');activeDialog=null;$('#hud').classList.add('hidden');$('#home').classList.remove('hidden');$('#boss-hud').classList.add('hidden');$('#wave-banner').classList.remove('visible');$('#ultimate-banner').classList.remove('visible');$('#toast').classList.remove('visible');document.body.classList.remove('playing');world.reset();resetInput();clearTimeout(bannerTimer);clearTimeout(ultimateBannerTimer);clearTimeout(toastTimer);$('#start').focus();}
+function goHome(){voice.setMode('menu');voice.stop();persistProgression();updateGrowthLabels();story.cancel();pendingStory=null;$('#chapter-menu').classList.add('hidden');$('#exit-guide').classList.add('hidden');game=null;tutorialView.render(null);updatePartyLabels();numberContext.clearRect(0,0,numberCanvas.width,numberCanvas.height);$('#modal').close();$('#modal').classList.remove('wide');activeDialog=null;$('#hud').classList.add('hidden');$('#home').classList.remove('hidden');$('#boss-hud').classList.add('hidden');$('#wave-banner').classList.remove('visible');$('#ultimate-banner').classList.remove('visible');$('#toast').classList.remove('visible');document.body.classList.remove('playing');world.reset();resetInput();clearTimeout(bannerTimer);clearTimeout(ultimateBannerTimer);clearTimeout(toastTimer);$('#start').focus();}
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('visible'),2300);}
 function announce(message){$('#announcer').textContent=message;}
 function resetInput(){keys.clear();stick.id=null;stick.x=stick.y=0;$('#joystick').classList.add('hidden');}
 function playStory(id,done){
   if(!storyEnabled&&id!=='replay'){done?.();return;}
-  const run=game,wasPlaying=run?.phase==='playing';if(wasPlaying)run.pause();resetInput();activeDialog='story';tutorialView.render(game,true);
+  const run=game,wasPlaying=run?.phase==='playing';if(wasPlaying)run.pause();resetInput();activeDialog='story';tutorialView.voiceStep=null;tutorialView.render(game,true);
   clearTimeout(bannerTimer);$('#wave-banner').classList.remove('visible');$('#modal').close();
   const scenes=ACT_SCENES[run?.act??selectedAct];
   const scene=id==='replay'?{...scenes.opening,title:ACTS[selectedAct].title,next:'メニューへ',lines:Object.values(scenes).flatMap(s=>s.lines.map(line=>({...line,area:s.area,act:s.act})))}:scenes[id];
-  story.show(scene,()=>{activeDialog=null;resetInput();if(run&&game!==run)return;if(wasPlaying)run.resume();done?.();updateHud();if(game?.phase==='playing')canvas.focus();});
+  story.show(scene,()=>{activeDialog=null;resetInput();if(run&&game!==run)return;if(wasPlaying)run.resume();voice.setMode(run?.tutorial?.active?'tutorial':run?'battle':'menu');done?.();updateHud();if(game?.phase==='playing')canvas.focus();});
 }
 function earnedXpText(earned){return HEROES.map(h=>`${h.name} EXP +${earned[h.id]??0}`).join(' ／ ');}
 function updateGrowthLabels(){
@@ -215,6 +225,7 @@ function applyTalent(heroId,nodeId){
 }
 function recruitmentBanner(id){const hero=HEROES.find(h=>h.id===id);return `<section class="recruitment-banner" aria-label="仲間加入"><span class="portrait ${id}" role="img" aria-label="${hero.name}"></span><div><small>${id==='omsolo'?'RESCUE COMPLETE':'REUNITED'}</small><strong>${id==='omsolo'?'オムソロが仲間になった！':'つきねこと、また一緒に！'}</strong><p>${id==='omsolo'?'緑の光刃で戦う近接の剣士。編成・祝福から仲間を入れ替えて、最大2人で出撃できます。':'大の仲良しの二人が再会。編成・育成・装備が解放されました。'}</p></div></section>`;}
 function goMenu(result){
+  const winningHero=game?HEROES[game.player.hero].id:HEROES[selectedHero].id;
   if(result)selectedAct=Math.min(ACTS.length-1,result.act+1);goHome();equipmentHero=HEROES[selectedHero].id;treeHero=HEROES[selectedHero].id;treeSelection='origin';$('#home').classList.add('hidden');const chapter=chapterForAct(selectedAct),cleared=progression.story.actClears.slice(chapter.start,chapter.end+1).every(Boolean),act=ACTS[selectedAct],actCleared=progression.story.actClears[selectedAct];
   $('#chapter-menu').innerHTML=`<div class="menu-backdrop"></div><div class="chapter-shell">
     <header class="chapter-header"><button id="menu-title" class="secondary">← タイトル</button><span>LUNANEKO ADVENTURE</span><button class="icon-button" data-open="settings" aria-label="設定">${icon('settings')}</button></header>
@@ -227,6 +238,7 @@ function goMenu(result){
     <section id="missions-panel" class="hidden" aria-label="ステージミッション">${missionsView(progression)}</section><section id="equipment-panel" class="hidden" aria-label="装備"><p id="equipment-feedback" class="equipment-feedback" role="status"></p><div id="equipment-content">${equipmentView(progression,equipmentHero)}</div></section><section id="weapons-panel" class="hidden" aria-label="専用武器ガチャ">${weaponGachaView(progression)}</section>
     </div>`;
   updatePartyLabels();$('#chapter-menu').classList.remove('hidden');$('#chapter-menu').focus({preventScroll:true});$('#chapter-menu').scrollTop=0;announce(`第${chapter.id+1}章${cleared?'クリア':''}。章メニューです。`);
+  if(result){voice.cue(winningHero,'victory');if(result.recruited)voice.cue(result.recruited,'recruit');}
 }
 function axes(){
   let x=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+stick.x;
@@ -248,7 +260,7 @@ document.addEventListener('click',event=>{
   if(target.dataset.partyLead&&!game){const index=Number(target.dataset.partyLead);if(selectedParty.includes(HEROES[index]?.id)){selectedHero=index;persistParty();updatePartyLabels();renderPartyDialog();}}
   if(target.dataset.equipWeapon&&!game&&!$('#chapter-menu').classList.contains('hidden')&&(!activeDialog||activeDialog==='weapon-result')){
     const id=target.dataset.equipWeapon,hero=target.dataset.weaponHero;
-    if(equipWeapon(progression,hero,id)){persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);const message=`${weaponVariant(id).weapon.name}を装備しました。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;$('#equipment-feedback').textContent=message;announce(message);audio.play('upgrade');if(activeDialog==='weapon-result'&&currentWeaponDraw){$('#modal-content').innerHTML=weaponDrawResult(currentWeaponDraw,progression,storageAvailable);$('#weapon-draw-result [data-close]').focus();}else{$(`[data-weapon-option="${id}"]`).scrollIntoView({block:'nearest'});}}
+    if(equipWeapon(progression,hero,id)){voice.cue(hero,'equip');persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);const message=`${weaponVariant(id).weapon.name}を装備しました。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;$('#equipment-feedback').textContent=message;announce(message);audio.play('upgrade');if(activeDialog==='weapon-result'&&currentWeaponDraw){$('#modal-content').innerHTML=weaponDrawResult(currentWeaponDraw,progression,storageAvailable);$('#weapon-draw-result [data-close]').focus();}else{$(`[data-weapon-option="${id}"]`).scrollIntoView({block:'nearest'});}}
   }
   if(target.hasAttribute('data-draw-weapon'))summonWeapon();
   if(target.hasAttribute('data-open-weapons')&&!game){switchMenuTab('weapons');$('#weapons-panel').scrollIntoView({block:'start'});}
@@ -290,9 +302,10 @@ window.addEventListener('keydown',e=>{
   if(!e.repeat){if(e.code==='Space')action('dash');if(e.code==='KeyQ')action('switch');if(e.code==='KeyE')action('ultimate');}
 });
 window.addEventListener('keyup',e=>keys.delete(e.code));
-window.addEventListener('blur',()=>{resetInput();if(game?.phase==='playing')pause();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){persistProgression();resetInput();if(game?.phase==='playing')pause();}});
-window.addEventListener('pagehide',persistProgression);
+window.addEventListener('blur',()=>{voice.suspend();resetInput();if(game?.phase==='playing')pause();});
+window.addEventListener('focus',()=>{if(activeDialog!=='pause')voice.resume();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){voice.suspend();persistProgression();resetInput();if(game?.phase==='playing')pause();}else if(activeDialog!=='pause')voice.resume();});
+window.addEventListener('pagehide',()=>{voice.stop();persistProgression();});
 const canvas=$('#scene');
 canvas.addEventListener('pointerdown',e=>{
   if(!game||game.phase!=='playing'||game.tutorial?.active&&!game.tutorial.practicing||stick.id!==null||e.button!==0)return;e.preventDefault();audio.init();stick.id=e.pointerId;stick.cx=e.clientX;stick.cy=e.clientY;stick.x=stick.y=0;canvas.setPointerCapture(e.pointerId);$('#joystick').classList.remove('hidden');$('#joystick').style.left=`${e.clientX}px`;$('#joystick').style.top=`${e.clientY}px`;$('#joystick i').style.transform='translate(-50%, -50%)';
@@ -305,7 +318,7 @@ function handleEvents(events){
   let growthChanged=false;
   for(const e of events){
     if(e.type==='tutorialStep'){resetInput();canvas.focus();announce(`にゃんるな：${game.tutorial.step.text}`);}
-    if(e.type==='tutorialComplete'){growthChanged=true;resetInput();world.reset();canvas.focus();announce('練習終了。星詠みの草原で冒険をはじめよう。');}
+    if(e.type==='tutorialComplete'){voice.setMode('battle');voice.cue(game.heroId(game.player.hero),'start');growthChanged=true;resetInput();world.reset();canvas.focus();announce('練習終了。星詠みの草原で冒険をはじめよう。');}
     if(e.type==='guestJoin'){lastHero=-1;toast('つきねこと共闘！ 交代と連携の祝福が解放');announce('つきねこがボス戦に助っ人参戦。操作を交代できます。正式加入は第1章クリア後です。');}
     if(e.type==='recruited'){growthChanged=true;selectedParty=normalizeParty([...selectedParty,e.heroId],unlockedRoster());persistParty();}
     if(e.type==='weaponTicket'){growthChanged=true;toast(`専用武器ガチャ券 +${e.count}枚！ メニューの武器ガチャで使えます`);announce(`ボスから専用武器ガチャ券を${e.count}枚獲得。所持${e.total}枚。`);}
@@ -341,6 +354,7 @@ function handleEvents(events){
     if(e.type==='bossPhase'){toast(e.label);announce(e.label);}
     if(e.type==='enemyIntro'){const enemy=ENEMY_TYPES[e.enemyType];toast(`${enemy.name}：${enemy.hint}`);announce(`${enemy.name}が出現。${enemy.hint}`);}
   }
+  voice.handle(events,game);
   if(growthChanged)persistProgression();
   if(pendingStory&&!activeDialog&&game?.phase==='playing'){const id=pendingStory;pendingStory=null;playStory(id);}
 }
@@ -414,6 +428,6 @@ async function boot(){
   catch(error){console.error(error);$('#loading').innerHTML=`<div class="loading-moon">☾</div><span>ルナネコの不思議な冒険</span><p>3D画面を起動できませんでした。<br>WebGL対応のブラウザで、ページを再読み込みしてください。</p><button class="primary" id="reload">再読み込み</button>`;$('#reload').onclick=()=>location.reload();}
 }
 // The audit bridge is excluded from production builds. It exercises the real simulation.
-if(import.meta.env.DEV){window.__LUNARIA_TEST__={get state(){return game?.snapshot()??{phase:'home'};},get stats(){return world?.stats();},get game(){return game;},get world(){return world;},start(){start({withStory:false});},step(seconds,input={x:0,z:0}){if(!game)return;for(let i=0;i<seconds*60;i++){game.tick(1/60,input);if(game.phase!=='playing')break;}handleEvents(game.drainEvents());updateHud();},skill(id){if(game?.chooseSkill(id)){if($('#modal').open)$('#modal').close();activeDialog=null;$('#modal').classList.remove('wide');handleEvents(game.drainEvents());}},home:goHome};}
+if(import.meta.env.DEV){window.__LUNARIA_TEST__={get state(){return game?.snapshot()??{phase:'home'};},get stats(){return world?.stats();},get game(){return game;},get world(){return world;},get voice(){return voice;},get story(){return story;},start(){start({withStory:false});},step(seconds,input={x:0,z:0}){if(!game)return;for(let i=0;i<seconds*60;i++){game.tick(1/60,input);if(game.phase!=='playing')break;}handleEvents(game.drainEvents());updateHud();},skill(id){if(game?.chooseSkill(id)){if($('#modal').open)$('#modal').close();activeDialog=null;$('#modal').classList.remove('wide');handleEvents(game.drainEvents());}},home:goHome};}
 if(import.meta.env.PROD&&'serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register(publicUrl('sw.js'),{scope:import.meta.env.BASE_URL}).catch(()=>{}));}
 boot();

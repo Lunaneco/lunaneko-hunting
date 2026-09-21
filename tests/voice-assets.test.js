@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile,stat,readdir} from 'node:fs/promises';
+import {VOICE_MANIFEST} from '../src/voice-manifest.js';
+import {ACT_SCENES} from '../src/chapter.js';
+import {TUTORIAL_STEPS} from '../src/tutorial.js';
+import {BATTLE_VOICES,dialogueVoiceId} from '../src/voice-catalog.js';
+
+test('every story, tutorial and character action has its own shipped voice asset',async()=>{
+ const lines=[...ACT_SCENES.flatMap(s=>Object.values(s).flatMap(scene=>scene.lines)),...TUTORIAL_STEPS.map(s=>({who:'nyanluna',text:s.text}))].map(line=>({...line,id:dialogueVoiceId(line.who,line.text)}));
+ lines.push(...Object.values(BATTLE_VOICES).flatMap(events=>Object.values(events).flat()));
+ const ids=new Set();
+ for(const line of lines){
+  ids.add(line.id);const item=VOICE_MANIFEST[line.id];assert.ok(item,`Missing voice: ${line.id} ${line.text}`);assert.equal(item.text,line.text);assert.equal(item.who,line.who);assert.equal(item.file,`assets/voices/${line.who}/${line.id}.mp3`);assert.ok(item.duration>0&&item.duration<60);
+  const file=new URL(`../public/${item.file}`,import.meta.url);assert.ok((await stat(file)).size>1000);const header=(await readFile(file)).subarray(0,3);assert.ok(header.toString()==='ID3'||header[0]===255,`Invalid MP3 header: ${item.file}`);
+ }
+ assert.equal(Object.keys(VOICE_MANIFEST).length,ids.size);
+});
+test('voice distribution includes only approved MP3 clips and no private voice references',async()=>{
+ const base=new URL('../public/assets/voices/',import.meta.url),expected=new Set(Object.values(VOICE_MANIFEST).map(v=>v.file));let count=0;
+ for(const dir of await readdir(base,{withFileTypes:true})){
+  assert.ok(dir.isDirectory());assert.ok(['nyanluna','tsukineko','omsolo','omsolo_hurt','komusubi','guardian','narrator'].includes(dir.name));
+  for(const name of await readdir(new URL(dir.name+'/',base))){assert.ok(expected.has(`assets/voices/${dir.name}/${name}`),`Unexpected file: ${name}`);count++;}
+ }
+ assert.equal(count,expected.size);
+});

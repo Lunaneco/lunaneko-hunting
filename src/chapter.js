@@ -109,16 +109,17 @@ export class ChapterStory{
     preloadStoryCast();
     this.dialog=document.createElement('dialog');this.dialog.id='story-dialog';this.dialog.className='story-dialog';this.dialog.setAttribute('aria-labelledby','story-title');document.body.append(this.dialog);
     this.dialog.addEventListener('cancel',e=>e.preventDefault());
-    this.dialog.addEventListener('click',e=>{const button=e.target.closest('button');if(button?.id==='story-next')this.next();if(button?.id==='story-skip')this.finish();});
+    this.dialog.addEventListener('click',e=>{const button=e.target.closest('button');if(button?.id==='story-next')this.next();if(button?.id==='story-skip')this.finish();if(button?.id==='story-voice')this.onVoice?.(this.scene.lines[this.index]);});
   }
   show(scene,onFinish){this.scene=scene;this.index=0;this.onFinish=onFinish;this.render();if(!this.dialog.open)this.dialog.showModal();this.dialog.querySelector('#story-next').focus();}
   render(){
     const entry=this.scene.lines[this.index],speaker=storySpeaker(entry.who),last=this.index===this.scene.lines.length-1;
     this.dialog.style.setProperty('--story-image',`url('${ACTS[entry.act??this.scene.act??0].stages[entry.area??this.scene.area].image}')`);
     this.dialog.style.setProperty('--speaker-color',speaker.color);this.dialog.dataset.speaker=entry.who;
-    this.dialog.innerHTML=`<div class="story-art"></div><div class="story-vignette"></div><header class="story-header"><span>${this.scene.kicker}</span><button id="story-skip">会話をスキップ</button></header><div class="story-title-block"><small>${actLabel(entry.act??this.scene.act??0)}</small><h2 id="story-title">${this.scene.title}</h2></div><div class="story-body"><figure class="story-cast ${entry.who}"><img class="story-character-image" src="${speaker.image}" alt="${speaker.alt}" decoding="sync" width="1024" height="1536"></figure><section class="story-dialogue" aria-live="polite"><div class="story-speaker ${entry.who}"><span class="speaker-light" aria-hidden="true"></span><div><small>${speaker.role}</small><strong>${speaker.name}</strong></div></div><p>${entry.text}</p><footer><span class="story-progress">${String(this.index+1).padStart(2,'0')} <i>/</i> ${String(this.scene.lines.length).padStart(2,'0')}</span><button id="story-next">${last?this.scene.next:'つづきを読む'} <span aria-hidden="true">→</span></button></footer></section></div>`;
+    this.dialog.innerHTML=`<div class="story-art"></div><div class="story-vignette"></div><header class="story-header"><span>${this.scene.kicker}</span><button id="story-skip">会話をスキップ</button></header><div class="story-title-block"><small>${actLabel(entry.act??this.scene.act??0)}</small><h2 id="story-title">${this.scene.title}</h2></div><div class="story-body"><figure class="story-cast ${entry.who}"><img class="story-character-image" src="${speaker.image}" alt="${speaker.alt}" decoding="sync" width="1024" height="1536"></figure><section class="story-dialogue" aria-live="polite"><div class="story-speaker ${entry.who}"><span class="speaker-light" aria-hidden="true"></span><div><small>${speaker.role}</small><strong>${speaker.name}</strong></div></div><p>${entry.text}</p><button id="story-voice" class="story-voice" aria-label="${speaker.name}の台詞をもう一度聞く">♪ もう一度聞く</button><footer><span class="story-progress">${String(this.index+1).padStart(2,'0')} <i>/</i> ${String(this.scene.lines.length).padStart(2,'0')}</span><button id="story-next">${last?this.scene.next:'つづきを読む'} <span aria-hidden="true">→</span></button></footer></section></div>`;
+    this.onVoice?.(entry,this.scene.lines.slice(this.index+1,this.index+3));
   }
   next(){if(++this.index>=this.scene.lines.length)this.finish();else{this.render();this.dialog.querySelector('#story-next').focus();}}
-  finish(){const done=this.onFinish;this.onFinish=null;this.dialog.close();done?.();}
-  cancel(){this.onFinish=null;this.dialog.close();}
+  finish(){const done=this.onFinish;this.onFinish=null;this.onVoiceStop?.();this.dialog.close();done?.();}
+  cancel(){this.onFinish=null;this.onVoiceStop?.();this.dialog.close();}
 }

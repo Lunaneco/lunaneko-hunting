@@ -19,3 +19,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+
+Voice production credit
+-----------------------
+Dialogue and character voices were generated locally with Irodori-TTS v4-Small
+by Chihiro Arata (2026).
+Model card: https://huggingface.co/Aratako/Irodori-TTS-v4-Small
+Project: https://github.com/Aratako/Irodori-TTS
+No model weights, inference code, or original voice-reference recordings are
+included in the game distribution. This production credit does not change
+the ownership or license of the game's characters, recordings, or artwork.

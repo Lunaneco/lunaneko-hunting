@@ -1,10 +1,11 @@
 export class Soundscape {
-  constructor(){this.ctx=null;this.enabled=true;this.music=true;this.next=0;this.beat=0;this.master=null;this.musicLevel=.17;}
+  constructor(){this.ctx=null;this.enabled=true;this.music=true;this.next=0;this.beat=0;this.master=null;this.musicLevel=.17;this.ducking=false;}
   init(){
     if(!this.ctx){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.master=this.ctx.createGain();this.master.gain.value=this.enabled?.34:0;this.master.connect(this.ctx.destination);}catch{return;}}
-    if(this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});
+    if(this.ctx.state!=='running'&&this.ctx.state!=='closed')this.ctx.resume().catch(()=>{});
   }
-  setEnabled(value){this.enabled=value;if(this.master)this.master.gain.setTargetAtTime(value?.34:0,this.ctx.currentTime,.05);}
+  setEnabled(value){this.enabled=value;if(this.master)this.master.gain.setTargetAtTime(value?(this.ducking?.11:.34):0,this.ctx.currentTime,.05);}
+  setDucking(value){this.ducking=value;if(this.master)this.master.gain.setTargetAtTime(this.enabled?(value?.11:.34):0,this.ctx.currentTime,.08);}
   tone(freq,duration=.15,type='sine',volume=.3,delay=0,end=null){
     if(!this.ctx||!this.enabled)return;const t=this.ctx.currentTime+delay;const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(end)o.frequency.exponentialRampToValueAtTime(Math.max(30,end),t+duration);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(volume,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+duration+.01);o.onended=()=>{o.disconnect();g.disconnect();};
   }

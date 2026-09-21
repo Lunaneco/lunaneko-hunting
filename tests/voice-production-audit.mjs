@@ -1,0 +1,24 @@
+import {chromium} from '@playwright/test';
+import assert from 'node:assert/strict';
+import {writeFile,mkdir} from 'node:fs/promises';
+import {VOICE_MANIFEST} from '../src/voice-manifest.js';
+const BASE=process.env.LUNARIA_URL||'http://127.0.0.1:4187/lunaneko-hunting/';
+const browser=await chromium.launch({channel:'chrome',headless:true});const checks=[],errors=[];
+const pass=name=>{checks.push(name);console.log('PASS',name);};
+try{
+ const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,serviceWorkers:'allow'});
+ await context.addInitScript(()=>{
+  localStorage.setItem('lunaria-settings-v1',JSON.stringify({sound:true,voice:true,voiceVolume:.44,music:false,quality:'low'}));
+  window.__voiceAudit=[];window.__csp=[];document.addEventListener('securitypolicyviolation',e=>window.__csp.push(e.effectiveDirective));
+  const Original=window.AudioContext||window.webkitAudioContext;
+  window.AudioContext=class extends Original{createBufferSource(){const node=super.createBufferSource(),start=node.start;node.start=function(...args){window.__voiceAudit.push({duration:this.buffer?.duration,state:this.context.state});return start.apply(this,args);};return node;}};
+ });
+ const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`);});
+ await page.goto(BASE);await page.waitForSelector('#loading',{state:'detached',timeout:60000});assert.equal(await page.evaluate(()=>typeof window.__LUNARIA_TEST__),'undefined');
+ await page.locator('#start').tap();await page.waitForFunction(()=>window.__voiceAudit.length>0);let result=await page.evaluate(()=>window.__voiceAudit.at(-1));assert.equal(result.state,'running');assert.ok(result.duration>2);assert.deepEqual(await page.evaluate(()=>window.__csp),[]);pass('Published build plays opening voice under CSP without a development bridge');
+ await page.locator('#story-next').tap();await page.waitForFunction(()=>window.__voiceAudit.length>1);await page.locator('#story-voice').tap();await page.waitForFunction(()=>window.__voiceAudit.length>2);pass('Published dialogue changes speaker and supports replay');
+ await page.evaluate(()=>navigator.serviceWorker.ready);const files=await page.evaluate(async()=>{const keys=await caches.keys();const cache=await caches.open(keys.find(k=>k.startsWith('lunaria-v1-')));return(await cache.keys()).map(r=>r.url);});for(const item of Object.values(VOICE_MANIFEST))assert.ok(files.includes(new URL(item.file,BASE).href),`Not cached: ${item.file}`);assert.equal(files.filter(url=>url.includes('/assets/voices/')).length,212);pass('All 212 voices are saved in the correctly scoped offline cache');
+ await page.reload();await page.waitForSelector('#loading',{state:'detached',timeout:60000});assert.ok(await page.evaluate(()=>navigator.serviceWorker.controller));await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.locator('#start').tap();await page.waitForFunction(()=>window.__voiceAudit.length>0);assert.equal(await page.evaluate(()=>window.__voiceAudit[0].state),'running');pass('Offline reload can play the actual story voice');
+ assert.deepEqual(errors,[]);assert.deepEqual(await page.evaluate(()=>window.__csp),[]);pass('No missing assets, CSP violations or runtime errors');await context.setOffline(false);
+ await mkdir('audit/voices-v127',{recursive:true});await writeFile(`audit/voices-v127/${new URL(BASE).hostname.includes('github')?'hosted':'production'}-report.json`,JSON.stringify({base:BASE,date:new Date().toISOString(),checks,errors},null,2));await context.close();
+}finally{await browser.close();}
