@@ -1,5 +1,5 @@
 // Irodori-TTS v4-Small audio; openings and selected key scenes.
-// v1.31: 38 battle retakes using original and accepted character references.
+// v1.33: Nyanluna ribbon-promise dialogue retake using original and accepted references.
 export const VOICE_MANIFEST={
   "nyanluna-a4069723": {
     "file": "assets/voices/nyanluna/nyanluna-a4069723-47459080630d.mp3",
@@ -800,10 +800,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-b7cb30ca": {
-    "file": "assets/voices/nyanluna/nyanluna-b7cb30ca-89c7f454ddd2.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-b7cb30ca-00814e55e6ba.mp3",
     "who": "nyanluna",
     "text": "「ほどけても結び直せばいい」って、いつも言ってたよね。うん。離れても、また会える。",
-    "duration": 7.09,
+    "duration": 8.88,
     "kind": "story"
   },
   "omsolo-levelup-2": {
