@@ -94,7 +94,7 @@ $('#app').innerHTML=`
       <div class="start-meta"><button id="difficulty" aria-label="難易度を変更">${icon('shield')} <span>冒険モード</span> ${icon('chevron')}</button><span>1人プレイ <i>·</i> オート攻撃 <i>·</i> 記録を保存</span></div>
     </div>
     <div class="chapter-card"><span class="chapter-index">01</span><div><small>CHAPTER ONE</small><h2>迷子の月と、ふたりの約束</h2><p>親友を探して月の世界を巡る、全4幕。</p></div>${icon('compass')}</div>
-    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.34</span></footer>
+    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.35</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu hidden" tabindex="-1" aria-label="章メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">
@@ -424,29 +424,32 @@ function updateHud(){
   if(game.time>10)$('#control-hint').classList.add('hidden');updateTerrainUi(game);
 }
 const numberCanvas=$('#numbers'),numberContext=numberCanvas.getContext('2d');
-function drawNumbers(){const ctx=numberContext;ctx.clearRect(0,0,numberCanvas.width,numberCanvas.height);if(!game)return;
+function drawNumbers(){const ctx=numberContext,width=numberCanvas.width,height=numberCanvas.height;ctx.clearRect(0,0,numberCanvas.width,numberCanvas.height);if(!game)return;
   if(game.exitOpen){
-    const pos=world.project(game.exitPoint.x,game.layout.height+.15,game.exitPoint.z),x=Math.max(40,Math.min(innerWidth-40,pos.x)),y=Math.max(215,Math.min(innerHeight-230,pos.y));
+    const pos=world.project(game.exitPoint.x,game.layout.height+.15,game.exitPoint.z),x=Math.max(40,Math.min(width-40,pos.x)),y=Math.max(215,Math.min(height-230,pos.y));
     ctx.save();ctx.translate(x,y-20);ctx.fillStyle='#ffecae';ctx.strokeStyle='#153747';ctx.lineWidth=4;ctx.save();ctx.rotate(Math.atan2(pos.y-(y-20),pos.x-x)-Math.PI/2);ctx.beginPath();ctx.moveTo(-12,-12);ctx.lineTo(12,-12);ctx.lineTo(0,4);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.strokeText('月の門',0,-23);ctx.fillText('月の門',0,-23);ctx.restore();
   }
   for(const target of game.travelTargets){
-    const pos=world.project(target.x,heightAt(game.layout,target.x,target.z)+2.7,target.z),x=Math.max(72,Math.min(innerWidth-72,pos.x)),y=Math.max(235,Math.min(innerHeight-180,pos.y));
+    const pos=world.project(target.x,heightAt(game.layout,target.x,target.z)+2.7,target.z),x=Math.max(72,Math.min(width-72,pos.x)),y=Math.max(235,Math.min(height-180,pos.y));
     ctx.save();ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.strokeStyle='#102936';ctx.lineWidth=4;ctx.fillStyle=target.id==='elite'?'#ffacbd':target.id==='stairs'?'#bde6ff':'#a4edcf';ctx.strokeText(target.label,x,y);ctx.fillText(target.label,x,y);ctx.beginPath();ctx.moveTo(x-6,y+8);ctx.lineTo(x+6,y+8);ctx.lineTo(x,y+15);ctx.closePath();ctx.fill();ctx.restore();
   }
   let indicators=0;
   for(const enemy of game.enemies){
     const pos=world.project(enemy.x,game.layout.height+(enemy.type==='boss'?4.7:ENEMY_TYPES[enemy.type]?.barHeight??(enemy.type==='mage'?2.75:['archer','golem'].includes(enemy.type)?2.1:1.7)),enemy.z);
-    if(pos.x>15&&pos.x<innerWidth-15&&pos.y>90&&pos.y<innerHeight-40){
+    if(pos.x>15&&pos.x<width-15&&pos.y>90&&pos.y<height-40){
       if(enemy.training){ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillStyle='#efffd6';ctx.strokeStyle='#183f46';ctx.lineWidth=3;ctx.strokeText('練習用の的',pos.x,pos.y-12);ctx.fillText('練習用の的',pos.x,pos.y-12);}
       if(enemy.hp<enemy.maxHp&&enemy.type!=='boss'){ctx.fillStyle='rgba(13,38,46,.65)';ctx.fillRect(pos.x-17,pos.y-2,34,4);ctx.fillStyle='#f4c19f';ctx.fillRect(pos.x-16,pos.y-1,32*Math.max(0,enemy.hp/enemy.maxHp),2);}
     }else if(indicators<5){
-      const dx=pos.x-innerWidth/2,dy=pos.y-innerHeight/2,sx=(innerWidth/2-19)/Math.max(.01,Math.abs(dx)),sy=(innerHeight/2-105)/Math.max(.01,Math.abs(dy)),scale=Math.min(sx,sy,1);
-      const x=innerWidth/2+dx*scale,y=innerHeight/2+dy*scale;ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(dy,dx));ctx.fillStyle=enemy.type==='boss'?'#ffd6a0':'#f5ddab';ctx.shadowColor='#153b3a';ctx.shadowBlur=5;ctx.beginPath();ctx.moveTo(5,0);ctx.lineTo(-4,-4);ctx.lineTo(-2,0);ctx.lineTo(-4,4);ctx.closePath();ctx.fill();ctx.restore();indicators++;
+      const dx=pos.x-width/2,dy=pos.y-height/2,sx=(width/2-19)/Math.max(.01,Math.abs(dx)),sy=(height/2-105)/Math.max(.01,Math.abs(dy)),scale=Math.min(sx,sy,1);
+      const x=width/2+dx*scale,y=height/2+dy*scale;ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(dy,dx));ctx.fillStyle=enemy.type==='boss'?'#ffd6a0':'#f5ddab';ctx.shadowColor='#153b3a';ctx.shadowBlur=5;ctx.beginPath();ctx.moveTo(5,0);ctx.lineTo(-4,-4);ctx.lineTo(-2,0);ctx.lineTo(-4,4);ctx.closePath();ctx.fill();ctx.restore();indicators++;
     }
   }
   for(const n of world.numbers){const p=world.project(n.x,n.y,n.z);ctx.globalAlpha=Math.min(1,n.life*3);ctx.font=`${n.crit?'800 25':'700 18'}px system-ui`;ctx.textAlign='center';ctx.strokeStyle='rgba(29,47,52,.65)';ctx.lineWidth=3;ctx.strokeText(n.text,p.x,p.y);ctx.fillStyle=n.crit?'#ffe2a5':'#fffbe8';ctx.fillText(n.text,p.x,p.y);}ctx.globalAlpha=1;}
-function resize(){world?.resize();numberCanvas.width=innerWidth;numberCanvas.height=innerHeight;}
+function resize(){world?.resize();numberCanvas.width=canvas.clientWidth;numberCanvas.height=canvas.clientHeight;numberCanvas.style.width=`${numberCanvas.width}px`;numberCanvas.style.height=`${numberCanvas.height}px`;}
 window.addEventListener('resize',resize);
+// Safari's dynamic viewport can change with the address bar, without a window
+// resize. Observe the actual canvas so projection and overlays stay aligned.
+new ResizeObserver(resize).observe(canvas);
 function gamepad(){const pad=navigator.getGamepads?.()[0];if(!pad)return;for(const [i,kind] of [[0,'dash'],[1,'switch'],[3,'ultimate'],[9,'pause']]){const pressed=!!pad.buttons[i]?.pressed;if(pressed&&!previousPad[i]){if(kind==='pause'){if(activeDialog==='pause')closeDialog();else pause();}else if(kind==='dash'&&game?.tutorial?.active&&game.tutorial.step.button){if(game.advanceTutorial()){handleEvents(game.drainEvents());updateHud();}}else action(kind);}previousPad[i]=pressed;}}
 function frame(now){
   const dt=Math.min((now-last)/1000,.1);last=now;renderFrames++;gamepad();if(!document.hidden)ultimatePresentation.tick(dt);

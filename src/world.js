@@ -15,6 +15,7 @@ import { loadHeroes,animateHero,animateWoundedHero,setHeroWeapon } from './hero-
 import { seededRandom,AREAS,ATTACK_DURATION } from './model.js';
 import { FieldEnvironment } from './field-environment.js';
 import {StageGate} from './stage-gate.js';
+import {FIELD_CAMERA,resizeFieldCamera} from './field-camera.js';
 const rng=seededRandom(9017);
 const rand=(a,b)=>a+rng()*(b-a);
 function groundTexture(){
@@ -128,7 +129,7 @@ export class World {
       }
       if(e.type==='enemyShot')this.burst(e.x,e.z,e.color,5,1.5);
       if(e.type==='passageEntered'){this.particleData.forEach(p=>p.life=0);for(const r of this.rings){r.mesh.removeFromParent();r.mesh.geometry.dispose();r.mesh.material.dispose();}this.rings=[];this.numbers=[];}
-      if(e.type==='stageEntered'){const follow=this.canvas.clientWidth/this.canvas.clientHeight<.7?.94:.65;this.cameraTarget.set(game.player.x*follow,game.layout.height,game.player.z*follow);}
+      if(e.type==='stageEntered')this.cameraTarget.set(game.player.x*FIELD_CAMERA.follow,game.layout.height,game.player.z*FIELD_CAMERA.follow);
       if(e.type==='wave'&&this.area!==(e.theme??e.area)){this.area=e.theme??e.area;this.fields.setArea(this.area,{immediate:this.settings.motion===false});}
     }
   }
@@ -141,8 +142,7 @@ export class World {
         const injured=this.heroes[2];injured.visible=true;animateWoundedHero(injured,game.rescue,t,dt);injured.position.y=game.layout.height;
       }
       if(this.rescueDome){this.rescueDome.visible=!!game.rescue&&game.phase!=='victory';if(game.rescue){this.rescueDome.position.set(game.rescue.x,game.layout.height+.7,game.rescue.z);this.rescueDome.material.opacity=game.rescue.saved?.13:.12+Math.sin(t*3)*.025;}}
-      const portrait=this.canvas.clientWidth/this.canvas.clientHeight<.7,follow=portrait?.94:.65;
-      const target=new THREE.Vector3(p.x*follow,heightAt(game.layout,p.x,p.z),p.z*follow);this.cameraTarget.lerp(target,1-Math.exp(-dt*(portrait?7:3.8)));
+      const target=new THREE.Vector3(p.x*FIELD_CAMERA.follow,heightAt(game.layout,p.x,p.z),p.z*FIELD_CAMERA.follow);this.cameraTarget.lerp(target,1-Math.exp(-dt*FIELD_CAMERA.followSpeed));
       this.syncMap(this.entities,game.enemies,e=>{const g=createEnemy(e.type,e.bossId);g.userData.disposable=true;if(e.elite){g.scale.setScalar(1.12);const halo=new THREE.Mesh(new THREE.TorusGeometry(1.95,.08,6,48),material(0xff6688,1));halo.rotation.x=-Math.PI/2;halo.position.y=.18;g.add(halo);}return g;},(mesh,e)=>{animateEnemy(mesh,e,t);mesh.position.y=game.layout.height;});
       this.syncMap(this.bullets,game.projectiles,b=>{if(b.owner==='enemy')return createHostileProjectile(b);const g=new THREE.Mesh(b.kind==='gun'?new THREE.CylinderGeometry(b.ultimate?.1:.065,b.ultimate?.1:.065,b.ultimate?1.7:.78,8):new THREE.SphereGeometry(b.owner==='player'?.16:.27,8,6),material(b.kind==='gun'?(b.ultimate?0xe1fbff:0x99efff):b.owner==='player'?0xe2c3ff:0xffa8c7,1.4));if(b.kind==='gun')g.rotation.x=Math.PI/2;g.userData.disposable=true;return g;},(m,b)=>{if(b.owner==='enemy'){updateHostileProjectile(m,b,t);m.position.y+=game.layout.height;return;}m.position.set(b.x,game.layout.height+(b.kind==='gun'?1.45:.9),b.z);if(b.kind==='gun')m.rotation.set(Math.PI/2,0,-Math.atan2(b.vx,b.vz));m.scale.setScalar(1+Math.sin(t*18)*.15);});
       this.syncMap(this.orbMeshes,game.orbs,o=>{const m=new THREE.Mesh(new THREE.OctahedronGeometry(o.value>1?.18:.13),material(0xc7f3ce,.7));m.userData.disposable=true;return m;},(m,o)=>{m.position.set(o.x,game.layout.height+.3+Math.sin(t*4+o.id)*.1,o.z);m.rotation.y=t;});
@@ -150,17 +150,11 @@ export class World {
       this.syncMap(this.ultimateMeshes,game.ultimateEffects.filter(e=>e.kind==='sanctuary'),createSanctuary,(m,e)=>{updateSanctuary(m,e);m.position.y+=game.layout.height;});
       this.orbit.forEach((s,i)=>{s.visible=i<game.rank('orbit');const a=game.time*2.3+i/Math.max(1,game.rank('orbit'))*Math.PI*2;s.position.set(p.x+Math.cos(a)*2.5,game.layout.height+1.0+Math.sin(t*3)*.15,p.z+Math.sin(a)*2.5);s.rotation.y=t*2;});
     }else{if(this.rescueDome)this.rescueDome.visible=false;this.heroes.forEach((h,i)=>{h.visible=i<2;animateHero(h,{x:i===0?-1.1:1.1,z:i===0?0:.3,face:.35,moving:false,invincible:0},t,dt,i===0);});}
-    const aspect=this.canvas.clientWidth/this.canvas.clientHeight;const distance=aspect<.7?28:aspect<1?26:24;
-    const offset=new THREE.Vector3(.53,aspect<.7?.42:.48,.74).multiplyScalar(distance);
-    this.camera.position.copy(this.cameraTarget).add(offset);if(this.shake>0){this.camera.position.x+=Math.sin(t*72)*this.shake*.4;this.camera.position.y+=Math.cos(t*88)*this.shake*.3;}
-    this.camera.lookAt(this.cameraTarget.x,this.cameraTarget.y+(aspect<.7?1.3:1.1),this.cameraTarget.z);
-    // Keep the hero below Nyanluna's lesson card on short portrait screens.
-    const framing=game?.tutorial?.active&&aspect<.7&&this.canvas.clientHeight<700?.24:0;
-    const framingKey=`${framing}:${this.canvas.clientWidth}:${this.canvas.clientHeight}`;
-    if(this.tutorialFraming!==framingKey){
-      this.tutorialFraming=framingKey;
-      if(framing)this.camera.setViewOffset(this.canvas.clientWidth,this.canvas.clientHeight,0,-this.canvas.clientHeight*framing,this.canvas.clientWidth,this.canvas.clientHeight);
-      else this.camera.clearViewOffset();
+    this.camera.position.copy(this.cameraTarget).add(FIELD_CAMERA.offset);if(this.shake>0){this.camera.position.x+=Math.sin(t*72)*this.shake*.4;this.camera.position.y+=Math.cos(t*88)*this.shake*.3;}
+    this.camera.lookAt(this.cameraTarget.x,this.cameraTarget.y+FIELD_CAMERA.lookHeight,this.cameraTarget.z);
+    if(this.tutorialFraming!==!!game?.tutorial?.active){
+      this.tutorialFraming=!!game?.tutorial?.active;
+      resizeFieldCamera(this.camera,this.canvas.clientWidth,this.canvas.clientHeight,this.tutorialFraming);
     }
     this.fields.update(dt,this.cameraTarget,this.settings.motion!==false);this.stageGate.update(game,t);
     if(this.grassShader)this.grassShader.uniforms.uTime.value=t;this.portalCore.rotation.y=t*.7;this.portalCore.position.y=3.45+Math.sin(t*1.5)*.18;this.portalGlow.rotation.z=t*.1;this.motes.rotation.y=t*.008;
@@ -171,7 +165,7 @@ export class World {
     if(this.settings.quality==='low')this.renderer.render(this.scene,this.camera);else this.composer.render();
   }
   project(x,y,z){const v=new THREE.Vector3(x,y,z).project(this.camera);return {x:(v.x*.5+.5)*this.canvas.clientWidth,y:(-v.y*.5+.5)*this.canvas.clientHeight,visible:v.z<1};}
-  resize(){const w=this.canvas.clientWidth,h=this.canvas.clientHeight;this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();this.composer?.setSize(w,h);}
+  resize(){const w=Math.max(1,this.canvas.clientWidth),h=Math.max(1,this.canvas.clientHeight);this.renderer.setSize(w,h,false);resizeFieldCamera(this.camera,w,h,this.tutorialFraming);this.composer?.setSize(w,h);}
   setQuality(quality){this.settings.quality=quality;this.renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='low'?1:1.65));this.renderer.shadowMap.enabled=quality!=='low';this.resize();}
   reset(){this.rescueDome.visible=false;this.terrain.update(null,0);for(const map of [this.entities,this.bullets,this.orbMeshes,this.hazardMeshes,this.ultimateMeshes])this.syncMap(map,[],()=>{},()=>{});for(const r of this.rings){r.mesh.removeFromParent();r.mesh.geometry.dispose();r.mesh.material.dispose();}this.rings=[];this.numbers=[];this.particleData.forEach(p=>p.life=0);this.cameraTarget.set(0,0,0);this.area=-1;this.fields.setArea(0,{immediate:true});this.stageGate.update(null,0);this.orbit.forEach(o=>o.visible=false);this.heroes.forEach(h=>{h.visible=true;h.userData.rig.visible=true;h.userData.attackTime=0;h.userData.movement=0;});}
   stats(){return {calls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures};}
