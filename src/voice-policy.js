@@ -6,6 +6,7 @@ export function battleVoiceCues(events,game){
  const cues=[],active=HERO_IDS[game.player.hero];
  const add=(who,event)=>{if(BATTLE_VOICES[who]?.[event])cues.push({who,event,priority:VOICE_PRIORITIES[event]});};
  for(const e of events){
+  if(e.type==='ultimate'&&e.voicePresented)continue;
   const who=e.heroId??HERO_IDS[e.hero]??active;
   if(e.type==='attack')add(who,e.support?'support':'attack');
   else if(e.type==='characterXp'&&e.level>e.before)add(who,'levelup');

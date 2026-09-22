@@ -11,13 +11,13 @@ export class VoicePlayer{
  init(){this.sound.init();const ctx=this.sound.ctx;if(!ctx)return false;if(!this.gain){this.gain=ctx.createGain();this.gain.connect(ctx.destination);}this.gain.gain.setValueAtTime(this.audible?this.volume:0,ctx.currentTime);return true;}
  configure(enabled,volume=this.volume){this.enabled=enabled;this.volume=Math.max(0,Math.min(1,Number(volume)||0));if(!this.audible)this.stop();if(this.gain)this.gain.gain.setTargetAtTime(this.audible?this.volume:0,this.sound.ctx.currentTime,.03);}
  setMode(mode){if(this.mode!==mode){this.stop();this.resumeLine=null;this.mode=mode;}}
- stop({keepQueue=false}={}){
-  this.serial++;const current=this.current;this.current=null;this.resumeLine=null;if(!keepQueue)this.queue=[];
+ stop({keepQueue=false,preserveCompletion=false}={}){
+  this.serial++;const current=this.current,pending=this.resumeLine;this.current=null;this.resumeLine=null;if(!keepQueue)this.queue=[];
   if(current?.source){current.source.onended=null;try{current.source.stop();}catch{}current.source.disconnect();}
-  this.sound.setDucking?.(false);this.onCaption(null);
+  this.sound.setDucking?.(false);this.onCaption(null);if(!preserveCompletion)(current??pending)?.onFinish?.('cancelled');
  }
- suspend(){if(this.suspended)return;const c=this.current,line=c&&['story','tutorial'].includes(this.mode)?{id:c.id,priority:c.priority,offset:(c.offset??0)+(c.started===undefined?0:this.sound.ctx.currentTime-c.started)}:null;this.suspended=true;this.stop();this.resumeLine=line;}
- resume(){if(!this.suspended)return;this.suspended=false;const line=this.resumeLine;this.resumeLine=null;if(line&&this.audible)this.play(line.id,{priority:line.priority,offset:line.offset,interrupt:true});}
+ suspend(){if(this.suspended)return;const c=this.current,line=c&&['story','tutorial','ultimate'].includes(this.mode)?{id:c.id,priority:c.priority,onStart:c.onStart,onFinish:c.onFinish,offset:(c.offset??0)+(c.started===undefined?0:this.sound.ctx.currentTime-c.started)}:null;this.suspended=true;this.stop({preserveCompletion:!!line});this.resumeLine=line;}
+ resume(){if(!this.suspended)return;this.suspended=false;const line=this.resumeLine;this.resumeLine=null;if(line&&this.audible)void this.play(line.id,{...line,interrupt:true});else line?.onFinish?.('cancelled');}
  async load(id){
   const item=this.manifest[id];if(!item)return null;if(this.cache.has(id)){const value=this.cache.get(id);this.cache.delete(id);this.cache.set(id,value);return value;}
   if(this.loading.has(id))return this.loading.get(id);if(!this.sound.ctx)return null;
@@ -25,14 +25,15 @@ export class VoicePlayer{
   this.loading.set(id,promise);return promise;
  }
  preload(ids){if(!this.audible||!this.init())return;for(const id of ids.slice(0,8))void this.load(id);}
- async play(id,{priority=20,interrupt=false,offset=0}={}){
-  if(!this.manifest[id]||!this.audible||!this.init())return false;
+ async play(id,{priority=20,interrupt=false,offset=0,onStart,onFinish}={}){
+  if(!this.manifest[id]||!this.audible||!this.init()){onFinish?.('unavailable');return false;}
   if(this.current&&!interrupt){if(priority>=40&&priority<60&&this.current.priority>=30){if(!this.queue.some(q=>q.id===id))this.queue.push({id,priority,created:this.clock()});this.queue=this.queue.sort((a,b)=>b.priority-a.priority).slice(0,3);return false;}if(priority<=this.current.priority)return false;}
-  this.stop({keepQueue:true});const token=this.serial,item=this.manifest[id];this.current={id,priority,offset};
+  this.stop({keepQueue:true});const token=this.serial,item=this.manifest[id];this.current={id,priority,offset,onStart,onFinish};
   const buffer=await this.load(id);if(token!==this.serial||!this.audible)return false;
-  if(!buffer||offset>=buffer.duration){this.current=null;this.drain();return false;}
-  const source=this.sound.ctx.createBufferSource();source.buffer=buffer;source.connect(this.gain);this.current={id,priority,source,offset,started:this.sound.ctx.currentTime};this.sound.setDucking?.(true);this.onCaption(item);
-  source.onended=()=>{if(token!==this.serial)return;source.disconnect();this.current=null;this.sound.setDucking?.(false);this.onCaption(null);this.drain();};source.start(0,offset);return true;
+  if(!buffer||offset>=buffer.duration){this.current=null;onFinish?.(buffer?'ended':'unavailable');this.drain();return false;}
+  const source=this.sound.ctx.createBufferSource();source.buffer=buffer;source.connect(this.gain);this.current={id,priority,source,offset,started:this.sound.ctx.currentTime,onStart,onFinish};this.sound.setDucking?.(true);this.onCaption(item);
+  source.onended=()=>{if(token!==this.serial)return;source.disconnect();this.current=null;this.sound.setDucking?.(false);this.onCaption(null);onFinish?.('ended');this.drain();};
+  try{source.start(0,offset);onStart?.(buffer.duration-offset);return true;}catch(error){this.lastError=String(error);this.stop();return false;}
  }
  drain(){const next=this.queue.shift();if(next&&this.clock()-next.created<12&&['battle','menu'].includes(this.mode))void this.play(next.id,{priority:next.priority});else if(this.queue.length)this.drain();}
  dialogue(who,text,mode='story'){this.setMode(mode);this.queue=[];return this.play(dialogueVoiceId(who,text),{priority:100,interrupt:true});}

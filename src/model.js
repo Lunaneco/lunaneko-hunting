@@ -203,7 +203,7 @@ export class Adventure {
     if(automatic){p.dash=0;this.partner.moving=false;}
     this.emit('switch',{hero:p.hero,x:p.x,z:p.z,automatic});
   }
-  ultimate(){return castUltimate(this);}
+  ultimate(options){return castUltimate(this,options);}
   attackFrom(source,hero,support=false){
     if(!this.isHeroAlive(hero)||(support&&!this.hasLivingPartner))return false;
     const stats=this.attackProfile(hero);const range=stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;

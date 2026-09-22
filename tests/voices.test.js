@@ -75,3 +75,17 @@ test('chapter reward menu plays victory then the recruited character, without ba
 test('an interrupted mobile audio context resumes on the next interaction',async()=>{
  const sound=new Soundscape();let resumed=0;sound.ctx={state:'interrupted',resume:async()=>{resumed++;}};sound.init();assert.equal(resumed,1);sound.ctx.state='closed';sound.init();assert.equal(resumed,1);
 });
+
+test('ultimate completion follows audio ending and survives a pause at the original offset',async()=>{
+ const h=harness(),events=[];h.voice.setMode('ultimate');await h.voice.play('nyanluna-ultimate-1',{priority:100,onStart:()=>events.push('start'),onFinish:reason=>events.push(reason)});
+ h.advance(2);h.voice.suspend();assert.deepEqual(events,['start']);h.voice.resume();await flush();assert.equal(h.sources[1].offset,2);assert.deepEqual(events,['start','start']);h.sources[1].onended();assert.deepEqual(events,['start','start','ended']);
+});
+test('an ultimate paused while loading starts only after resume and completes once',async()=>{
+ const h=harness(),events=[];let resolve;h.voice.fetcher=()=>new Promise(done=>resolve=()=>done({ok:true,arrayBuffer:async()=>new ArrayBuffer(8)}));h.voice.setMode('ultimate');const pending=h.voice.play('omsolo-ultimate-1',{priority:100,onFinish:reason=>events.push(reason)});await flush();h.voice.suspend();resolve();await pending;assert.equal(h.sources.length,0);assert.deepEqual(events,[]);h.voice.resume();await flush();h.sources[0].onended();assert.deepEqual(events,['ended']);
+});
+test('cancelling or failing an awaited voice completes it without a late audio start',async()=>{
+ const h=harness(),events=[];h.voice.setMode('ultimate');await h.voice.play('tsukineko-ultimate-1',{onFinish:r=>events.push(r)});h.voice.stop();assert.deepEqual(events,['cancelled']);h.voice.fetcher=async()=>({ok:false,status:404});await h.voice.play('omsolo-ultimate-1',{onFinish:r=>events.push(r)});assert.deepEqual(events,['cancelled','unavailable']);
+});
+test('muting a paused ultimate resolves its pending completion and never resumes its audio',async()=>{
+ const h=harness(),events=[];h.voice.setMode('ultimate');await h.voice.play('nyanluna-ultimate-1',{onFinish:r=>events.push(r)});h.voice.suspend();h.voice.configure(false);assert.deepEqual(events,['cancelled']);h.voice.resume();await flush();assert.equal(h.sources.length,1);
+});

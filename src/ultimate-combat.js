@@ -12,13 +12,16 @@ function shoot(game,effect){
   game.projectiles.push({id:game.ids++,owner:'player',kind:'gun',ultimate:true,heroId:effect.heroId,x:source.x,z:source.z,vx:Math.sin(angle)*spec.speed,vz:Math.cos(angle)*spec.speed,speed:spec.speed,life:(spec.range+2)/spec.speed,damage:effect.damage,crit:true,radius:.32,pierce:spec.pierce,hitIds:[]});
   game.emit('ultimateShot',{x:source.x,z:source.z,angle,heroId:effect.heroId});effect.shotsLeft--;
 }
-export function castUltimate(game){
+export function canCastUltimate(game){
+  return game?.phase==='playing'&&!game.exitOpen&&!game.travelOpen&&!game.tutorial?.active&&game.player.hp>0&&game.player.charge>=100&&!game.ultimateActive(game.player.hero);
+}
+export function castUltimate(game,{voicePresented=false}={}){
   const p=game.player,heroId=game.heroId(p.hero),spec=game.ultimateSpec(p.hero);
-  if(game.phase!=='playing'||game.exitOpen||game.travelOpen||game.tutorial?.active||p.charge<100||game.ultimateActive(p.hero))return false;
+  if(!canCastUltimate(game))return false;
   p.charge=0;p.invincible=Math.max(p.invincible,spec.immunity);
   const duration=spec.duration??spec.shots*spec.interval;
   const effect={id:game.ids++,kind:spec.kind,heroId,spec,duration,x:p.x,z:p.z,damage:game.skillDamage(heroId,spec.baseDamage),due:spec.interval,remaining:duration,interval:spec.interval};
-  game.emit('ultimate',{x:p.x,z:p.z,hero:p.hero,heroId,abilityId:spec.id});
+  game.emit('ultimate',{x:p.x,z:p.z,hero:p.hero,heroId,abilityId:spec.id,voicePresented});
   if(['sanctuary','bladeDance'].includes(spec.kind)){Object.assign(effect,{radius:spec.radius,pulsesLeft:spec.pulses});game.ultimateEffects.push(effect);game.heal(spec.heal);pulse(game,effect);}
   else{effect.shotsLeft=spec.shots;game.ultimateEffects.push(effect);shoot(game,effect);}
   return true;
