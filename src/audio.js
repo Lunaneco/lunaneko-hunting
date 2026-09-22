@@ -1,13 +1,24 @@
+import {MusicPlayer} from './music.js';
+
 export class Soundscape {
-  constructor(){this.ctx=null;this.enabled=true;this.music=true;this.next=0;this.beat=0;this.master=null;this.musicLevel=.17;this.ducking=false;}
+  constructor(){this.ctx=null;this.enabled=true;this.music=true;this.next=0;this.beat=0;this.master=null;this.menuBus=null;this.ducking=false;this.scene='menu';this.suspended=false;this.paused=false;this.bgm=new MusicPlayer();}
   init(){
-    if(!this.ctx){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.master=this.ctx.createGain();this.master.gain.value=this.enabled?.34:0;this.master.connect(this.ctx.destination);}catch{return;}}
+    if(!this.ctx){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.master=this.ctx.createGain();this.master.gain.value=this.enabled?.34:0;this.master.connect(this.ctx.destination);this.menuBus=this.ctx.createGain();this.menuBus.connect(this.master);this.bgm.attach(this.ctx);}catch{return;}}
     if(this.ctx.state!=='running'&&this.ctx.state!=='closed')this.ctx.resume().catch(()=>{});
+    this.refreshMusic();this.bgm.unlock();
   }
-  setEnabled(value){this.enabled=value;if(this.master)this.master.gain.setTargetAtTime(value?(this.ducking?.11:.34):0,this.ctx.currentTime,.05);}
-  setDucking(value){this.ducking=value;if(this.master)this.master.gain.setTargetAtTime(this.enabled?(value?.11:.34):0,this.ctx.currentTime,.08);}
-  tone(freq,duration=.15,type='sine',volume=.3,delay=0,end=null){
-    if(!this.ctx||!this.enabled)return;const t=this.ctx.currentTime+delay;const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(end)o.frequency.exponentialRampToValueAtTime(Math.max(30,end),t+duration);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(volume,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+duration+.01);o.onended=()=>{o.disconnect();g.disconnect();};
+  setEnabled(value){this.enabled=value;if(this.master)this.master.gain.setTargetAtTime(value?(this.ducking?.11:.34):0,this.ctx.currentTime,.05);this.refreshMusic();}
+  setDucking(value){this.ducking=value;if(this.master)this.master.gain.setTargetAtTime(this.enabled?(value?.11:.34):0,this.ctx.currentTime,.08);this.refreshMusic();}
+  setMusic(value){this.music=value;this.refreshMusic();}
+  setSuspended(value){this.suspended=value;this.refreshMusic();}
+  setPaused(value){this.paused=value;this.refreshMusic();}
+  refreshMusic(){
+    this.bgm.update({scene:this.scene,enabled:this.enabled&&this.music,suspended:this.suspended||this.paused,ducked:this.ducking});
+    const value=this.enabled&&this.music&&!this.suspended&&!this.paused&&this.scene==='menu'?1:0;
+    if(this.menuBus&&value!==this.menuVolume){this.menuVolume=value;this.menuBus.gain.setTargetAtTime(value,this.ctx.currentTime,.035);}
+  }
+  tone(freq,duration=.15,type='sine',volume=.3,delay=0,end=null,bus=this.master){
+    if(!this.ctx||!this.enabled)return;const t=this.ctx.currentTime+delay;const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(end)o.frequency.exponentialRampToValueAtTime(Math.max(30,end),t+duration);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(volume,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.connect(g);g.connect(bus);o.start(t);o.stop(t+duration+.01);o.onended=()=>{o.disconnect();g.disconnect();};
   }
   play(name){
     if(!this.enabled)return;
@@ -26,12 +37,13 @@ export class Soundscape {
     if(name==='defeat'){[330,294,247,196].forEach((n,i)=>this.tone(n,.8,'sine',.15,i*.2));}
     if(name==='click')this.tone(880,.1,'sine',.1);
   }
-  tick(playing){
-    if(!this.ctx||!this.music||!this.enabled||this.ctx.state!=='running')return;
+  tick(scene='menu',{paused=false}={}){
+    this.scene=scene;this.paused=paused;this.refreshMusic();
+    if(!this.ctx||!this.music||!this.enabled||this.suspended||this.paused||scene!=='menu'||this.ctx.state!=='running')return;
     const now=this.ctx.currentTime;if(now<this.next)return;this.next=now+.48;
     const melody=[392,0,587,659,784,0,659,587,494,0,587,0,440,0,392,0,330,0,494,587,659,0,587,494,440,0,392,0,294,0,330,0];
-    const note=melody[this.beat%melody.length];if(note)this.tone(note,1.4,'sine',playing?.075:.095);
-    if(this.beat%8===0){const root=[196,164.81,130.81,146.83][Math.floor(this.beat/8)%4];this.tone(root,3.5,'sine',.08);this.tone(root*1.5,3,'sine',.045);}
+    const note=melody[this.beat%melody.length];if(note)this.tone(note,1.4,'sine',.095,0,null,this.menuBus);
+    if(this.beat%8===0){const root=[196,164.81,130.81,146.83][Math.floor(this.beat/8)%4];this.tone(root,3.5,'sine',.08,0,null,this.menuBus);this.tone(root*1.5,3,'sine',.045,0,null,this.menuBus);}
     this.beat++;
   }
 }
