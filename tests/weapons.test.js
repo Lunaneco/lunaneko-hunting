@@ -106,7 +106,7 @@ test('guard weapon reduces only its owner damage and does not reset hero health 
  const p=allWeapons();const defense=combatStats(p,HEROES[2]).defense;const before=HEROES.map(h=>combatStats(p,h));equipWeapon(p,'omsolo','aegis-saber-r4');assert.equal(combatStats(p,HEROES[2]).defense,defense+18);for(const i of [0,1])assert.deepEqual(combatStats(p,HEROES[i]),before[i]);
  const g=quiet({progression:p,hero:2,party:['omsolo','nyanluna']});g.player.invincible=0;const hp=g.player.hp;g.hurt(30,1,1);assert.ok(Math.abs(hp-g.player.hp-30*100/(100+defense+18))<1e-9);
 });
-test('equipment comparison uses actual character stats and exposes manual equip and unavailable states',()=>{
- const p=allWeapons();equipWeapon(p,'nyanluna','luna-staff-r2');const html=weaponLoadoutView(p,HEROES[0]);assert.match(html,/data-weapon-option="lilica-staff-r2"/);assert.match(html,/装備中との差 -0.15秒/);assert.match(html,/この武器を装備/);assert.match(html,/通常攻撃に適用/);
- const locked=weaponLoadoutView(fresh(),HEROES[0]);assert.match(locked,/ガチャで入手/);
+test('equipment comparison uses actual stats and lists only owned weapons',()=>{
+ const p=allWeapons();equipWeapon(p,'nyanluna','luna-staff-r2');const html=weaponLoadoutView(p,HEROES[0]);assert.match(html,/data-weapon-option="lilica-staff-r2"/);assert.match(html,/装備中との差 -0.15秒/);assert.match(html,/装備する/);assert.match(html,/通常攻撃に適用/);
+ const initial=weaponLoadoutView(fresh(),HEROES[0]);assert.equal([...initial.matchAll(/data-weapon-option=/g)].length,1);assert.match(initial,/data-weapon-option="luna-staff-r1"/);assert.doesNotMatch(initial,/data-weapon-option="lilica|ガチャで入手|未所持/);
 });

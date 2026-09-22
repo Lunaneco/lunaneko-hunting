@@ -27,6 +27,7 @@ import './talents.css';
 import './party.css';
 import './rewards.css';
 import './weapons.css';
+import './equipment-ui.css';
 import {drawWeapon,equipWeapon,weaponVariant} from './weapons.js';
 import {weaponGachaView,weaponDrawResult} from './weapons-ui.js';
 import {talentView,materialsText} from './talent-ui.js';
@@ -63,7 +64,7 @@ record.chapterOneCleared=progression.story.chapterOneCleared;
 const unlockedRoster=()=>availableHeroes(progression,HEROES);
 const heroLevel=id=>characterProgress(progression,id).level;
 let selectedAct=nextAct(progression);
-let equipmentHero=HEROES[0].id;
+let equipmentHero=HEROES[0].id,equipmentCategory='weapons';
 let treeHero=HEROES[0].id,treeSelection='origin';
 const savedParty=read(PARTY_KEY,{});let selectedParty=normalizeParty(savedParty.members,unlockedRoster());
 let selectedHero=Math.max(0,HEROES.findIndex(h=>h.id===(selectedParty.includes(savedParty.lead)?savedParty.lead:selectedParty[0]))),difficulty='normal',game=null,world=null,last=performance.now(),accumulator=0,activeDialog=null,returnFocus=null,resultSaved=false,toastTimer=0,bannerTimer=0,ultimateBannerTimer=0,renderFrames=0,storyEnabled=true,pendingStory=null;
@@ -94,7 +95,7 @@ $('#app').innerHTML=`
       <div class="start-meta"><button id="difficulty" aria-label="難易度を変更">${icon('shield')} <span>冒険モード</span> ${icon('chevron')}</button><span>1人プレイ <i>·</i> オート攻撃 <i>·</i> 記録を保存</span></div>
     </div>
     <div class="chapter-card"><span class="chapter-index">01</span><div><small>CHAPTER ONE</small><h2>迷子の月と、ふたりの約束</h2><p>親友を探して月の世界を巡る、全4幕。</p></div>${icon('compass')}</div>
-    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.35</span></footer>
+    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.36</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu hidden" tabindex="-1" aria-label="章メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">
@@ -234,7 +235,15 @@ function summonWeapon(){
   currentWeaponDraw=result;returnFocus=$('[data-draw-weapon]');activeDialog='weapon-result';$('#modal').classList.remove('wide');$('#modal-content').innerHTML=weaponDrawResult(result,progression,storageAvailable);$('#modal').showModal();audio.init();audio.play('upgrade');announce(`${HEROES.find(h=>h.id===result.item.heroId).name}専用の★${result.item.rarity.rank}武器を獲得。${result.duplicate?'重複分は星の芽へ変換しました。':''}`);
 }
 function missionRunSummary(ids=[]){return ids.length?`<div class="mission-run-rewards">ミッション ${ids.length}件達成<br>${ids.map(id=>STAGE_MISSIONS.find(m=>m.id===id)).filter(Boolean).map(m=>`${m.name}：${missionRewardText(m)}`).join('<br>')}</div>`:'';}
-function renderRewards(){if($('#weapons-panel'))$('#weapons-panel').innerHTML=weaponGachaView(progression);if($('#missions-panel'))$('#missions-panel').innerHTML=missionsView(progression);if($('#equipment-content'))$('#equipment-content').innerHTML=equipmentView(progression,equipmentHero);}
+function renderRewards(){
+  if($('#weapons-panel'))$('#weapons-panel').innerHTML=weaponGachaView(progression);
+  if($('#missions-panel'))$('#missions-panel').innerHTML=missionsView(progression);
+  if($('#equipment-content')){
+    const expanded=new Set([...document.querySelectorAll('[data-equipment-detail][open]')].map(el=>el.dataset.equipmentDetail));
+    $('#equipment-content').innerHTML=equipmentView(progression,equipmentHero,equipmentCategory);
+    document.querySelectorAll('[data-equipment-detail]').forEach(el=>{el.open=expanded.has(el.dataset.equipmentDetail);});
+  }
+}
 function switchMenuTab(tab){
   if(!['adventure','growth','talent','missions','equipment','weapons'].includes(tab))return;if(tab==='talent')renderTalent();if(['missions','equipment','weapons'].includes(tab))renderRewards();
   for(const key of ['adventure','growth','talent','missions','equipment','weapons']){const active=key===tab;$(`#${key}-panel`).classList.toggle('hidden',!active);$(`[data-menu-tab="${key}"]`).setAttribute('aria-pressed',String(active));}
@@ -264,7 +273,7 @@ function goMenu(result){
     <div class="act-selector" role="group" aria-label="幕を選ぶ">${ACTS.filter(a=>a.chapter===chapter.id).map(a=>`<button data-act="${a.id}" aria-pressed="${selectedAct===a.id}" ${isActUnlocked(progression,a.id)?'':'disabled'}><small>ACT 0${a.number} · ${progression.story.actClears[a.id]?'CLEAR':isActUnlocked(progression,a.id)?'OPEN':'LOCKED'}</small><strong>第${a.number}幕</strong><span>${a.title}</span></button>`).join('')}</div><div class="act-intro"><h3>第${act.number}幕 · ${act.title}</h3><p>${act.summary}</p><small>全6WAVEクリア後、達成したミッション報酬をまとめて受け取れます。</small></div><div id="encounter-preparation"></div>${stageDifficultyView(difficulty,STAGE_MISSIONS.find(m=>m.act===selectedAct&&m.trial).id)}<div class="chapter-route">${act.stages.map((s,i)=>`<article class="chapter-stage" style="--stage-image:url('${s.image}')"><span class="stage-number">0${i+1}</span><div><small>${s.waves}${actCleared?' · CLEAR':''}</small><h3>${s.name}</h3><p>${s.note}</p><small class="terrain-badge">${fieldSummary(selectedAct,i)}</small></div><div class="terrain-preview">${mapSvg(fieldFor(selectedAct,i).rooms[0])}</div></article>`).join('')}</div><div class="chapter-bottom"><div class="menu-party"><span>操作する仲間</span><button class="party-edit" data-open="party">編成・祝福 <b data-party-count>${selectedParty.length}/2</b></button>${HEROES.map((h,i)=>`<button data-hero="${i}" aria-pressed="${selectedHero===i}" class="menu-hero ${selectedHero===i?'selected':''}">${portrait(i)}<strong>${h.name}<small data-hero-level="${h.id}">Lv.${heroLevel(h.id)}</small></strong></button>`).join('')}</div><div class="chapter-start-panel"><button id="chapter-start" class="primary" data-mode="${difficulty}"><span><strong>第${act.number}幕${actCleared?'をもう一度遊ぶ':'へ出発する'}</strong><small>${difficultyName(difficulty)}で出発</small></span>${icon('arrow')}</button><button id="chapter-story" class="secondary" ${actCleared?'':'disabled'}>この幕の物語を読み返す${actCleared?'':'（クリア後）'}</button></div></div><p class="chapter-menu-note">${chapter.id===1?'第4幕の巨神を倒してオムソロを救出。最後の月の門を通ると加入し、3人から最大2人を編成できます。':cleared?'第2章が解放されました。こむすびの願いを聞き、新しい救出の旅へ。':'最初はにゃんるな一人の旅。第4幕の最後のボス戦で親友のつきねこと再会し、クリア後に編成が解放。'}<br>全4幕・各幕6WAVE。敵を倒し、光る月の門へ進もう。</p></div>
     <section id="growth-panel" class="growth-panel hidden" aria-label="キャラ育成"><div class="growth-intro"><div><span class="eyebrow">CHARACTER GROWTH</span><h2>冒険は、仲間の力に。</h2><p>敵を倒したキャラに経験値。レベルと基礎能力は、次の冒険へ。</p></div><div class="stone-wallet">${icon('crystal')}<span>限界突破石<b id="limit-stones">${progression.inventory.limitStone}</b></span></div></div><p class="stone-source">各章の第4幕をクリアするたび、限界突破石を1個獲得。第1章の第2〜4幕と第2章の高難度ミッションでも入手。<br>上限Lv.20 → 30 → 40 → 50。限界突破は成長ツリーの「レベルの道」から行います。蓄積経験値も解放時に反映します。</p><p id="growth-feedback" class="growth-feedback" role="status"></p><div id="growth-cards" class="growth-cards">${growthCards(progression)}</div><div class="growth-note"><strong>クリスタルの祝福は、同じ幕の間ずっと有効。</strong><p>クリスタルを集めて選ぶ3択の祝福は、新しい出撃でリセット。キャラのレベル・経験値は残ります。${storageAvailable?'このブラウザに自動保存されます。':'この環境では記録を保存できません。'}</p></div></section>
     <section id="talent-panel" class="talent-panel hidden" aria-label="成長ツリー"><div class="talent-intro"><span class="eyebrow">CONSTELLATION GROWTH</span><h2>星をつなぎ、力を育てる。</h2><p>1段目で基礎を育て、2段目で必殺技を覚醒。素材と限界突破石で、仲間の成長をつなごう。</p></div><p id="tree-feedback" class="growth-feedback" role="status"></p><div id="tree-content">${talentView(progression,treeHero,treeSelection)}</div></section>
-    <section id="missions-panel" class="hidden" aria-label="ステージミッション">${missionsView(progression)}</section><section id="equipment-panel" class="hidden" aria-label="装備"><p id="equipment-feedback" class="equipment-feedback" role="status"></p><div id="equipment-content">${equipmentView(progression,equipmentHero)}</div></section><section id="weapons-panel" class="hidden" aria-label="専用武器ガチャ">${weaponGachaView(progression)}</section>
+    <section id="missions-panel" class="hidden" aria-label="ステージミッション">${missionsView(progression)}</section><section id="equipment-panel" class="hidden" aria-label="装備"><p id="equipment-feedback" class="equipment-feedback" role="status"></p><div id="equipment-content">${equipmentView(progression,equipmentHero,equipmentCategory)}</div></section><section id="weapons-panel" class="hidden" aria-label="専用武器ガチャ">${weaponGachaView(progression)}</section>
     </div>`;
   updatePartyLabels();$('#chapter-menu').classList.remove('hidden');$('#chapter-menu').focus({preventScroll:true});$('#chapter-menu').scrollTop=0;announce(`第${chapter.id+1}章${cleared?'クリア':''}。章メニューです。`);
   if(result){voice.cue(winningHero,'victory');if(result.recruited)voice.cue(result.recruited,'recruit');}
@@ -289,12 +298,13 @@ document.addEventListener('click',event=>{
   if(target.dataset.partyLead&&!game){const index=Number(target.dataset.partyLead);if(selectedParty.includes(HEROES[index]?.id)){selectedHero=index;persistParty();updatePartyLabels();renderPartyDialog();}}
   if(target.dataset.equipWeapon&&!game&&!$('#chapter-menu').classList.contains('hidden')&&(!activeDialog||activeDialog==='weapon-result')){
     const id=target.dataset.equipWeapon,hero=target.dataset.weaponHero;
-    if(equipWeapon(progression,hero,id)){voice.cue(hero,'equip');persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);const message=`${weaponVariant(id).weapon.name}を装備しました。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;$('#equipment-feedback').textContent=message;announce(message);audio.play('upgrade');if(activeDialog==='weapon-result'&&currentWeaponDraw){$('#modal-content').innerHTML=weaponDrawResult(currentWeaponDraw,progression,storageAvailable);$('#weapon-draw-result [data-close]').focus();}else{$(`[data-weapon-option="${id}"]`).scrollIntoView({block:'nearest'});}}
+    if(equipWeapon(progression,hero,id)){voice.cue(hero,'equip');persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);const message=`${weaponVariant(id).weapon.name}を装備しました。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;$('#equipment-feedback').textContent=message;announce(message);audio.play('upgrade');if(activeDialog==='weapon-result'&&currentWeaponDraw){$('#modal-content').innerHTML=weaponDrawResult(currentWeaponDraw,progression,storageAvailable);$('#weapon-draw-result [data-close]').focus();}else{$(`[data-weapon-option="${id}"]`).scrollIntoView({block:'nearest'});$(`[data-weapon-option="${id}"] summary`)?.focus({preventScroll:true});}}
   }
   if(target.hasAttribute('data-draw-weapon'))summonWeapon();
   if(target.hasAttribute('data-open-weapons')&&!game){switchMenuTab('weapons');$('#weapons-panel').scrollIntoView({block:'start'});}
-  if(target.dataset.equipmentHero&&!game&&isHeroUnlocked(progression,target.dataset.equipmentHero)){equipmentHero=target.dataset.equipmentHero;renderRewards();}
-  if(target.dataset.openEquipment&&!game&&isHeroUnlocked(progression,target.dataset.openEquipment)){equipmentHero=target.dataset.openEquipment;switchMenuTab('equipment');$('#equipment-panel').scrollIntoView({block:'start'});}
+  if(target.dataset.equipmentHero&&!game&&isHeroUnlocked(progression,target.dataset.equipmentHero)){equipmentHero=target.dataset.equipmentHero;renderRewards();$('#equipment-feedback').textContent='';$(`[data-equipment-hero="${equipmentHero}"]`).focus({preventScroll:true});}
+  if(['weapons','unique'].includes(target.dataset.equipmentCategory)&&!game){equipmentCategory=target.dataset.equipmentCategory;renderRewards();$('#equipment-feedback').textContent='';$(`[data-equipment-category="${equipmentCategory}"]`).focus({preventScroll:true});}
+  if(target.dataset.openEquipment&&!game&&isHeroUnlocked(progression,target.dataset.openEquipment)){equipmentHero=target.dataset.openEquipment;equipmentCategory='weapons';switchMenuTab('equipment');$('#equipment-panel').scrollIntoView({block:'start'});}
   if(target.dataset.equipItem&&!game){const heroId=target.dataset.equipHero,id=target.dataset.equipItem,remove=progression.equipment.loadout[heroId]===id;if(isHeroUnlocked(progression,heroId)&&equipUnique(progression.equipment,heroId,remove?'':id,{transfer:true})){persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);$('#equipment-feedback').textContent=`${uniqueEquipment(id).name}を${remove?'外しました':'装備しました'}。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;audio.play('upgrade');$(`[data-equip-item="${id}"]`)?.focus({preventScroll:true});}}
   if(target.dataset.showMission&&!game){switchMenuTab('missions');$(`[data-mission="${target.dataset.showMission}"]`)?.scrollIntoView({block:'center',behavior:settings.motion?'smooth':'instant'});}
   if(target.hasAttribute('data-prepare-challenge')&&!game){chooseDifficulty('hard');switchMenuTab('adventure');$('#stage-difficulty').scrollIntoView({block:'start'});$('#stage-difficulty [data-difficulty=hard]').focus({preventScroll:true});}
