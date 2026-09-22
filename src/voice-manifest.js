@@ -1,11 +1,11 @@
-// Irodori-TTS v4-Small audio; story voices are curated for openings and key scenes.
-// Nyanluna uses the v1.28 video reference. Original references remain private.
+// Irodori-TTS v4-Small audio; openings and selected key scenes.
+// v1.30: eight dialogue retakes using approved character references.
 export const VOICE_MANIFEST={
   "nyanluna-a4069723": {
-    "file": "assets/voices/nyanluna/nyanluna-a4069723-c9e78e1802bf.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-a4069723-47459080630d.mp3",
     "who": "nyanluna",
     "text": "わたしも！ もう、すごく心配したんだから。……お話は、こいつを止めてからね。",
-    "duration": 7.19,
+    "duration": 7.58,
     "kind": "story"
   },
   "omsolo-dash-2": {
@@ -583,10 +583,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "omsolo_hurt-f5f32848": {
-    "file": "assets/voices/omsolo_hurt/omsolo_hurt-f5f32848.mp3",
+    "file": "assets/voices/omsolo_hurt/omsolo_hurt-f5f32848-886380ca779a.mp3",
     "who": "omsolo_hurt",
     "text": "あの子が……無事、なのか……。",
-    "duration": 3.76,
+    "duration": 4.8,
     "kind": "story"
   },
   "tsukineko-exit-1": {
@@ -646,10 +646,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-e603140e": {
-    "file": "assets/voices/nyanluna/nyanluna-e603140e-004b3f2f898d.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-e603140e-3c8967b7532d.mp3",
     "who": "nyanluna",
     "text": "もちろん。二人で迷い込んだんだもん。帰るときも、絶対に一緒だよ！",
-    "duration": 6.61,
+    "duration": 6.51,
     "kind": "story"
   },
   "tsukineko-switch-1": {
@@ -730,10 +730,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "nyanluna-4843c41": {
-    "file": "assets/voices/nyanluna/nyanluna-4843c41-f3dd6ddb2909.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-4843c41-ed537bd29fbc.mp3",
     "who": "nyanluna",
     "text": "少しだけなら。でも、早く手当てしないと……！ 結界が消える前に、巨神を止めよう！",
-    "duration": 7.97,
+    "duration": 7.87,
     "kind": "story"
   },
   "nyanluna-switch-2": {
@@ -814,10 +814,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-f7d99e6f": {
-    "file": "assets/voices/nyanluna/nyanluna-f7d99e6f-3173953e9d6b.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-f7d99e6f-bfd0c2c83072.mp3",
     "who": "nyanluna",
     "text": "聞こえた！ つきねこ、あっち！",
-    "duration": 3.33,
+    "duration": 2.77,
     "kind": "story"
   },
   "omsolo-hurt-1": {
@@ -835,10 +835,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-81da10c": {
-    "file": "assets/voices/nyanluna/nyanluna-81da10c-244b833aa7a8.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-81da10c-f99784fd8171.mp3",
     "who": "nyanluna",
     "text": "間に合った……！ オムソロさん、もう大丈夫。こむすびが、わたしたちを呼んでくれたの。",
-    "duration": 7.72,
+    "duration": 7.32,
     "kind": "story"
   },
   "nyanluna-ultimate-1": {
@@ -877,10 +877,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "nyanluna-8b2ed3da": {
-    "file": "assets/voices/nyanluna/nyanluna-8b2ed3da-7b74718a9df7.mp3",
+    "file": "assets/voices/nyanluna/nyanluna-8b2ed3da-5cf56352712c.mp3",
     "who": "nyanluna",
     "text": "うん。こむすび、お父さんが最後にいた場所を教えて。わたしたちが、必ず迎えに行く。",
-    "duration": 7.47,
+    "duration": 7.89,
     "kind": "story"
   },
   "tsukineko-levelup-1": {
@@ -919,10 +919,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "omsolo_hurt-ca8c565f": {
-    "file": "assets/voices/omsolo_hurt/omsolo_hurt-ca8c565f.mp3",
+    "file": "assets/voices/omsolo_hurt/omsolo_hurt-ca8c565f-a66d7fcd252d.mp3",
     "who": "omsolo_hurt",
     "text": "よかった……こむすびは、逃げられた……。",
-    "duration": 3.64,
+    "duration": 5.6,
     "kind": "story"
   },
   "omsolo-support-1": {
