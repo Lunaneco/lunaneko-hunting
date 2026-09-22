@@ -1,8 +1,9 @@
 import {chromium} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
+import {ULTIMATE_ART} from '../src/ultimate-art.js';
 const BASE=process.env.LUNARIA_URL||'http://127.0.0.1:5177/';
-const OUT=process.env.VOICE_AUDIT_DIR||'audit/voices-v131';await mkdir(OUT,{recursive:true});
+const OUT=process.env.VOICE_AUDIT_DIR||'audit/ultimate-v132';await mkdir(OUT,{recursive:true});
 const browser=await chromium.launch({channel:'chrome',headless:true}),checks=[],errors=[];
 const pass=text=>{checks.push(text);console.log('PASS',text);};
 async function setup(hero=0,{muted=false,motion=true,width=390,height=844}={}){
@@ -31,7 +32,8 @@ try{
   await page.locator('#ultimate').tap();await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source&&window.__LUNARIA_TEST__.voice.mode==='ultimate');
   const state=await page.evaluate(()=>{const t=window.__LUNARIA_TEST__,g=t.game;return {phase:g.phase,charge:g.player.charge,effects:g.ultimateEffects.length,hp:g.player.hp,time:g.time,enemy:g.enemies[0].hp,image:document.querySelector('.cutin-face').naturalWidth,overflow:document.body.scrollWidth>innerWidth};});
   assert.equal(state.phase,'ultimateIntro');assert.equal(state.charge,100);assert.equal(state.effects,0);assert.equal(state.hp,before.hp);assert.equal(state.enemy,before.enemy);assert.ok(state.image>0);assert.equal(state.overflow,false);
-  const frozen=state.time;await page.keyboard.press('KeyE');await page.keyboard.press('KeyQ');await page.keyboard.press('Space');
+  assert.ok((await page.locator('.cutin-face').getAttribute('src')).endsWith(ULTIMATE_ART[['nyanluna','tsukineko','omsolo'][hero]].file));
+  const frozen=state.time;await page.keyboard.press('KeyE');await page.keyboard.press('KeyQ');
   await page.screenshot({path:`${OUT}/ultimate-${hero}.png`});
   if(hero===0){
    await page.locator('#cutin-pause').tap();await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.game.time),frozen);assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.voice.current),null);await page.locator('#resume').tap();await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source);assert.ok(await page.evaluate(()=>window.__LUNARIA_TEST__.voice.current.offset>0));
@@ -40,7 +42,35 @@ try{
   await page.waitForFunction(()=>!window.__LUNARIA_TEST__.ultimatePresentation.active,{},{timeout:20000});
   const audit=await page.evaluate(()=>window.__ultimateAudit),cast=audit.filter(e=>e.type==='cast'),ended=audit.find(e=>e.type==='voice-ended');
   assert.equal(cast.length,1);assert.equal(cast[0].hero,hero);assert.ok(ended);assert.ok(cast[0].time>ended.time);assert.ok(audit.filter(e=>e.type==='voice-start').every(e=>e.visible&&e.charge===100));assert.equal(audit.filter(e=>e.type==='voice-start').length,hero===0?2:1);
-  pass(`Hero ${hero}: visible face → complete voice → exactly one ultimate, without duplicate call`);await context.close();
+  pass(`Hero ${hero}: dedicated ability art → complete voice → exactly one ultimate, without duplicate call`);await context.close();
+ }
+ for(let hero=0;hero<3;hero++){
+  const size=hero===0?{width:1440,height:900}:hero===1?{width:320,height:568}:{};
+  const {page,context}=await setup(hero,size);
+  await page.locator('#ultimate').tap();await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source&&window.__LUNARIA_TEST__.voice.mode==='ultimate');
+  await page.waitForTimeout(400);
+  const layout=await page.evaluate(()=>{const title=document.querySelector('.cutin-ability').getBoundingClientRect(),skip=document.querySelector('#cutin-skip').getBoundingClientRect();return {overflow:document.body.scrollWidth>innerWidth,title:{left:title.left,right:title.right,bottom:title.bottom},skip:{top:skip.top,bottom:skip.bottom},width:innerWidth,height:innerHeight};});
+  assert.equal(layout.overflow,false);assert.ok(layout.title.left>=0&&layout.title.right<=layout.width);assert.ok(layout.title.bottom<layout.skip.top);assert.ok(layout.skip.bottom<=layout.height);
+  await page.screenshot({path:`${OUT}/ultimate-skip-${hero}.png`});
+  if(hero===2){await page.locator('#cutin-pause').tap();assert.equal((await page.evaluate(()=>window.__ultimateAudit)).filter(e=>e.type==='cast').length,0);assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.ultimatePresentation.skip()),false);await page.locator('#resume').tap();await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source);}
+  await page.locator('.cutin-face').tap();
+  assert.equal(await page.locator('#ultimate-cutin').isVisible(),false);
+  const state=await page.evaluate(()=>{const t=window.__LUNARIA_TEST__;return {phase:t.game.phase,charge:t.game.player.charge,voice:t.voice.current?.id,hero:t.game.player.hero,audit:window.__ultimateAudit};});
+  assert.equal(state.phase,'playing');assert.equal(state.charge,0);assert.equal(state.hero,hero);assert.ok(!state.voice?.includes('-ultimate-'));assert.equal(state.audit.filter(e=>e.type==='cast').length,1);assert.equal(state.audit.filter(e=>e.type==='voice-cancelled').length,1);
+  await page.waitForTimeout(350);assert.equal((await page.evaluate(()=>window.__ultimateAudit)).filter(e=>e.type==='cast').length,1);
+  pass(`Hero ${hero}: fresh screen tap stops the voice and casts once; activation tap and pause never skip`);await context.close();
+ }
+ for(const input of ['button','Enter','Space','loading']){
+  const {page,context}=await setup(0);
+  if(input==='loading')await page.evaluate(()=>{const v=window.__LUNARIA_TEST__.voice,fetcher=v.fetcher;v.cache.delete('nyanluna-ultimate-1');v.fetcher=(...args)=>String(args[0]).includes('nyanluna-ultimate-')?new Promise(resolve=>window.__releaseUltimate=()=>fetcher(...args).then(resolve)):fetcher(...args);});
+  await page.locator('#ultimate').tap();
+  if(input==='loading')await page.waitForFunction(()=>!!window.__releaseUltimate);else await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source&&window.__LUNARIA_TEST__.voice.mode==='ultimate');
+  if(input==='button'||input==='loading')await page.locator('#cutin-skip').tap();else await page.keyboard.press(input);
+  assert.equal(await page.locator('#ultimate-cutin').isVisible(),false);
+  if(input==='loading'){await page.evaluate(()=>window.__releaseUltimate());await page.waitForTimeout(500);}
+  const audit=await page.evaluate(()=>window.__ultimateAudit);assert.equal(audit.filter(e=>e.type==='cast').length,1);
+  if(input==='loading')assert.equal(audit.filter(e=>e.type==='voice-start').length,0);
+  pass(`${input}: skip is immediate and late audio does not restart`);await context.close();
  }
  for(const mode of ['muted','failed','stalled','cancel']){
   const {page,context}=await setup(0,{muted:mode==='muted',motion:false,width:320,height:568});
@@ -48,7 +78,7 @@ try{
   if(mode==='failed')await page.route('**/assets/voices/nyanluna/nyanluna-ultimate-*',route=>route.fulfill({status:404,body:'audit failure'}));
   if(mode==='stalled')await page.evaluate(()=>{const v=window.__LUNARIA_TEST__.voice,fetcher=v.fetcher;v.cache.delete('nyanluna-ultimate-1');v.fetcher=(...args)=>String(args[0]).includes('nyanluna-ultimate-')?new Promise(resolve=>window.__releaseUltimate=()=>fetcher(...args).then(resolve)):fetcher(...args);});
   await page.locator('#ultimate').tap();await page.waitForTimeout(450);assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.game.player.charge),100);
-  if(mode==='muted')await page.screenshot({path:`${OUT}/ultimate-small-reduced-motion.png`});
+  if(mode==='muted'){await page.screenshot({path:`${OUT}/ultimate-small-reduced-motion.png`});assert.equal(await page.locator('.cutin-flash').evaluate(e=>getComputedStyle(e).animationName),'none');}
   if(mode==='cancel'){await page.locator('#cutin-pause').tap();await page.locator('#quit').tap();await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.game),null);assert.equal(await page.locator('#ultimate-cutin').isVisible(),false);assert.equal((await page.evaluate(()=>window.__ultimateAudit)).filter(e=>e.type==='cast').length,0);}
   else{await page.waitForFunction(()=>!window.__LUNARIA_TEST__.ultimatePresentation.active,{},{timeout:10000});if(mode==='stalled'){await page.evaluate(()=>window.__releaseUltimate?.());await page.waitForTimeout(500);}const audit=await page.evaluate(()=>window.__ultimateAudit);assert.equal(audit.filter(e=>e.type==='cast').length,1);if(mode==='muted'||mode==='stalled')assert.equal(audit.filter(e=>e.type==='voice-start').length,0);}
   pass(`${mode}: no stuck overlay, premature cast or late duplicate voice`);await context.close();

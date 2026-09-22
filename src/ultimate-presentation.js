@@ -15,6 +15,11 @@ export class UltimatePresentation{
   }
   pause(){const s=this.current;if(!s||s.paused)return false;s.paused=true;this.view.pause(true);this.voice.suspend();return true;}
   resume(){const s=this.current;if(!s||!s.paused)return false;s.paused=false;this.view.pause(false);this.voice.resume();return true;}
+  skip(){
+    const s=this.current;if(!s||s.paused||this.voice.suspended)return false;
+    if(this.getGame()!==s.game||s.game.phase!=='ultimateIntro'||s.game.player.hero!==s.hero){this.cancel();return false;}
+    this.finish(s);return true;
+  }
   cancel(){const s=this.current;if(!s)return;this.current=null;this.voice.stop();this.view.hide();if(s.game.phase==='ultimateIntro')s.game.phase='playing';}
   tick(dt){
     const s=this.current;if(!s)return;

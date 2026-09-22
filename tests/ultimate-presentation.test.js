@@ -47,3 +47,19 @@ test('leaving a run or cancelling during pause discards the pending cast without
 test('invalid ultimate requests never open the presentation',()=>{
   for(const alter of [g=>g.player.charge=99,g=>g.player.hp=0,g=>g.exitOpen=true,g=>g.travelOpen=true,g=>g.phase='paused',g=>g.tutorial={active:true}]){const h=harness();alter(h.game);assert.equal(h.controller.start(h.game),false);assert.equal(h.records.length,0);}
 });
+
+test('skipping during entrance, loading, voice or release casts once and cancels pending audio',async()=>{
+  for(const stage of ['entrance','loading','voice','release']){
+    const h=harness();h.controller.start(h.game);await flush();
+    if(stage!=='entrance')h.tick(.4);
+    const pending=h.voice.options;
+    if(stage==='voice'||stage==='release')pending.onStart();
+    if(stage==='release'){h.tick(1.5);pending.onFinish('ended');h.controller.tick(.01);}
+    assert.equal(h.controller.skip(),true);assert.equal(h.controller.active,false);assert.equal(h.game.player.charge,0);assert.equal(h.game.phase,'playing');assert.equal(h.voice.mode,'battle');assert.equal(h.voice.options,null);
+    assert.equal(h.controller.skip(),false);pending?.onStart();pending?.onFinish('ended');h.tick(1);
+    assert.equal(h.records.filter(r=>r[0]==='cast').length,1);assert.equal(h.game.drainEvents().filter(e=>e.type==='ultimate').length,1);
+  }
+});
+test('a pause or stale run cannot be skipped into a cast',async()=>{
+ const h=harness();h.controller.start(h.game);await flush();h.controller.pause();assert.equal(h.controller.skip(),false);assert.equal(h.game.player.charge,100);h.controller.resume();h.replaceGame();assert.equal(h.controller.skip(),false);assert.equal(h.game.player.charge,100);
+});

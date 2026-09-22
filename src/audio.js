@@ -20,6 +20,7 @@ export class Soundscape {
     if(name==='switch'){[440,660,880].forEach((n,i)=>this.tone(n,.22,'sine',.13,i*.055));}
     if(name==='upgrade'||name==='wave'){[392,494,587,784].forEach((n,i)=>this.tone(n,.7,'sine',.2,i*.1));}
     if(name==='ultimateGun'){[220,330,660].forEach((n,i)=>this.tone(n,.25,'sawtooth',.06,i*.06));}
+    if(name==='ultimateReveal'){this.tone(150,.21,'triangle',.16,0,1080);this.tone(72,.18,'sine',.22);this.tone(1760,.12,'sine',.045,.05,880);}
     if(name==='ultimate'){[130,196,261,392,523,784,1046].forEach((n,i)=>this.tone(n,1.6,'triangle',.14,i*.055));}
     if(name==='victory'){[392,494,587,784,740,784,988].forEach((n,i)=>this.tone(n,.9,'sine',.25,i*.17));}
     if(name==='defeat'){[330,294,247,196].forEach((n,i)=>this.tone(n,.8,'sine',.15,i*.2));}
