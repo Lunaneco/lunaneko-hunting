@@ -27,7 +27,7 @@ export const FIELD_LAYOUTS=Object.freeze([
  [single(variant(cross,'ash-road','のり屋根の市庭','stone'),'十字の市庭 · 閉ざされた市場'),branch(variant(fork,'fort-fork','城下の分かれ路'),variant(garden,'fort-court','用水路の中庭'),variant(prison,'fort-prison','封鎖された米蔵')),floors(variant(courtyard,'bell-lower','穂鐘の見張り台・下層','clock'),variant(roof,'bell-upper','穂鐘の見張り台・上層','clock'))],
  [single(variant(hall,'broken-fort','砕けた穂守り砦','eclipse'),'折れた回廊 · 巨神の爪痕'),floors(variant(courtyard,'lifelight-lower','命灯りの石段・下層','sanctuary'),variant(roof,'lifelight-upper','命灯りの石段・上層','sanctuary')),single(variant(eclipse,'colossus-arena','穂守りの大広場','eclipse'),'救出戦 · 巨神を倒しオムソロを救う')],
 ].map((act,index)=>index<4?act:act.map((field,district)=>({...field,rooms:field.rooms.map(room=>({...room,country:['village','valley','town','fortress'][index-4],district,surface:index===4&&district===1?'wood':'stone'}))}))));
-export const ROUTE_REWARD=Object.freeze({starBud:20,moonDew:4,wardenCore:1});
+export const ROUTE_REWARD=Object.freeze({starBud:10,moonDew:2,wardenCore:1});
 export const ROUTE_PORTALS=Object.freeze([{id:'safe',x:-12,z:-13,radius:1.8,label:'通常ルート',color:0x9eead6},{id:'elite',x:12,z:-13,radius:1.8,label:'強ボスルート',color:0xff8b99}]);
 export const fieldFor=(act,area)=>FIELD_LAYOUTS[act]?.[area]??FIELD_LAYOUTS[0][0];
 export function layoutFor(act,area,wave,route='safe'){

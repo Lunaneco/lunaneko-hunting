@@ -20,7 +20,7 @@ export function playRun(game,limit=550){
 // XP from replaying chapter one. No levels, XP, enemy HP or timers are injected.
 export function prepareWithEarnedRewards(profile){
  let p=profile,runs=0;grantLimitStone(p);
- while(['nyanluna','tsukineko'].some(id=>p.characters[id].level<30)&&runs<18){
+ while(['nyanluna','tsukineko'].some(id=>p.characters[id].level<30)&&runs<40){
   for(const id of ['nyanluna','tsukineko']){
    if(p.characters[id].level===20&&p.characters[id].breaks===0)breakthrough(p,id);
    for(const node of FIRST_TIER_NODES)unlockTalent(p,id,node.id);

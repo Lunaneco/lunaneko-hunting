@@ -19,7 +19,7 @@ test('all 30 weapon variants and 10 relics coexist once each through equip, tran
    assert.equal(Object.values(p.equipment.loadout).filter(id=>id===item.id).length,1);
  }
  assert.ok(equipUnique(p.equipment,'omsolo',''));assert.deepEqual(p.equipment.owned,relics);assert.deepEqual(p.weapons.owned,weapons);
- const rolls=[0,0,0],result=drawWeapon(p,()=>rolls.shift());assert.ok(result.duplicate);assert.deepEqual(p.weapons.owned,weapons);assert.equal(p.inventory.starBud,85);
+ const rolls=[0,0,0],result=drawWeapon(p,()=>rolls.shift());assert.ok(result.duplicate);assert.deepEqual(p.weapons.owned,weapons);assert.equal(p.inventory.starBud,80);
 });
 
 test('inventory tabs contain each owned item once, hide unowned items and use a clear empty state',()=>{

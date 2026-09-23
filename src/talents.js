@@ -1,17 +1,21 @@
 import {ENEMY_TYPES} from './enemies.js';
 import {LEVEL_RULES,LEVEL_AWAKENING_COSTS} from './level-rules.js';
 export const MATERIALS=Object.freeze({
-  starBud:{rarity:1,name:'星の芽',icon:'spark',source:'敵撃破',note:'通常敵から1〜4個、ボスから6個。両段の強化に使用。'},
-  moonDew:{rarity:1,name:'月のしずく',icon:'moon',source:'月の門を突破',note:'各幕の1・2・3つ目の月の門で、それぞれ1・2・3個。1段目とLv.30へのレベル覚醒に使用。'},
+  starBud:{rarity:1,name:'星の芽',icon:'spark',source:'敵撃破',note:'通常敵から50%で1〜4個、ボスから確定で3個。両段の強化に使用。'},
+  moonDew:{rarity:1,name:'月のしずく',icon:'moon',source:'月の門を突破',note:'各幕の月の門から1個ずつ、全3個。1段目とLv.30へのレベル覚醒に使用。'},
   wardenCore:{rarity:1,name:'守護者の核',icon:'star',source:'ボス撃破',note:'各幕のボスを倒すと1個。1段目の最後の星とLv.30へのレベル覚醒に使用。'},
-  moonPrism:{rarity:2,name:'月虹のしずく',icon:'moon',source:'第2章・チャレンジの門',note:'第2章、または全章のチャレンジモードで、1・2・3つ目の月の門から1・2・3個。毎回入手でき、第2章の突破ミッションでも獲得。2段目とLv.40・50へのレベル覚醒に使用。'},
+  moonPrism:{rarity:2,name:'月虹のしずく',icon:'moon',source:'第2章・チャレンジの門',note:'第2章、または全章のチャレンジモードで、月の門から1個ずつ、全3個。毎回入手でき、第2章の突破ミッションでも獲得。2段目とLv.40・50へのレベル覚醒に使用。'},
   astralCore:{rarity:2,name:'深星の核',icon:'star',source:'第2章・高難度のボス',note:'第2章またはチャレンジモードのボス、全章の分岐の強ボスから毎回1個。第2章の最終エリア突破ミッションでも1個。2段目とLv.40・50へのレベル覚醒に使用。'},
 });
 export const TREE_RESOURCES=Object.freeze({...MATERIALS,limitStone:{name:'覚醒の石',icon:'crystal',source:'章クリア・高難度試練',note:'各章の第4幕クリアで毎回1個。各章の時間制限・ノーダメージ試練でも各1個。レベルの道で素材と一緒に使用。必要数は1・2・4個へ増加し、上限を10ずつ解放。'}});
-export const MATERIAL_DROPS=Object.freeze({...Object.fromEntries(Object.entries(ENEMY_TYPES).map(([id,s])=>[id,{starBud:s.buds}])),boss:{starBud:6,wardenCore:1}});
+export const MATERIAL_DROPS=Object.freeze({...Object.fromEntries(Object.entries(ENEMY_TYPES).map(([id,s])=>[id,{starBud:s.buds}])),boss:{starBud:3,wardenCore:1}});
 // Higher-rarity rewards supplement normal drops; replaying an eligible stage earns them again.
-export function enemyMaterials(enemy,act,difficulty){return {...MATERIAL_DROPS[enemy.type],...(enemy.type==='boss'&&(act>=4||difficulty==='hard'||enemy.elite)?{astralCore:1}:{})};}
-export function gateMaterials(area,act,difficulty){return {moonDew:area+1,...(act>=4||difficulty==='hard'?{moonPrism:area+1}:{})};}
+export const MATERIAL_DROP_CHANCE=.5;
+export function enemyMaterials(enemy,act,difficulty,random=Math.random){
+  if(enemy.type!=='boss'&&random()>=MATERIAL_DROP_CHANCE)return {};
+  return {...MATERIAL_DROPS[enemy.type],...(enemy.type==='boss'&&(act>=4||difficulty==='hard'||enemy.elite)?{astralCore:1}:{})};
+}
+export function gateMaterials(area,act,difficulty){return {moonDew:1,...(act>=4||difficulty==='hard'?{moonPrism:1}:{})};}
 export function resourceLabel(id){const m=TREE_RESOURCES[id];return `${m.rarity?`★${m.rarity} `:''}${m.name}`;}
 export function tierMaterialCost(nodes){const total={};for(const node of nodes)for(const [id,n] of Object.entries(node.cost))total[id]=(total[id]??0)+n;return total;}
 // Ordered by prerequisites; both the graph and saved-data validation use this order.

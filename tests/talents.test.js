@@ -5,7 +5,7 @@ import {HEROES,STAGE_EXIT} from '../src/model.js';
 import {normalizeProgression,characterStats,grantMaterials,talentStatus,unlockTalent} from '../src/progression.js';
 import {TALENT_NODES,talentBonuses} from '../src/talents.js';
 const profile=(level=15)=>normalizeProgression({characters:Object.fromEntries(HEROES.map(h=>[h.id,{level}])),inventory:{starBud:200,moonDew:20,wardenCore:2,limitStone:1}},HEROES);
-const kill=(g,type='moss',id='nyanluna')=>{const e=g.spawnEnemy(type,10,10);g.hit(e,100000,0,0,false,false,id);return e;};
+const kill=(g,type='moss',id='nyanluna')=>{g.materialRng=()=>0;const e=g.spawnEnemy(type,10,10);g.hit(e,100000,0,0,false,false,id);return e;};
 
 test('initial defense is character-specific and actually reduces incoming damage',()=>{
  for(const [hero,defense] of [[0,8],[1,14]]){const g=new RecruitedAdventure({hero});assert.equal(g.statsFor(hero).defense,defense);g.player.invincible=0;g.hurt(100,0,0);assert.ok(Math.abs(HEROES[hero].baseHp-g.player.hp-10000/(100+defense))<1e-8);}
@@ -37,7 +37,7 @@ test('different awakenings apply the advertised permanent bonuses without stacki
 });
 test('enemy drops are separate from XP and crystals and are awarded only once',()=>{
  const g=new RecruitedAdventure();g.drainEvents();const e=kill(g);assert.equal(g.progressFor(0).xp,3);assert.equal(g.stageCrystals,0);assert.equal(g.orbs[0].value,1);assert.equal(g.progression.inventory.starBud,1);g.hit(e,9999,0,0);assert.equal(g.progression.inventory.starBud,1);
- kill(g,'golem','tsukineko');assert.equal(g.progression.inventory.starBud,3);kill(g,'boss');assert.equal(g.progression.inventory.starBud,9);assert.equal(g.progression.inventory.wardenCore,1);assert.deepEqual(g.earnedMaterials,{starBud:9,moonDew:0,wardenCore:1,moonPrism:0,astralCore:0});
+ kill(g,'golem','tsukineko');assert.equal(g.progression.inventory.starBud,3);kill(g,'boss');assert.equal(g.progression.inventory.starBud,6);assert.equal(g.progression.inventory.wardenCore,1);assert.deepEqual(g.earnedMaterials,{starBud:6,moonDew:0,wardenCore:1,moonPrism:0,astralCore:0});
 });
 test('a capped character still earns materials; death cannot grant late drops',()=>{
  const p=profile();p.characters.nyanluna.level=50;p.characters.nyanluna.breaks=3;const g=new RecruitedAdventure({progression:p,party:['nyanluna']});kill(g);assert.equal(g.progressFor(0).xp,0);assert.equal(g.earnedMaterials.starBud,1);
@@ -46,7 +46,7 @@ test('a capped character still earns materials; death cannot grant late drops',(
 test('each gate grants its dew once, including the final gate, and retains the tree',()=>{
  const p=profile();unlockTalent(p,'nyanluna','origin');const g=new RecruitedAdventure({progression:p});g.drainEvents();const before=g.progression.inventory.moonDew;
  for(const area of [0,1,2]){g.area=area;g.wave=(area+1)*2;g.exitOpen=true;g.exitDelay=0;Object.assign(g.player,{x:g.exitPoint.x,z:g.exitPoint.z});assert.equal(g.crossExit(),true);assert.equal(g.crossExit(),false);if(area<2)g.advanceStage();}
- assert.equal(g.phase,'victory');assert.equal(g.progression.inventory.moonDew,before+6);assert.equal(g.earnedMaterials.moonDew,6);assert.deepEqual(g.progressFor(0).tree,['origin']);assert.equal(g.player.maxHp,276);
+ assert.equal(g.phase,'victory');assert.equal(g.progression.inventory.moonDew,before+3);assert.equal(g.earnedMaterials.moonDew,3);assert.deepEqual(g.progressFor(0).tree,['origin']);assert.equal(g.player.maxHp,276);
 });
 test('tree attack, HP and defense affect combat and survive a new departure and character swaps',()=>{
  const p=profile();for(const id of ['origin','attack1','guard1'])unlockTalent(p,'tsukineko',id);const g=new RecruitedAdventure({hero:1,progression:p});g.rng=()=>.9;

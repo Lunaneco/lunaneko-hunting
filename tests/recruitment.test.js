@@ -47,7 +47,7 @@ test('boss defeat and guest XP do not recruit; only crossing the final gate pers
   const g=encounter(finale());g.hit(g.enemies[0],99999,0,0,false,false,'tsukineko');g.enemies=[];g.tick(1/60);
   assert.equal(g.exitOpen,true);assert.equal(isHeroUnlocked(g.progression,'tsukineko'),false);assert.equal(g.earnedXp.tsukineko,60);
   assert.equal(gate(g),true);assert.equal(g.phase,'victory');assert.equal(g.guestHeroId,null);assert.equal(g.recruitedHeroId,'tsukineko');assert.equal(isHeroUnlocked(g.progression,'tsukineko'),true);assert.equal(g.crossExit(),false);assert.equal(g.drainEvents().filter(e=>e.type==='recruited').length,1);
-  const next=new Adventure({progression:JSON.parse(JSON.stringify(g.progression)),hero:1});assert.equal(next.player.hero,1);assert.equal(next.progressFor(1).level,2);
+  const next=new Adventure({progression:JSON.parse(JSON.stringify(g.progression)),hero:1});assert.equal(next.player.hero,1);assert.equal(next.progressFor(1).level,1);
 });
 test('quitting or defeat after meeting keeps recruitment locked on the next run',()=>{
   for(const defeat of [false,true]){const g=encounter(finale());if(defeat){g.player.invincible=0;g.hurt(99999,0,0);assert.equal(g.phase,'playing');assert.equal(g.player.hero,1);g.player.invincible=0;g.hurt(99999,0,0);assert.equal(g.phase,'defeat');}

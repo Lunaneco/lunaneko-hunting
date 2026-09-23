@@ -15,7 +15,7 @@ test('kill XP belongs only to its attacker and crystals grant no character XP',(
  const before=structuredClone(g.progression);g.collectAll();g.addCrystals(20);tick(g);assert.equal(g.phase,'upgrade');assert.deepEqual(g.progression.characters,before.characters);assert.equal(g.progression.inventory.moonDew,0);assert.equal(g.progression.missions.stages[0].crystals,12);assert.equal(g.progression.missions.claimed.includes('meadow-crystals'),false);assert.equal(g.offers.length,3);
 });
 test('XP levels a character immediately without opening the crystal choice',()=>{
- const g=new RecruitedAdventure();quiet(g);for(let i=0;i<12;i++)kill(g);assert.equal(g.progressFor(0).level,2);assert.equal(g.progressFor(0).xp,0);assert.equal(g.progressFor(1).level,1);assert.equal(g.phase,'playing');assert.equal(g.pendingBlessings,0);assert.equal(g.player.maxHp,186);
+ const g=new RecruitedAdventure();quiet(g);for(let i=0;i<24;i++)kill(g);assert.equal(g.progressFor(0).level,2);assert.equal(g.progressFor(0).xp,0);assert.equal(g.progressFor(1).level,1);assert.equal(g.phase,'playing');assert.equal(g.pendingBlessings,0);assert.equal(g.player.maxHp,186);
 });
 test('a projectile keeps its caster after swapping before impact',()=>{
  const g=new RecruitedAdventure();quiet(g);const e=g.spawnEnemy('moss',0,-2);e.hp=1;g.attackFrom(g.player,0);assert.equal(g.projectiles[0].heroId,'nyanluna');g.switchHero();g.player.attack=1000;tick(g,30);
@@ -47,13 +47,13 @@ test('unequal character levels retain individual health across repeated swaps',(
  assert.equal(g.player.hp,90);
 });
 test('wave changes retain blessings and crossing a stage retains them and preserves character progress',()=>{
- const g=new RecruitedAdventure();quiet(g);for(let i=0;i<12;i++)kill(g);g.orbs=[];g.skills.power=2;g.startWave();assert.equal(g.rank('power'),2);
+ const g=new RecruitedAdventure();quiet(g);for(let i=0;i<24;i++)kill(g);g.orbs=[];g.skills.power=2;g.startWave();assert.equal(g.rank('power'),2);
  g.phase='upgrade';g.pendingBlessings=1;g.offers=[SKILLS.find(s=>s.id==='vitality')];g.chooseSkill('vitality');g.player.hp=g.player.maxHp*.5;
  g.wave=2;g.area=0;g.exitOpen=true;g.exitDelay=0;g.stageCrystals=7;g.blessingTier=2;Object.assign(g.player,{x:g.exitPoint.x,z:g.exitPoint.z});const permanent=structuredClone(g.progression);
  assert.equal(g.crossExit(),true);assert.deepEqual(g.skills,{power:2,vitality:1});assert.equal(g.stageCrystals,7);assert.equal(g.blessingTier,2);assert.equal(g.crystalGoal,8);assert.equal(g.player.hp/g.player.maxHp,.5);assert.equal(g.player.maxHp,226);assert.deepEqual(g.progression.characters,permanent.characters);assert.equal(g.progression.inventory.moonDew,1);g.advanceStage();assert.equal(g.progressFor(0).level,2);
 });
 test('new runs restore only permanent growth, without sharing a mutable profile',()=>{
- const g=new RecruitedAdventure();kill(g,1,'boss');g.skills.power=3;g.addCrystals(7);const saved=JSON.parse(JSON.stringify(g.progression));const next=new RecruitedAdventure({hero:1,progression:saved});assert.equal(next.progressFor(1).level,2);assert.equal(next.player.maxHp,216);assert.deepEqual(next.skills,{});assert.equal(next.stageCrystals,0);kill(next,1);assert.deepEqual(g.progression,saved);
+ const g=new RecruitedAdventure();kill(g,1,'boss');for(let i=0;i<4;i++)kill(g,1);g.skills.power=3;g.addCrystals(7);const saved=JSON.parse(JSON.stringify(g.progression));const next=new RecruitedAdventure({hero:1,progression:saved});assert.equal(next.progressFor(1).level,2);assert.equal(next.player.maxHp,216);assert.deepEqual(next.skills,{});assert.equal(next.stageCrystals,0);kill(next,1);assert.deepEqual(g.progression,saved);
 });
 test('level caps require the current cap and an item; XP waits and unlocks after consumption',()=>{
  const p=fresh();Object.assign(p.inventory,LEVEL_AWAKENING_COSTS[0]);assert.equal(breakthrough(p,'nyanluna'),false);assert.equal(p.inventory.limitStone,1);

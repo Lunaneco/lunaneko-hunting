@@ -11,7 +11,7 @@ export const ENEMY_REWARDS=Object.freeze({...Object.fromEntries(Object.entries(E
 const integer=(n,fallback=0,max=99999999)=>Number.isFinite(n)&&n>=0?Math.min(max,Math.floor(n)):fallback;
 const safeId=id=>typeof id==='string'&&/^[a-z0-9_-]{1,64}$/i.test(id)&&!['__proto__','constructor','prototype'].includes(id);
 export function levelCap(character){return Math.min(LEVEL_RULES.maxLevel,LEVEL_RULES.initialCap+character.breaks*LEVEL_RULES.capStep);}
-export function xpRequired(level){return 24+level*12;}
+export function xpRequired(level){return 48+level*24+Math.max(0,level-20)**2;}
 export function normalizeProgression(raw,roster=[],legacyRecord={}){
   const result={version:1,story:normalizeStory(raw?.story,legacyRecord),characters:{},inventory:{limitStone:integer(raw?.inventory?.limitStone),weaponTicket:integer(raw?.inventory?.weaponTicket),...Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,integer(raw?.inventory?.[id])]))},equipment:normalizeEquipment(raw?.equipment),weapons:normalizeWeapons(raw?.weapons),missions:normalizeMissions(raw?.missions)};
   const source=raw?.characters&&typeof raw.characters==='object'&&!Array.isArray(raw.characters)?raw.characters:{};

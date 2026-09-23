@@ -32,7 +32,7 @@ test('a draw with no ticket, or an invalid RNG, changes nothing',()=>{
  p.inventory.weaponTicket=2;for(const value of [NaN,-.1,1,Infinity]){const snapshot=structuredClone(p);assert.equal(drawWeapon(p,()=>value),null);assert.deepEqual(p,snapshot);}
 });
 for(const [rarity,seed] of [[2,.1],[3,.8],[4,.99]])test(`rarity ${rarity} duplicate converts into the advertised buds and still consumes exactly one ticket`,()=>{
- const p=fresh();p.inventory.weaponTicket=3;roll(p,0,seed);const r=roll(p,0,seed);assert.equal(r.duplicate,true);assert.equal(r.duplicateBuds,WEAPON_RARITIES[rarity-1].duplicateBuds);assert.equal(p.inventory.starBud,r.duplicateBuds);assert.equal(p.inventory.weaponTicket,1);assert.equal(p.weapons.owned.length,4);assert.equal(p.weapons.draws,2);assert.deepEqual(p.weapons.lastDraw,{weaponId:r.item.id,duplicate:true});
+ const p=fresh();p.inventory.weaponTicket=3;roll(p,0,seed);const r=roll(p,0,seed);assert.equal(r.duplicate,true);assert.equal(r.duplicateBuds,WEAPON_RARITIES[rarity-1].duplicateBuds);assert.equal(p.inventory.starBud,r.duplicateBuds);assert.equal(p.inventory.weaponTicket,1);assert.equal(p.weapons.owned.length,4);assert.equal(p.weapons.draws,2);assert.deepEqual(p.weapons.lastDraw,{weaponId:r.item.id,duplicate:true,duplicateBuds:r.duplicateBuds});
  const restored=normalizeProgression(JSON.parse(JSON.stringify(p)),HEROES);assert.deepEqual(restored,p);assert.equal(restored.inventory.starBud,r.duplicateBuds);
 });
 test('only the equipped owner receives the bonus; draws preserve the selection and relics stay separate',()=>{
@@ -85,7 +85,7 @@ test('only owned, character-specific weapons on recruited heroes can be equipped
 });
 test('different weapon families at the same rarity are new acquisitions, only exact duplicates convert',()=>{
  const p=fresh();p.inventory.weaponTicket=4;for(const type of [0,.34,.67])assert.equal(roll(p,0,.1,type).duplicate,false);
- assert.equal(p.weapons.owned.length,6);assert.equal(p.inventory.starBud,0);assert.equal(roll(p,0,.1,.34).duplicate,true);assert.equal(p.inventory.starBud,10);assert.equal(p.weapons.loadout.nyanluna,'luna-staff-r1');
+ assert.equal(p.weapons.owned.length,6);assert.equal(p.inventory.starBud,0);assert.equal(roll(p,0,.1,.34).duplicate,true);assert.equal(p.inventory.starBud,5);assert.equal(p.weapons.loadout.nyanluna,'luna-staff-r1');
 });
 test('speed and reach change actual attacks, stack with blessings, and retain support scaling',()=>{
  for(const [id,hero] of [['lilica-staff-r2',0],['artemis-rifle-r3',1],['hayate-saber-r4',2]]){

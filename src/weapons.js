@@ -6,9 +6,9 @@ export const WEAPON_TICKET_DROP_RATE=.05;
 export const WEAPON_HERO_IDS=Object.freeze(['nyanluna','tsukineko','omsolo']);
 export const WEAPON_RARITIES=Object.freeze([
   Object.freeze({rank:1,name:'通常',color:'#b7cbc7',attack:0,chance:0,duplicateBuds:0}),
-  Object.freeze({rank:2,name:'希少',color:'#86d5ff',attack:.10,chance:.75,duplicateBuds:10}),
-  Object.freeze({rank:3,name:'特級',color:'#d0a9ff',attack:.22,chance:.20,duplicateBuds:30}),
-  Object.freeze({rank:4,name:'伝説',color:'#ffd580',attack:.40,chance:.05,duplicateBuds:100}),
+  Object.freeze({rank:2,name:'希少',color:'#86d5ff',attack:.10,chance:.75,duplicateBuds:5}),
+  Object.freeze({rank:3,name:'特級',color:'#d0a9ff',attack:.22,chance:.20,duplicateBuds:15}),
+  Object.freeze({rank:4,name:'伝説',color:'#ffd580',attack:.40,chance:.05,duplicateBuds:50}),
 ]);
 const base=(heroId)=>({...WEAPONS[heroId],heroId,style:'均衡型',attackOffset:0,interval:1,range:1,pierce:heroId==='tsukineko'?2:0});
 export const WEAPON_FAMILIES=Object.freeze([
@@ -40,7 +40,11 @@ export function normalizeWeapons(raw){
     }else loadout[heroId]=`${WEAPONS[heroId].id}-r1`;
   }
   const last=weaponVariant(raw?.lastDraw?.weaponId),validLast=last?.rarity.rank>1&&owned.includes(last.id);
-  return {version:2,owned,loadout,draws:count(raw?.draws),lastDraw:validLast?{weaponId:last.id,duplicate:raw.lastDraw.duplicate===true}:null};
+  // Older draws did not store their paid amount. Keep their pre-v1.41 history;
+  // new draws record the actual grant so later reward changes cannot rewrite it.
+  const duplicate=raw?.lastDraw?.duplicate===true;
+  const duplicateBuds=duplicate&&validLast?count(raw.lastDraw.duplicateBuds??({2:10,3:30,4:100}[last.rarity.rank])):0;
+  return {version:2,owned,loadout,draws:count(raw?.draws),lastDraw:validLast?{weaponId:last.id,duplicate,...(duplicate?{duplicateBuds}:{})}:null};
 }
 export function equippedWeapon(profile,heroId){
   if(!WEAPON_HERO_IDS.includes(heroId))return null;
@@ -74,6 +78,6 @@ export function drawWeapon(profile,rng=Math.random){
   const collection=normalizeWeapons(profile.weapons),duplicate=collection.owned.includes(item.id);
   if(!duplicate)collection.owned.push(item.id);
   let duplicateBuds=0;if(duplicate){const before=count(profile.inventory.starBud);profile.inventory.starBud=count(before+rarity.duplicateBuds);duplicateBuds=profile.inventory.starBud-before;}
-  collection.draws=count(collection.draws+1);collection.lastDraw={weaponId:item.id,duplicate};profile.weapons=normalizeWeapons(collection);profile.inventory.weaponTicket=tickets-1;
+  collection.draws=count(collection.draws+1);collection.lastDraw={weaponId:item.id,duplicate,...(duplicate?{duplicateBuds}:{})};profile.weapons=normalizeWeapons(collection);profile.inventory.weaponTicket=tickets-1;
   return {item,duplicate,duplicateBuds};
 }

@@ -5,7 +5,7 @@ import {HEROES,STAGE_EXIT} from '../src/model.js';
 import {normalizeProgression,characterStats,combatStats} from '../src/progression.js';
 import {STAGE_MISSIONS,missionsFor,trialStatus} from '../src/missions.js';
 import {WEAPONS,equipUnique,normalizeEquipment} from '../src/equipment.js';
-const quiet=game=>{game.waveSpawned=game.waveGoal;game.waveBreak=-999;game.player.attack=game.partner.attack=999;game.drainEvents();return game;};
+const quiet=game=>{game.materialRng=()=>0;game.waveSpawned=game.waveGoal;game.waveBreak=-999;game.player.attack=game.partner.attack=999;game.drainEvents();return game;};
 const gate=(game,area)=>{game.area=area;game.wave=area*2+2;game.exitOpen=true;game.exitDelay=0;game.pendingBlessings=0;Object.assign(game.player,{x:game.exitPoint.x,z:game.exitPoint.z});return game.crossExit();};
 const kill=game=>{const e=game.spawnEnemy('moss',10,10);game.hit(e,999,0,0);return e;};
 test('legacy progression gains empty mission and equipment records without losing character or material data',()=>{
@@ -15,14 +15,14 @@ test('legacy progression gains empty mission and equipment records without losin
 test('stage hunt progress accumulates across runs, remains separate by stage, and grants its reward only once',()=>{
   let g=quiet(new RecruitedAdventure());for(let i=0;i<12;i++)kill(g);assert.equal(g.progression.inventory.starBud,12);const prior=structuredClone(g.progression);
   g=quiet(new RecruitedAdventure({progression:prior}));for(let i=0;i<12;i++)kill(g);assert.equal(g.progression.inventory.starBud,24);assert.equal(g.progression.missions.claimed.includes('meadow-hunt'),false);assert.equal(g.progression.missions.stages[1].kills,0);
-  kill(g);assert.equal(g.progression.inventory.starBud,25);gate(g,2);assert.equal(g.progression.inventory.starBud,57);assert.equal(g.earnedMissions.filter(id=>id==='meadow-hunt').length,1);assert.equal(prior.missions.stages[0].kills,12);
+  kill(g);assert.equal(g.progression.inventory.starBud,25);gate(g,2);assert.equal(g.progression.inventory.starBud,41);assert.equal(g.earnedMissions.filter(id=>id==='meadow-hunt').length,1);assert.equal(prior.missions.stages[0].kills,12);
 });
 test('actual crystal collection advances mission counts without granting XP or duplicate rewards',()=>{
-  const g=quiet(new RecruitedAdventure());const before=structuredClone(g.progression.characters);g.orbs=[{id:999,x:10,z:10,value:12,age:0}];g.collectAll();assert.equal(g.progression.inventory.moonDew,0);assert.equal(g.progression.missions.stages[0].crystals,12);g.collectAll();g.addCrystals(50);assert.equal(g.progression.inventory.moonDew,0);assert.deepEqual(g.progression.characters,before);gate(g,2);assert.equal(g.progression.inventory.moonDew,5);assert.ok(g.progression.missions.claimed.includes('meadow-crystals'));
+  const g=quiet(new RecruitedAdventure());const before=structuredClone(g.progression.characters);g.orbs=[{id:999,x:10,z:10,value:12,age:0}];g.collectAll();assert.equal(g.progression.inventory.moonDew,0);assert.equal(g.progression.missions.stages[0].crystals,12);g.collectAll();g.addCrystals(50);assert.equal(g.progression.inventory.moonDew,0);assert.deepEqual(g.progression.characters,before);gate(g,2);assert.equal(g.progression.inventory.moonDew,2);assert.ok(g.progression.missions.claimed.includes('meadow-crystals'));
 });
 test('normal clears never award unique gear or the challenge limit stone, even with perfect fast clears',()=>{
   const g=new RecruitedAdventure();for(let area=0;area<3;area++){assert.equal(gate(g,area),true);assert.equal(g.crossExit(),false);if(area<2)g.advanceStage();}
-  assert.equal(g.progression.equipment.owned.length,0);assert.equal(g.progression.inventory.limitStone,0);assert.deepEqual(g.progression.missions.claimed,['meadow-clear','ruins-clear','dawn-clear']);assert.equal(g.progression.inventory.starBud,54);
+  assert.equal(g.progression.equipment.owned.length,0);assert.equal(g.progression.inventory.limitStone,0);assert.deepEqual(g.progression.missions.claimed,['meadow-clear','ruins-clear','dawn-clear']);assert.equal(g.progression.inventory.starBud,27);
 });
 for(const [area,seconds,hits,item] of [[0,55,1,'meadow-charm'],[1,70,1,'ruins-lens'],[2,80,0,'dawn-seal']])test(`unique stage ${area+1} checks difficulty, time and hits at the gate`,()=>{
   for(const [extraTime,extraHits,success] of [[0,0,true],[.001,0,false],[0,1,false]]){

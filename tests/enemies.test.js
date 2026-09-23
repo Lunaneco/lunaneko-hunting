@@ -12,7 +12,7 @@ test('twelve regular enemy types have unique roles and complete XP, crystal and 
  assert.equal(Object.keys(ENEMY_TYPES).length,12);
  for(const [type,spec] of Object.entries(ENEMY_TYPES)){
   assert.equal(ENEMY_REWARDS[type].xp,spec.xp);assert.equal(MATERIAL_DROPS[type].starBud,spec.buds);
-  const g=quiet(),e=g.spawnEnemy(type,10,10);g.hit(e,9999,0,0,false,false,'tsukineko');assert.equal(g.earnedXp.tsukineko,spec.xp);assert.equal(g.earnedXp.nyanluna,0);assert.equal(g.orbs[0].value,spec.crystals);assert.equal(g.earnedMaterials.starBud,spec.buds);
+  const g=quiet(),e=g.spawnEnemy(type,10,10);g.materialRng=()=>0;g.hit(e,9999,0,0,false,false,'tsukineko');assert.equal(g.earnedXp.tsukineko,spec.xp);assert.equal(g.earnedXp.nyanluna,0);assert.equal(g.orbs[0].value,spec.crystals);assert.equal(g.earnedMaterials.starBud,spec.buds);
  }
 });
 test('new enemy types appear in predictable introductory waves and every act has a different boss',()=>{

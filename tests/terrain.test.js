@@ -38,7 +38,7 @@ for(const route of ['safe','elite'])test(`all four forks can physically select $
  }
 });
 test('an elite boss awards the advertised extra materials once; safe bosses do not',()=>{
- const g=room(1,1);g.wave=4;g.route='elite';const boss=g.spawnEnemy('boss',0,-4,{elite:true});g.hit(boss,999999,0,0);const saved=structuredClone(g.progression);assert.equal(g.earnedMaterials.starBud,6+ROUTE_REWARD.starBud);assert.equal(g.earnedMaterials.moonDew,ROUTE_REWARD.moonDew);assert.equal(g.earnedMaterials.wardenCore,1+ROUTE_REWARD.wardenCore);assert.deepEqual(g.routeRewards,[1]);g.hit(boss,999999,0,0);assert.deepEqual(g.progression,saved);
+ const g=room(1,1);g.wave=4;g.route='elite';const boss=g.spawnEnemy('boss',0,-4,{elite:true});g.hit(boss,999999,0,0);const saved=structuredClone(g.progression);assert.equal(g.earnedMaterials.starBud,3+ROUTE_REWARD.starBud);assert.equal(g.earnedMaterials.moonDew,ROUTE_REWARD.moonDew);assert.equal(g.earnedMaterials.wardenCore,1+ROUTE_REWARD.wardenCore);assert.deepEqual(g.routeRewards,[1]);g.hit(boss,999999,0,0);assert.deepEqual(g.progression,saved);
  const safe=room(1,1);safe.hit(safe.spawnEnemy('boss',0,-4),999999,0,0);assert.deepEqual(safe.routeRewards,[]);assert.equal(safe.earnedMaterials.moonDew,0);
 });
 for(const difficulty of ['normal','hard'])test(`all four elite routes and upper floors are completable with earned level 20, ${difficulty}`,()=>{

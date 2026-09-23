@@ -18,7 +18,7 @@ for(const engine of [chromium,webkit]){
     const page=await context.newPage();page.on('pageerror',e=>errors.push(`${name}: ${e.message}`));
     await page.goto(process.env.AUDIT_URL??'http://127.0.0.1:4187/lunaneko-hunting/');
     await page.waitForSelector('#loading',{state:'detached',timeout:120000});
-    assert.match(await page.locator('.version').innerText(),/1\.40/);
+    assert.match(await page.locator('.version').innerText(),/1\.41/);
     assert.equal(await page.evaluate(()=>typeof window.__LUNARIA_TEST__),'undefined');
     await page.locator('#chapter-menu-open').tap();await page.locator('[data-menu-tab="growth"]').tap();
     for(const [id,hp,attack,defense] of [['nyanluna',180,20,8],['tsukineko',210,26,14],['omsolo',250,42,21]]){

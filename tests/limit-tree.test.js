@@ -15,7 +15,7 @@ test('old breakthrough progress lights the correct tree nodes without requiring 
  assert.equal(growthCount(p.characters.tsukineko),3);assert.equal(nextLimitNode(p.characters.tsukineko).id,'limit50');assert.equal(unlockTalent(p,'nyanluna','limit30'),false);assert.deepEqual(p,before);
 });
 test('a cap node spends the stone and all materials and applies banked XP to the selected character',()=>{
- const p=saved({nyanluna:{level:20,xp:400,breaks:0}});const other=structuredClone(p.characters.tsukineko),wallet=structuredClone(p.inventory);
+ const p=saved({nyanluna:{level:20,xp:664,breaks:0}});const other=structuredClone(p.characters.tsukineko),wallet=structuredClone(p.inventory);
  assert.equal(unlockTalent(p,'nyanluna','limit30'),true);assert.deepEqual(p.characters.nyanluna,{level:21,xp:136,breaks:1,tree:[]});assert.deepEqual(p.characters.tsukineko,other);
  assert.deepEqual(p.inventory,{...wallet,...Object.fromEntries(Object.entries(LIMIT_BREAK_NODES[0].cost).map(([id,n])=>[id,wallet[id]-n]))});assert.equal(unlockTalent(p,'nyanluna','limit30'),false);assert.equal(p.inventory.limitStone,2);
 });
@@ -30,7 +30,7 @@ test('level, sequence and actual limit stones remain necessary regardless of oth
  assert.deepEqual(p,before);p.inventory.limitStone=1;assert.equal(unlockTalent(p,'nyanluna','limit30'),false);assert.equal(unlockTalent(p,'tsukineko','limit40'),false);assert.equal(unlockTalent(p,'tsukineko','limit30'),true);
 });
 test('previewing a breakthrough does not spend or mutate anything and matches the eventual result',()=>{
- const p=saved({nyanluna:{level:20,xp:400,tree:['origin','guard1']}}),before=structuredClone(p);
+ const p=saved({nyanluna:{level:20,xp:664,tree:['origin','guard1']}}),before=structuredClone(p);
  const preview=previewLimitBreak(p,'nyanluna','limit30');assert.equal(preview.level,21);assert.deepEqual(preview.tree,['origin','guard1']);assert.deepEqual(p,before);
  unlockTalent(p,'nyanluna','limit30');assert.deepEqual(p.characters.nyanluna,preview);assert.equal(previewLimitBreak(p,'nyanluna','limit30'),null);assert.equal(previewLimitBreak(p,'nyanluna','limit40'),null);assert.equal(previewLimitBreak(p,'nyanluna','origin'),null);
 });
