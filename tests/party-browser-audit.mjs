@@ -33,7 +33,7 @@ try{
     await page.locator('#modal').evaluate(el=>el.scrollTop=0);await page.screenshot({path:`${out}/party-${size.width}.png`});await closeParty(page);
   }
   pass('Home, party controls and previews fit four phone and desktop layouts with 44px touch targets');
-  await page.setViewportSize(sizes[0]);await page.locator('#start').tap();await page.locator('#story-skip').tap();await page.waitForTimeout(150);
+  await page.setViewportSize(sizes[0]);await page.locator('#start').tap();await page.locator('#chapter-start').tap();await page.locator('#story-skip').tap();await page.waitForTimeout(150);
   assert.deepEqual(await page.evaluate(()=>window.__LUNARIA_TEST__.state.party),['tsukineko']);assert.deepEqual(await page.evaluate(()=>window.__LUNARIA_TEST__.world.heroes.map(h=>h.visible)),[false,true]);
   assert.equal(await page.locator('#switch-action').isVisible(),false);assert.equal(await page.locator('#switch').isDisabled(),true);assert.match(await page.locator('.partner-label').innerText(),/単独出撃/);
   await page.keyboard.press('q');assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.state.player.hero),1);
@@ -55,7 +55,7 @@ try{
   pass('Stage changes retain the solo party; menu reformation restores the duo, support model and lead switching without changing its pool');
   await context.close();
   const production=await open('http://127.0.0.1:4173/'),p=production.page;assert.equal(await p.evaluate(()=>typeof window.__LUNARIA_TEST__),'undefined');await openParty(p);await p.locator('[data-party-toggle="tsukineko"]').tap();await closeParty(p);await p.reload();await p.waitForSelector('#loading',{state:'detached'});
-  assert.deepEqual(await saved(p),{members:['nyanluna'],lead:'nyanluna'});await p.locator('#start').tap();await p.locator('#story-skip').tap();assert.equal(await p.locator('#switch-action').isVisible(),false);assert.equal(await p.locator('#hero-name').innerText(),'にゃんるな');await p.screenshot({path:`${out}/production-solo.png`});await production.context.close();
+  assert.deepEqual(await saved(p),{members:['nyanluna'],lead:'nyanluna'});await p.locator('#start').tap();await p.locator('#chapter-start').tap();await p.locator('#story-skip').tap();assert.equal(await p.locator('#switch-action').isVisible(),false);assert.equal(await p.locator('#hero-name').innerText(),'にゃんるな');await p.screenshot({path:`${out}/production-solo.png`});await production.context.close();
   pass('Production saves and restores the solo party and starts the matching hero without a development bridge');
   assert.deepEqual(errors,[]);pass('No JavaScript, shader or resource errors');
   await writeFile(`${out}/report.json`,JSON.stringify({checks,errors,date:new Date().toISOString()},null,2));

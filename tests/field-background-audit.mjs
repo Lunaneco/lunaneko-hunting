@@ -11,7 +11,7 @@ try{
   const context=await browser.newContext({viewport:size,deviceScaleFactor:1,isMobile:size.width<500,hasTouch:size.width<500});
   await context.addInitScript(()=>{window.requestAnimationFrame=()=>0;localStorage.setItem('lunaria-settings-v1',JSON.stringify({quality:'high',sound:false,music:false,motion:true}));});
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-  await page.goto('http://127.0.0.1:5174/');await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.click('#start');await page.click('#story-skip');
+  await page.goto('http://127.0.0.1:5174/');await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.click('#start');await page.click('#chapter-start');await page.click('#story-skip');
   const initial=await page.evaluate(()=>window.__LUNARIA_TEST__.world.fields.state);
   assert.deepEqual(initial.loaded.sort(),FIELD_THEMES.map((_,i)=>i));assert.deepEqual(initial.failures,[]);check(`All registered field images load at ${size.width}px`);
   await page.evaluate(()=>{
@@ -42,7 +42,7 @@ try{
  }
  const failedContext=await browser.newContext();await failedContext.route('**/assets/fields/moonlit-ruins.webp',r=>r.abort());
  const fallback=await failedContext.newPage();fallback.on('pageerror',e=>errors.push(e.message));
- await fallback.goto('http://127.0.0.1:5174/');await fallback.waitForSelector('#loading',{state:'detached',timeout:60000});await fallback.click('#start');await fallback.click('#story-skip');
+ await fallback.goto('http://127.0.0.1:5174/');await fallback.waitForSelector('#loading',{state:'detached',timeout:60000});await fallback.click('#start');await fallback.click('#chapter-start');await fallback.click('#story-skip');
  const fallbackState=await fallback.evaluate(()=>{const t=window.__LUNARIA_TEST__;t.world.fields.setArea(1,{immediate:true});t.world.render(t.game,.016);return {phase:t.state.phase,field:t.world.fields.state};});
  assert.equal(fallbackState.phase,'playing');assert.deepEqual(fallbackState.field.failures,[1]);check('A failed background request does not prevent gameplay',fallbackState);await failedContext.close();
  assert.deepEqual(errors,[]);check('No shader, asset or uncaught errors in normal field rendering');

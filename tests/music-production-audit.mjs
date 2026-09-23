@@ -35,12 +35,12 @@ try{
  });
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`);});
  const ready=()=>page.waitForFunction(()=>window.__music&&!window.__music.paused&&window.__music.currentTime>.1);
- await page.goto(BASE);await page.waitForSelector('#loading',{state:'detached',timeout:60000});assert.equal(await page.evaluate(()=>typeof window.__LUNARIA_TEST__),'undefined');await page.locator('#start').tap();await ready();assert.ok((await page.evaluate(()=>window.__music.currentSrc)).endsWith(MUSIC_TRACKS.field.file));
+ await page.goto(BASE);await page.waitForSelector('#loading',{state:'detached',timeout:60000});assert.equal(await page.evaluate(()=>typeof window.__LUNARIA_TEST__),'undefined');await page.locator('#start').tap();await page.locator('#chapter-start').tap();await ready();assert.ok((await page.evaluate(()=>window.__music.currentSrc)).endsWith(MUSIC_TRACKS.field.file));
  pass('Production start gesture plays the supplied field music under CSP');
  await page.evaluate(()=>navigator.serviceWorker.ready);
  await page.reload();await page.waitForSelector('#loading',{state:'detached',timeout:60000});assert.ok(await page.evaluate(()=>navigator.serviceWorker.controller));
  if(originServer){originServer.closeAllConnections();await new Promise(resolve=>originServer.close(resolve));}else await context.setOffline(true);
- await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.locator('#start').tap();await ready();pass('Offline reload and start play the cached field track');
+ await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.locator('#start').tap();await page.locator('#chapter-start').tap();await ready();pass('Offline reload and start play the cached field track');
  for(const [id,track] of Object.entries(MUSIC_TRACKS)){
   const url=new URL(track.file,BASE).href;
   const range=await page.evaluate(async url=>{const r=await fetch(url,{headers:{Range:'bytes=0-1'}});return {status:r.status,range:r.headers.get('Content-Range'),type:r.headers.get('Content-Type'),size:(await r.arrayBuffer()).byteLength};},url);

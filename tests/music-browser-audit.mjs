@@ -16,7 +16,7 @@ try{
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`);});
  const state=()=>page.evaluate(()=>{const a=window.__LUNARIA_TEST__.audio,b=a.bgm;return {scene:a.scene,track:b.track,paused:b.media.paused,time:b.media.currentTime,src:b.media.currentSrc,loop:b.media.loop,rate:b.media.playbackRate,volume:b.volume,error:b.lastError,context:a.ctx.state,plays:window.__musicPlays.length};});
  const waitTrack=track=>page.waitForFunction(track=>{const a=window.__LUNARIA_TEST__.audio;return a.bgm.track===track&&!a.bgm.media.paused&&a.bgm.media.currentTime>.05;},track);
- await page.goto(BASE);await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.locator('#start').tap();await waitTrack('field');
+ await page.goto(BASE);await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.locator('#start').tap();await page.locator('#chapter-start').tap();await waitTrack('field');
  let s=await state();assert.ok(s.src.endsWith(MUSIC_TRACKS.field.file));assert.equal(s.loop,true);assert.equal(s.rate,1);assert.equal(s.context,'running');assert.equal(s.error,null);
  pass('The real start tap plays the supplied field track at its original speed');
  await page.locator('#story-skip').tap();if(await page.locator('#tutorial-skip').isVisible())await page.locator('#tutorial-skip').tap();
@@ -34,7 +34,7 @@ try{
  }
  await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal((await state()).paused,true);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));assert.equal((await state()).paused,true);await page.locator('#resume').tap();await waitTrack('field');pass('Backgrounding pauses music and resume continues it');
  await page.locator('#pause').tap();await page.locator('#quit').tap();await page.locator('#menu-title').tap();assert.equal((await state()).paused,true);assert.equal((await state()).track,null);
- await page.locator('#home [data-open=settings]').tap();await page.locator('#setting-music').uncheck();assert.equal(await page.locator('#setting-sound').isChecked(),true);await page.locator('#modal .primary[data-close]').tap();await page.locator('#start').tap();await page.waitForTimeout(350);assert.equal((await state()).paused,true);
+ await page.locator('#home [data-open=settings]').tap();await page.locator('#setting-music').uncheck();assert.equal(await page.locator('#setting-sound').isChecked(),true);await page.locator('#modal .primary[data-close]').tap();await page.locator('#start').tap();await page.locator('#chapter-start').tap();await page.waitForTimeout(350);assert.equal((await state()).paused,true);
  pass('Music OFF stops tracks while leaving the sound-effects setting enabled');
  assert.deepEqual(errors,[]);assert.equal((await state()).error,null);await writeFile(`${OUT}/${engine}-browser-report.json`,JSON.stringify({checks,errors},null,2));await context.close();
 }finally{await browser.close();}

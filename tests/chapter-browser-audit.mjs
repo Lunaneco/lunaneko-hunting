@@ -9,7 +9,7 @@ const context=await browser.newContext({viewport:{width:390,height:844},hasTouch
 const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 async function readScene(){const title=await page.locator('#story-title').innerText();let lines=0;while(await page.locator('#story-dialog').isVisible()){assert.ok(++lines<40);await page.locator('#story-next').click();}return {title,lines};}
 try{
- await page.goto('http://127.0.0.1:5174/');await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.click('#start');
+ await page.goto('http://127.0.0.1:5174/');await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.click('#start');await page.click('#chapter-start');
  assert.equal(await page.locator('#story-dialog').isVisible(),true);assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.game.phase),'paused');
  for(const size of [{width:390,height:844},{width:320,height:568},{width:844,height:390},{width:1440,height:900}]){
   await page.setViewportSize(size);

@@ -14,7 +14,7 @@ try{
  const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
  await seedRecruitedRoster(context);
 const page=await context.newPage();watch(page);
- await page.goto('http://127.0.0.1:5174/');await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.click('#start');await page.click('#story-skip');
+ await page.goto('http://127.0.0.1:5174/');await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.click('#start');await page.click('#chapter-start');await page.click('#story-skip');
  await page.evaluate(()=>{const g=window.__LUNARIA_TEST__.game;g.player.invincible=100;g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.enemies=[];});
  assert.equal(await lead(page),0);assert.match(await page.locator('#switch-target').innerText(),/^つきねこへ · \d+%$/);
  await page.locator('#switch-action').tap();await page.waitForFunction(()=>document.querySelector('#hero-name').textContent==='つきねこ');
@@ -65,7 +65,7 @@ const page=await context.newPage();watch(page);
  check('Pause prevents hero switching');
  await context.close();
  const prod=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});await seedRecruitedRoster(prod);const live=await prod.newPage();watch(live);
- await live.goto('http://127.0.0.1:4173/?v=hero-switch-20260920');await live.waitForSelector('#loading',{state:'detached',timeout:60000});await live.locator('#start').tap();await live.click('#story-skip');
+ await live.goto('http://127.0.0.1:4173/?v=hero-switch-20260920');await live.waitForSelector('#loading',{state:'detached',timeout:60000});await live.locator('#start').tap();await live.locator('#chapter-start').tap();await live.click('#story-skip');
  await live.locator('#switch-action').tap();await live.waitForFunction(()=>document.querySelector('#hero-name').textContent==='つきねこ');
  assert.equal(await live.evaluate(()=>typeof window.__LUNARIA_TEST__),'undefined');
  await ready(live);await live.locator('#switch-action').tap();await live.waitForFunction(()=>document.querySelector('#hero-name').textContent==='にゃんるな');

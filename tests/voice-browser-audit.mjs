@@ -12,7 +12,7 @@ try{
  await page.goto(BASE);await page.waitForSelector('#loading',{state:'detached',timeout:60000});
  await page.locator('[data-open="settings"]').tap();await page.locator('#setting-music').uncheck();await page.selectOption('#setting-quality','low');await page.locator('#setting-voice-volume').fill('44');await page.locator('[data-close]').first().tap();
  await page.reload();await page.waitForSelector('#loading',{state:'detached',timeout:60000});await page.locator('[data-open="settings"]').tap();assert.equal(await page.locator('#setting-voice-volume').inputValue(),'44');assert.equal(await page.locator('#setting-voice').isChecked(),true);await page.locator('[data-close]').first().tap();pass('Voice settings persist without modifying game progression');
- await page.locator('#start').tap();await page.waitForFunction(()=>!!window.__LUNARIA_TEST__.voice.current?.source);
+ await page.locator('#start').tap();await page.locator('#chapter-start').tap();await page.waitForFunction(()=>!!window.__LUNARIA_TEST__.voice.current?.source);
  const expected=()=>page.evaluate(()=>{const t=window.__LUNARIA_TEST__;return {text:t.story.scene.lines[t.story.index].text,actual:t.voice.manifest[t.voice.current?.id]?.text,context:t.voice.sound.ctx.state,mode:t.voice.mode};});
  let state=await expected();assert.equal(state.text,state.actual);assert.equal(state.mode,'story');assert.equal(state.context,'running');pass('Opening narration plays from the real start gesture');
  await page.locator('#story-next').tap();await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source&&window.__LUNARIA_TEST__.voice.current.id.startsWith('nyanluna-'));state=await expected();assert.equal(state.text,state.actual);
