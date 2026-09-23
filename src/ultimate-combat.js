@@ -36,7 +36,7 @@ export function tickUltimates(game,dt){
   game.ultimateEffects=game.ultimateEffects.filter(effect=>effect.remaining>EPSILON&&(['sanctuary','bladeDance'].includes(effect.kind)||effect.shotsLeft>0));
 }
 export function enemySpeedScale(game,enemy){
-  let scale=1;
+  let scale=enemy.frostUntil>game.time?1-enemy.frostSlow*(enemy.type==='boss'?.5:1):1;
   for(const effect of game.ultimateEffects)if(effect.kind==='sanctuary'&&Math.hypot(enemy.x-effect.x,enemy.z-effect.z)<=effect.radius+enemy.radius){const spec=effect.spec;scale=Math.min(scale,enemy.type==='boss'?spec.bossSlow:spec.slow);}
   return scale;
 }

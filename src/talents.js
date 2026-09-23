@@ -1,7 +1,10 @@
 import {ENEMY_TYPES} from './enemies.js';
 import {LEVEL_RULES,LEVEL_AWAKENING_COSTS} from './level-rules.js';
+import {SKILL_TALENT_NODES} from './skill-tree.js';
+import {personalSkills} from './blessings.js';
+export {SKILL_TALENT_NODES} from './skill-tree.js';
 export const MATERIALS=Object.freeze({
-  starBud:{rarity:1,name:'星の芽',icon:'spark',source:'敵撃破',note:'通常敵から50%で1〜4個、ボスから確定で3個。両段の強化に使用。'},
+  starBud:{rarity:1,name:'星の芽',icon:'spark',source:'敵撃破',note:'通常敵から50%で1〜4個、ボスから確定で3個。成長ツリーの強化に使用。'},
   moonDew:{rarity:1,name:'月のしずく',icon:'moon',source:'月の門を突破',note:'各幕の月の門から1個ずつ、全3個。1段目とLv.30へのレベル覚醒に使用。'},
   wardenCore:{rarity:1,name:'守護者の核',icon:'star',source:'ボス撃破',note:'各幕のボスを倒すと1個。1段目の最後の星とLv.30へのレベル覚醒に使用。'},
   moonPrism:{rarity:2,name:'月虹のしずく',icon:'moon',source:'第2章・チャレンジの門',note:'第2章、または全章のチャレンジモードで、月の門から1個ずつ、全3個。毎回入手でき、第2章の突破ミッションでも獲得。2段目とLv.40・50へのレベル覚醒に使用。'},
@@ -39,7 +42,7 @@ export const SECOND_TIER_NODES=Object.freeze([
   {id:'ultimateArt',tier:2,name:'奥義の真髄',branch:'固有必殺技',icon:'shield',level:40,parents:['life3'],cost:{starBud:360,moonPrism:30,astralCore:8},bonus:{},x:82,y:62},
   {id:'transcendence',tier:2,name:'星の超覚醒',branch:'最終奥義',icon:'star',level:50,parents:['ultimatePower','ultimateCharge','ultimateArt'],cost:{starBud:800,moonPrism:60,astralCore:20},bonus:{ultimateDamage:.25},x:50,y:85},
 ]);
-export const TALENT_NODES=Object.freeze([...FIRST_TIER_NODES,...SECOND_TIER_NODES]);
+export const TALENT_NODES=Object.freeze([...FIRST_TIER_NODES,...SECOND_TIER_NODES,...SKILL_TALENT_NODES]);
 export const LIMIT_BREAK_NODES=Object.freeze(Array.from({length:(LEVEL_RULES.maxLevel-LEVEL_RULES.initialCap)/LEVEL_RULES.capStep},(_,i)=>{
   const level=LEVEL_RULES.initialCap+i*LEVEL_RULES.capStep,cap=level+LEVEL_RULES.capStep;
   return {id:`limit${cap}`,kind:'limit',stage:i+1,name:`レベル覚醒 ${['I','II','III'][i]??i+1}`,branch:'レベルの道',icon:'crystal',level,cap,parents:i?[`limit${level}`]:[],cost:LEVEL_AWAKENING_COSTS[i],bonus:{},x:18+i*32,y:40};
@@ -48,9 +51,10 @@ export const GROWTH_NODES=Object.freeze([...TALENT_NODES,...LIMIT_BREAK_NODES]);
 export function isTalentUnlocked(character,id){const limit=LIMIT_BREAK_NODES.find(node=>node.id===id);return limit?character.breaks>=limit.stage:(character.tree??[]).includes(id);}
 export function growthCount(character){return (character.tree??[]).length+LIMIT_BREAK_NODES.filter(node=>isTalentUnlocked(character,node.id)).length;}
 export function nextLimitNode(character){return LIMIT_BREAK_NODES.find(node=>!isTalentUnlocked(character,node.id))??LIMIT_BREAK_NODES.at(-1);}
-export function nodeEffectText(node){return node.kind==='limit'?`レベル上限 Lv.${node.level} → Lv.${node.cap}`:bonusText(node.bonus);}
+export function nodeEffectText(node){return node.kind==='limit'?`レベル上限 Lv.${node.level} → Lv.${node.cap}`:node.kind==='skill'?`祝福候補「${node.name}」を解放：${node.skill.text}`:bonusText(node.bonus);}
 export function talentNode(id,heroId){
   const node=GROWTH_NODES.find(n=>n.id===id);if(!node)return null;
+  if(node.kind==='skill'){const skill=personalSkills(heroId).find(s=>s.unlockNode===id);return skill?{...node,name:skill.name,icon:skill.icon,skill}:null;}
   if(id==='awakening'&&heroId==='nyanluna')return {...node,name:'月光の極意',bonus:{hp:20,attack:.12,defense:4}};
   if(id==='awakening'&&heroId==='tsukineko')return {...node,name:'星影の極意',bonus:{hp:36,attack:.08,defense:8}};
   if(id==='awakening'&&heroId==='omsolo')return {...node,name:'翠刃の極意',bonus:{hp:44,attack:.10,defense:10}};
@@ -77,7 +81,7 @@ export function ultimateBonuses(character,heroId){
 }
 function sumBonuses(character,heroId,keys){
   const bonus=Object.fromEntries(keys.map(key=>[key,0]));
-  for(const id of normalizeTalentTree(character.tree,character.level)){const node=talentNode(id,heroId);for(const stat of Object.keys(bonus))bonus[stat]+=node.bonus[stat]??0;}
+  for(const id of normalizeTalentTree(character.tree,character.level)){const node=talentNode(id,heroId);if(!node)continue;for(const stat of Object.keys(bonus))bonus[stat]+=node.bonus[stat]??0;}
   return bonus;
 }
 export function bonusText(bonus){return [bonus.hp?`基礎HP +${bonus.hp}`:'',bonus.attack?`基礎攻撃力 +${Math.round(bonus.attack*100)}%`:'',bonus.defense?`基礎防御力 +${bonus.defense}`:'',

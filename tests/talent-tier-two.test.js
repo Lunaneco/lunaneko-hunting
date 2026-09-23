@@ -42,7 +42,7 @@ test('level 35/40/50 gates and the final three branches stay mandatory even with
 test('existing first-tier saves keep their stats, wallet and original ultimate; invalid advanced stars grant no effects',()=>{
   for(const h of HEROES){const p=profile(h.id),before=structuredClone(p),stats=characterStats(h,p.characters[h.id]);assert.deepEqual(normalizeProgression(p,HEROES),before);assert.deepEqual(characterStats(h,p.characters[h.id]),stats);const spec=ultimateFor(h.id,p.characters[h.id]);assert.equal(spec.baseDamage,ULTIMATES[h.id].baseDamage);assert.equal(spec.pulses??spec.shots,ULTIMATES[h.id].pulses??ULTIMATES[h.id].shots);}
   const forged=profile('nyanluna',['ultimatePower','ultimateArt','transcendence'],50);assert.deepEqual(forged.characters.nyanluna.tree,[]);assert.equal(ultimateBonuses(forged.characters.nyanluna,'nyanluna').ultimateDamage,0);
-  const capped=normalizeProgression({characters:{nyanluna:{level:50,breaks:0,tree:all}}},HEROES);assert.equal(capped.characters.nyanluna.level,20);assert.deepEqual(capped.characters.nyanluna.tree,first);
+  const capped=normalizeProgression({characters:{nyanluna:{level:50,breaks:0,tree:all}}},HEROES);assert.equal(capped.characters.nyanluna.level,20);assert.deepEqual(capped.characters.nyanluna.tree,[...first,'blessing1','blessing2']);
 });
 test('the power star increases ultimate damage by 35% exactly once and does not boost ordinary skills or attacks',()=>{
   for(const h of HEROES){

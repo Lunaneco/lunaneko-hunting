@@ -33,7 +33,7 @@ export class Adventure {
   constructor({seed=Date.now(),hero=0,difficulty='normal',progression,party,tutorial=false,act=0}={}) {
     this.tutorial=tutorial?new FirstBattleTutorial():null;if(tutorial){hero=0;party=['nyanluna'];act=0;}
     this.progression=normalizeProgression(progression,HEROES);this.guestHeroId=null;this.recruitedHeroId=null;this.act=isActUnlocked(this.progression,act)?act:0;this.actConfig=ACTS[this.act];this.pendingTrials=new Set();this.rescue=null;
-    this.party=Object.freeze(normalizeParty(party,availableHeroes(this.progression,HEROES)));this.partyHeroes=this.party.map(id=>HEROES.findIndex(h=>h.id===id));hero=this.partyHeroes.includes(hero)?hero:this.partyHeroes[0];this.skillPool=Object.freeze(skillsForParty(this.party));
+    this.party=Object.freeze(normalizeParty(party,availableHeroes(this.progression,HEROES)));this.partyHeroes=this.party.map(id=>HEROES.findIndex(h=>h.id===id));hero=this.partyHeroes.includes(hero)?hero:this.partyHeroes[0];this.skillPool=Object.freeze(skillsForParty(this.party,this.progression));
     this.earnedWeaponTickets=0;this.earnedMissions=[];this.earnedXp=Object.fromEntries(HEROES.map(h=>[h.id,0]));this.earnedMaterials=Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,0]));
     this.rng=seededRandom(seed);this.lootRng=seededRandom(seed^0x57EA90C1);this.materialRng=seededRandom(seed^0x4D41544C);this.seed=seed;this.difficulty=difficulty;this.phase='playing';this.events=[];this.ids=1;
     this.heroHealth=Object.fromEntries(HEROES.map(h=>{const maxHp=combatStats(this.progression,h).maxHp;return [h.id,{hp:maxHp,maxHp}];}));
@@ -101,7 +101,7 @@ export class Adventure {
   chargeFor(hero){return this.ultimateCharges[this.heroId(hero)]??0;}
   ultimateActive(hero){return this.ultimateEffects.some(effect=>effect.heroId===this.heroId(hero));}
   sourceFor(heroId){return this.heroId(this.player.hero)===heroId?this.player:this.partner;}
-  skillDamage(heroId,base){const index=HEROES.findIndex(h=>h.id===heroId);if(index<0)return 0;const hero=HEROES[index];return base*(this.statsFor(index).attack/hero.damage)*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*hero.skillPower;}
+  skillDamage(heroId,base){const index=HEROES.findIndex(h=>h.id===heroId);if(index<0)return 0;const hero=HEROES[index];return base*(this.statsFor(index).attack/hero.damage)*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*hero.skillPower*(1+this.rank('arcanePower')*.18);}
   ultimateSpec(hero=this.player.hero){return ultimateFor(this.heroId(hero),this.progressFor(hero));}
   gainUltimateCharge(heroId,amount){if(!this.party.includes(heroId)||!Number.isFinite(amount)||amount<=0)return;const hero=HEROES.find(h=>h.id===heroId),bonus=ultimateBonuses(this.progression.characters[heroId],heroId);this.ultimateCharges[heroId]=clamp(this.ultimateCharges[heroId]+amount*hero.chargeRate*(1+this.rank('focus')*.3)*(1+bonus.ultimateCharge),0,100);}
   get hasPartner(){return this.party.length===2;}
@@ -110,7 +110,7 @@ export class Adventure {
   get hasLivingPartner(){return this.hasPartner&&this.isHeroAlive(this.partnerHero);}
   progressFor(hero){return characterProgress(this.progression,HEROES[hero].id);}
   statsFor(hero){return combatStats(this.progression,HEROES[hero]);}
-  attackProfile(hero){return weaponAttackProfile(this.progression,HEROES[hero]);}
+  attackProfile(hero){const profile=weaponAttackProfile(this.progression,HEROES[hero]);return {...profile,pierce:profile.pierce+(hero===1?this.rank('penetration'):0),interval:profile.interval*(hero===2?Math.pow(.9,this.rank('bladeTempo')):1)};}
   healthFor(hero){return this.heroHealth[this.heroId(hero)];}
   refreshStats(){
     for(const hero of this.partyHeroes){const health=this.healthFor(hero),maxHp=this.statsFor(hero).maxHp+this.rank('vitality')*40;health.hp=health.hp>0?Math.min(maxHp,health.hp+Math.max(0,maxHp-health.maxHp)):0;health.maxHp=maxHp;}
@@ -134,7 +134,7 @@ export class Adventure {
   drainEvents(){return this.events.splice(0);}
   meetTsukineko(){
     if(this.act!==3||this.wave!==6||this.guestHeroId||isHeroUnlocked(this.progression,'tsukineko'))return false;
-    this.guestHeroId='tsukineko';this.party=Object.freeze(['nyanluna','tsukineko']);this.partyHeroes=[0,1];this.skillPool=Object.freeze(skillsForParty(this.party));
+    this.guestHeroId='tsukineko';this.party=Object.freeze(['nyanluna','tsukineko']);this.partyHeroes=[0,1];this.skillPool=Object.freeze(skillsForParty(this.party,this.progression));
     this.refreshStats();
     Object.assign(this.partner,{x:this.player.x-1.7,z:this.player.z+1.5,attack:0,face:Math.PI});
     this.emit('guestJoin',{heroId:'tsukineko'});return true;
@@ -194,7 +194,7 @@ export class Adventure {
     this.spawnEnemy(type,x,z,{elite});this.waveSpawned++;
   }
   nearest(x,z,range){let best=null,dist=range;for(const e of this.enemies){if(e.hp<=0)continue;const d=Math.hypot(e.x-x,e.z-z);if(d-e.radius<dist){best=e;dist=d-e.radius;}}return best;}
-  heal(amount){if(this.player.hp>0){const before=this.player.hp;this.player.hp=Math.min(this.player.maxHp,this.player.hp+amount);if(this.player.hp>before)this.emit('heal',{hero:this.player.hero,heroId:this.heroId(this.player.hero),amount:this.player.hp-before});}}
+  heal(amount){if(this.player.hp>0){const before=this.player.hp;this.player.hp=Math.min(this.player.maxHp,this.player.hp+amount*(1+this.rank('vowRecovery')*.15));if(this.player.hp>before)this.emit('heal',{hero:this.player.hero,heroId:this.heroId(this.player.hero),amount:this.player.hp-before});}}
   dash(dx,dz){
     const p=this.player;if(this.phase!=='playing'||p.dashCooldown>0||this.tutorial?.active&&this.tutorial.step.id!=='dash')return false;
     const d=Math.hypot(dx,dz);p.dx=d>.01?dx/d:Math.sin(p.face);p.dz=d>.01?dz/d:Math.cos(p.face);
@@ -212,7 +212,7 @@ export class Adventure {
     const stats=this.attackProfile(hero);const range=stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
     const angle=Math.atan2(enemy.x-source.x,enemy.z-source.z);source.face=angle;
     const heroId=HEROES[hero].id;let damage=this.statsFor(hero).attack*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*(support?.43*(1+this.rank('echo')*.35+this.rank('starBlade')*.2):1);
-    const crit=this.rng()<.05+this.rank('crit')*.15;if(crit)damage*=2;
+    const crit=this.rng()<.05+this.rank('crit')*.15;if(crit)damage*=2+this.rank('preciseAim')*.25;
     this.emit('attack',{x:source.x,z:source.z,angle,hero,support,range,color:equippedWeapon(this.progression,heroId)?.weapon.effectColor});
     if(hero===0){
       const id=this.ids++;this.projectiles.push({id,owner:'player',heroId,x:source.x,z:source.z,vx:Math.sin(angle)*15,vz:Math.cos(angle)*15,kind:'magic',speed:15,life:Math.max(1.5,(range+2)/15),damage,crit,target:enemy.id,radius:.28});
@@ -233,7 +233,7 @@ export class Adventure {
     if(e.hp<=0){
       if(e.type==='boss'&&this.act===7&&this.wave===6&&this.rescue?.active){this.rescue.active=false;this.rescue.saved=true;this.emit('rescueSaved');}
       this.kills++;this.trackMission('kills');this.combo++;this.comboTimer=4;this.maxCombo=Math.max(this.maxCombo,this.combo);
-      if(canCharge)this.gainUltimateCharge(heroId,4);
+      if(canCharge)this.gainUltimateCharge(heroId,4+this.rank('rapidCharge'));
       const earned=awardCharacterXp(this.progression,heroId,ENEMY_REWARDS[e.type]?.xp??0);
       if(earned){this.earnedXp[heroId]=(this.earnedXp[heroId]??0)+earned.amount;this.refreshStats();this.emit('characterXp',earned);}
       this.collectMaterials(enemyMaterials(e,this.act,this.difficulty,this.materialRng),'enemy');
@@ -248,7 +248,7 @@ export class Adventure {
   }
   hurt(amount,x,z){
     const p=this.player;if(p.invincible>0||this.phase!=='playing'||this.exitOpen||this.travelOpen||this.tutorial?.active)return false;
-    const damage=amount*Math.pow(.85,(this.rank('ward')+this.rank('saberGuard')))*100/(100+this.statsFor(p.hero).defense);p.hp=Math.max(0,p.hp-damage);p.invincible=.8;this.combo=0;if(damage>0){this.stageTrial.hits++;this.runHits++;}
+    const damage=amount*Math.pow(.85,(this.rank('ward')+this.rank('saberGuard')))*100/(100+this.statsFor(p.hero).defense);p.hp=Math.max(0,p.hp-damage);p.invincible=.8+this.rank('counterGuard')*.1;this.combo=0;if(damage>0){this.stageTrial.hits++;this.runHits++;}
     this.emit('hurt',{damage:Math.round(damage),hero:p.hero,x,z});
     if(p.hp<=0){
       const heroId=this.heroId(p.hero);this.emit('heroDown',{hero:p.hero,heroId});
@@ -276,6 +276,7 @@ export class Adventure {
     const skill=this.skillPool.find(s=>s.id===id);
     if(this.phase!=='upgrade'||!skill||this.rank(id)>=skill.max||!this.offers.some(s=>s.id===id))return false;
     this.skills[id]=this.rank(id)+1;this.blessingsTaken++;if(id==='vitality'){const hp=this.player.hp;this.refreshStats();this.player.hp=hp;this.heal(60);}
+    if(this.rank('starlightHeal'))this.heal((this.player.hero===0?27:18)*this.rank('starlightHeal'));
     this.pendingBlessings=Math.max(0,this.pendingBlessings-1);this.offers=[];this.phase='playing';this.emit('skill',{id});
     if(this.pendingBlessings>0)this.offerSkills();return true;
   }
@@ -330,7 +331,7 @@ export class Adventure {
         // Swept collision prevents fast rounds crossing a small enemy between frames.
         const dx=bullet.x-fromX,dz=bullet.z-fromZ,lengthSq=dx*dx+dz*dz;
         const hits=this.enemies.filter(e=>e.hp>0&&!bullet.hitIds?.includes(e.id)).map(e=>{const t=clamp(((e.x-fromX)*dx+(e.z-fromZ)*dz)/(lengthSq||1),0,1);return {e,t,d:Math.hypot(e.x-fromX-dx*t,e.z-fromZ-dz*t)};}).filter(h=>h.d<h.e.radius+bullet.radius).sort((a,b)=>a.t-b.t);
-        for(const {e} of hits){this.hit(e,bullet.damage,fromX,fromZ,bullet.crit,false,bullet.heroId,!bullet.ultimate);if(bullet.kind==='gun'){bullet.hitIds.push(e.id);bullet.pierce--;if(bullet.pierce>0)continue;}bullet.life=0;break;}
+        for(const {e} of hits){if(bullet.kind==='magic'&&bullet.heroId==='nyanluna'&&this.rank('moonFrost')){e.frostUntil=this.time+2;e.frostSlow=.25+this.rank('moonFrost')*.1;}this.hit(e,bullet.damage,fromX,fromZ,bullet.crit,false,bullet.heroId,!bullet.ultimate);if(bullet.kind==='gun'){bullet.hitIds.push(e.id);bullet.pierce--;if(bullet.pierce>0)continue;}bullet.life=0;break;}
       }
       else{
         const dx=bullet.x-fromX,dz=bullet.z-fromZ,l=dx*dx+dz*dz,t=clamp(((p.x-fromX)*dx+(p.z-fromZ)*dz)/(l||1),0,1);
