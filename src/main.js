@@ -30,6 +30,9 @@ import './weapons.css';
 import './equipment-ui.css';
 import {drawWeapon,equipWeapon,weaponVariant} from './weapons.js';
 import {weaponGachaView,weaponDrawResult} from './weapons-ui.js';
+import {WeaponSummonPresentation} from './weapon-summon.js';
+import {WeaponSummonView} from './weapon-summon-view.js';
+import './weapon-summon.css';
 import {talentView,materialsText} from './talent-ui.js';
 import {talentNode,nodeEffectText} from './talents.js';
 import {PROGRESSION_KEY,normalizeProgression,characterProgress,xpRequired,levelCap,LEVEL_RULES,grantLimitStone,unlockTalent} from './progression.js';
@@ -95,7 +98,7 @@ $('#app').innerHTML=`
       <div class="start-meta"><button id="difficulty" aria-label="難易度を変更">${icon('shield')} <span>冒険モード</span> ${icon('chevron')}</button><span>1人プレイ <i>·</i> オート攻撃 <i>·</i> 記録を保存</span></div>
     </div>
     <div class="chapter-card"><span class="chapter-index">01</span><div><small>CHAPTER ONE</small><h2>迷子の月と、ふたりの約束</h2><p>親友を探して月の世界を巡る、全4幕。</p></div>${icon('compass')}</div>
-    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.36</span></footer>
+    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.37</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu hidden" tabindex="-1" aria-label="章メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">
@@ -128,6 +131,7 @@ $('#app').innerHTML=`
   </section>
   <div id="toast" class="toast" role="status"></div>
   <dialog id="modal" class="modal"><div id="modal-content"></div></dialog>
+  <dialog id="weapon-summon" class="weapon-summon-dialog" aria-label="専用武器ガチャの召喚演出"></dialog>
 `;
 const ultimatePresentation=new UltimatePresentation({voice,view:new UltimatePresentationView($('#ultimate-cutin')),getGame:()=>game,onComplete:()=>{resetInput();handleEvents(game.drainEvents());updateHud();canvas.focus();}});
 // A fresh pointer must start on the overlay: releasing the activation tap never skips it.
@@ -145,6 +149,14 @@ $('#ultimate-cutin').addEventListener('click',event=>{
   const tap=cutinTap||event.detail===0&&event.target.closest('#cutin-skip');cutinTap=false;cutinPointer=null;
   event.preventDefault();event.stopPropagation();if(tap&&!activeDialog)ultimatePresentation.skip();
 });
+const summonView=new WeaponSummonView($('#weapon-summon'));
+let summonPointer=null,summonFinishedAt=-Infinity;
+const weaponSummon=new WeaponSummonPresentation({view:summonView,audio,voice,onFinish:({item,duplicate})=>{summonFinishedAt=performance.now();announce(`${HEROES.find(h=>h.id===item.heroId).name}専用の★${item.rarity.rank}武器「${item.weapon.name}」を獲得。${duplicate?'重複分は星の芽へ変換しました。':''}`);}});
+// As with the cut-in, only a tap that starts on the summon stage skips it.
+$('#weapon-summon').addEventListener('pointerdown',event=>{summonPointer=null;if(event.button!==0||!event.isPrimary||event.target.closest('button,.draw-sheet'))return;summonPointer={id:event.pointerId,x:event.clientX,y:event.clientY};});
+$('#weapon-summon').addEventListener('pointerup',event=>{const tap=!!summonPointer&&event.pointerId===summonPointer.id&&Math.hypot(event.clientX-summonPointer.x,event.clientY-summonPointer.y)<18;summonPointer=null;if(tap)weaponSummon.skip();});
+$('#weapon-summon').addEventListener('pointercancel',()=>{summonPointer=null;});
+$('#weapon-summon').addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
 const dialogs={
   party:()=>partyView(selectedParty,selectedHero,HEROES,heroLevel,progression),
   guide:()=>`<div class="modal-heading"><span class="eyebrow">ADVENTURE GUIDE</span><h2>ふたりなら、もっと遠くへ。</h2><p>移動に集中。攻撃は、仲間にまかせよう。</p></div><div class="guide-grid"><article>${icon('compass')}<h3>撃って、かわして</h3><p><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> または画面をドラッグして移動。近くの敵へ自動攻撃。<kbd>Space</kbd> で無敵時間のある回避。</p></article><article>${icon('swap')}<h3>ふたりの力を重ねる</h3><p>最初はにゃんるなだけで出発。第4幕の最後で親友のつきねこと再会・共闘し、クリアすると正式加入します。加入後はタイトルやメニューの「編成・祝福」で1〜2体を選択。2体編成なら右下の「交代」で、表示された仲間の操作に切り替え。移動しながらでも押せます。<kbd>Q</kbd> または左上の顔でも交代。にゃんるなは遠距離魔法、つきねこは貫通する銃撃。第2章の最後ではオムソロを救出し、クリア後に近接の光剣使いとして加入します。登場人物が増えても出撃は最大2人です。控えの仲間も援護します。HPはキャラ別。援護中の仲間は無敵。倒れると生存中の相方へ自動交代し、全員が倒れると終了します。戦闘不能からの復帰は次の冒険です。</p></article><article>${icon('spark')}<h3>経験値とクリスタル</h3><p>敵を倒したキャラに経験値が入り、レベルと基礎能力が成長。援護の撃破も、その仲間に加算。落ちたクリスタルを集めると、出撃メンバーに応じた候補から3つの祝福を提示。共通・キャラ由来・2体の連携があり、効果は編成内で共有します。祝福は同じ幕の全6WAVEで維持されます。にゃんるなはスキルダメージ+50%・ゲージ獲得+25%。つきねこは基礎HP・攻撃力・防御力と通常射撃に優れます。</p></article><article>${icon('moon')}<h3>キャラ固有の必殺技</h3><p>攻撃した本人のゲージが増加し、100%で <kbd>E</kbd> または右下の必殺ボタン。にゃんるな「月華の聖域」は範囲攻撃・減速・HP回復。つきねこ「星銃・彗星連射」は貫通弾の8連射。オムソロ「翠光・守り手の円舞」は周囲への連続斬撃と回復・短い無敵。専用イラストとボイスの演出後に発動します。演出中は画面をタップ（PCはEnter／Space）すると省略して即発動します。演出中は敵も味方も止まり、救出の制限時間も進みません。ゲージはキャラ別に保持し、援護でも蓄積。必殺技自体では増えません。</p></article></div><div class="guide-note">全2章・各章4幕・各幕6WAVE。地形はステージごとに変化。2フロアでは下階を制圧して青い階段から上階へ。分岐では左の緑の門が通常、右の赤い門が強ボスと追加素材。強ボスは同じ難易度の通常ボスに対して${ELITE_BOSS_LABEL}。地図を見て歩いて選ぼう。2WAVEごとに月の門が開きます。光る輪へ移動して次へ進もう。各幕の最後の門でクリア。ミッション報酬を受け取り、メニューから次の幕へ進みます。橙の照準線・突進の帯、紫や桃色の魔法陣から離れよう。<br>ゲームパッド：左スティック移動 / A回避 / B交代 / Y必殺 / Start一時停止。<br>祝福・クリスタルは新しい出撃でリセット。キャラ別のレベル・経験値・限界突破石はこのブラウザに自動保存されます。成長ツリーは素材を使ってキャラごとに解放。星の芽は敵、月のしずくは月の門、守護者の核はボスから入手。1段目はレア度1素材のみ。2段目には第2章・チャレンジモードで集めるレア度2素材も必要です。防御力はキャラ固有値＋レベル成長＋ツリー効果で被ダメージを軽減します。初期上限Lv.20。各章の第4幕クリアでもらえる石1個で上限を10ずつ、最大Lv.50まで解放できます。上限到達後の経験値も蓄積されます。<br>ステージミッションで育成素材を入手。ユニーク装備は全キャラ共通の各1枠。同じ装備は一人だけ使用でき、装備画面で仲間どうしの付け替えが可能です。チャレンジモードの時間・被弾条件を達成して入手します。専用武器は別枠の★1〜★4。ボスは5%で専用武器ガチャ券を落とし、メニュー「武器ガチャ」で1枚につき1回使えます。3人の専用武器から均等に抽選。★2が75%、★3が20%、★4が5%。★2〜★4は各キャラ・各レア度に性能の違う3種類。装備画面で自由に付け替えられます。同じ武器・同じレア度の重複だけを星の芽に変換。ガチャでは装備を変更しません。高難度の章ミッションでは追加の限界突破石も入手できます。</div><button id="tutorial-replay" class="secondary">にゃんるなと操作を練習する</button><p class="tutorial-replay-note">にゃんるな1体で最初の戦闘から開始。育成・所持品は引き継ぎます。</p><button class="primary" data-close>準備はできた ${icon('arrow')}</button>`,
@@ -185,7 +197,7 @@ function renderPartyDialog(){if(activeDialog!=='party')return;$('#modal-content'
 function openDialog(type){
   if(activeDialog||(type==='party'&&game))return;audio.init();audio.play('click');returnFocus=document.activeElement;activeDialog=type;$('#modal-content').innerHTML=dialogs[type]()+`<button class="dialog-close icon-button" data-close aria-label="閉じる">${icon('close')}</button>`;$('#modal').showModal();bindSettings();
 }
-function closeDialog(){if(['upgrade','result','story'].includes(activeDialog))return;if(activeDialog==='pause'){audio.init();audio.setPaused(false);if(!ultimatePresentation.resume()){game?.resume();voice.resume();}}$('#modal').close();activeDialog=null;tutorialView.render(game);resetInput();returnFocus?.focus?.();}
+function closeDialog(){if(['upgrade','result','story'].includes(activeDialog))return;if(activeDialog==='weapon-result'){closeWeaponSummon();return;}if(activeDialog==='pause'){audio.init();audio.setPaused(false);if(!ultimatePresentation.resume()){game?.resume();voice.resume();}}$('#modal').close();activeDialog=null;tutorialView.render(game);resetInput();returnFocus?.focus?.();}
 function bindSettings(){
   ['sound','music','quality','motion','voice'].forEach(key=>{const el=$(`#setting-${key}`);if(!el)return;el.addEventListener('change',()=>{settings[key]=key==='quality'?el.value:el.checked;audio.setEnabled(settings.sound);audio.setMusic(settings.music);voice.configure(settings.voice,settings.voiceVolume);world.settings.motion=settings.motion;world.setQuality(settings.quality);document.body.classList.toggle('reduce-motion',!settings.motion);save('lunaria-settings-v1',settings);});});
   $('#setting-voice-volume')?.addEventListener('input',e=>{settings.voiceVolume=Number(e.target.value)/100;voice.configure(settings.voice,settings.voiceVolume);$('#voice-volume-value').textContent=`${e.target.value}%`;save('lunaria-settings-v1',settings);});
@@ -232,7 +244,17 @@ function summonWeapon(){
   const result=drawWeapon(progression);if(!result)return;
   // Persist the roll before displaying it; closing or reloading never rerolls it.
   persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);
-  currentWeaponDraw=result;returnFocus=$('[data-draw-weapon]');activeDialog='weapon-result';$('#modal').classList.remove('wide');$('#modal-content').innerHTML=weaponDrawResult(result,progression,storageAvailable);$('#modal').showModal();audio.init();audio.play('upgrade');announce(`${HEROES.find(h=>h.id===result.item.heroId).name}専用の★${result.item.rarity.rank}武器を獲得。${result.duplicate?'重複分は星の芽へ変換しました。':''}`);
+  currentWeaponDraw=result;activeDialog='weapon-result';audio.init();
+  const motion=settings.motion&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!weaponSummon.start(result,{motion,quality:settings.quality,markup:weaponDrawResult(result,progression,storageAvailable)})){activeDialog=null;return;}
+  if(motion)announce('専用武器を召喚中。画面をタップするとスキップできます。');
+}
+// The first close request (Esc, back, close button) finishes an unfinished summon; a second
+// request within 350 ms of the result appearing is treated as the same press.
+function closeWeaponSummon(){
+  if(weaponSummon.skip()||performance.now()-summonFinishedAt<350)return;
+  weaponSummon.close();activeDialog=null;currentWeaponDraw=null;resetInput();
+  ($('[data-draw-weapon]:not(:disabled)')??$('[data-menu-tab="weapons"]'))?.focus({preventScroll:true});
 }
 function missionRunSummary(ids=[]){return ids.length?`<div class="mission-run-rewards">ミッション ${ids.length}件達成<br>${ids.map(id=>STAGE_MISSIONS.find(m=>m.id===id)).filter(Boolean).map(m=>`${m.name}：${missionRewardText(m)}`).join('<br>')}</div>`:'';}
 function renderRewards(){
@@ -245,7 +267,7 @@ function renderRewards(){
   }
 }
 function switchMenuTab(tab){
-  if(!['adventure','growth','talent','missions','equipment','weapons'].includes(tab))return;if(tab==='talent')renderTalent();if(['missions','equipment','weapons'].includes(tab))renderRewards();
+  if(!['adventure','growth','talent','missions','equipment','weapons'].includes(tab))return;if(tab==='talent')renderTalent();if(tab==='weapons')summonView.preload();if(['missions','equipment','weapons'].includes(tab))renderRewards();
   for(const key of ['adventure','growth','talent','missions','equipment','weapons']){const active=key===tab;$(`#${key}-panel`).classList.toggle('hidden',!active);$(`[data-menu-tab="${key}"]`).setAttribute('aria-pressed',String(active));}
 }
 function renderTalent(){if($('#tree-content'))$('#tree-content').innerHTML=talentView(progression,treeHero,treeSelection);}
@@ -298,9 +320,10 @@ document.addEventListener('click',event=>{
   if(target.dataset.partyLead&&!game){const index=Number(target.dataset.partyLead);if(selectedParty.includes(HEROES[index]?.id)){selectedHero=index;persistParty();updatePartyLabels();renderPartyDialog();}}
   if(target.dataset.equipWeapon&&!game&&!$('#chapter-menu').classList.contains('hidden')&&(!activeDialog||activeDialog==='weapon-result')){
     const id=target.dataset.equipWeapon,hero=target.dataset.weaponHero;
-    if(equipWeapon(progression,hero,id)){voice.cue(hero,'equip');persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);const message=`${weaponVariant(id).weapon.name}を装備しました。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;$('#equipment-feedback').textContent=message;announce(message);audio.play('upgrade');if(activeDialog==='weapon-result'&&currentWeaponDraw){$('#modal-content').innerHTML=weaponDrawResult(currentWeaponDraw,progression,storageAvailable);$('#weapon-draw-result [data-close]').focus();}else{$(`[data-weapon-option="${id}"]`).scrollIntoView({block:'nearest'});$(`[data-weapon-option="${id}"] summary`)?.focus({preventScroll:true});}}
+    if(equipWeapon(progression,hero,id)){voice.cue(hero,'equip');persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);const message=`${weaponVariant(id).weapon.name}を装備しました。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;$('#equipment-feedback').textContent=message;announce(message);audio.play('upgrade');if(activeDialog==='weapon-result'&&currentWeaponDraw){weaponSummon.updateResult(weaponDrawResult(currentWeaponDraw,progression,storageAvailable));$('#weapon-draw-result [data-close]').focus({preventScroll:true});}else{$(`[data-weapon-option="${id}"]`).scrollIntoView({block:'nearest'});$(`[data-weapon-option="${id}"] summary`)?.focus({preventScroll:true});}}
   }
   if(target.hasAttribute('data-draw-weapon'))summonWeapon();
+  if(target.hasAttribute('data-summon-skip'))weaponSummon.skip();
   if(target.hasAttribute('data-open-weapons')&&!game){switchMenuTab('weapons');$('#weapons-panel').scrollIntoView({block:'start'});}
   if(target.dataset.equipmentHero&&!game&&isHeroUnlocked(progression,target.dataset.equipmentHero)){equipmentHero=target.dataset.equipmentHero;renderRewards();$('#equipment-feedback').textContent='';$(`[data-equipment-hero="${equipmentHero}"]`).focus({preventScroll:true});}
   if(['weapons','unique'].includes(target.dataset.equipmentCategory)&&!game){equipmentCategory=target.dataset.equipmentCategory;renderRewards();$('#equipment-feedback').textContent='';$(`[data-equipment-category="${equipmentCategory}"]`).focus({preventScroll:true});}
@@ -334,6 +357,7 @@ $('.brand').addEventListener('click',e=>e.preventDefault());
 $('#modal').addEventListener('cancel',e=>{e.preventDefault();closeDialog();});
 window.addEventListener('keydown',e=>{
   if(e.code==='Escape'){e.preventDefault();if(activeDialog)closeDialog();else pause();return;}
+  if(weaponSummon.active){if(!weaponSummon.finished&&['Space','Enter'].includes(e.code)&&!e.target.closest?.('button')){e.preventDefault();if(!e.repeat)weaponSummon.skip();}return;}
   if(ultimatePresentation.active){if(!activeDialog&&['Space','Enter'].includes(e.code)&&e.target.id!=='cutin-pause'){e.preventDefault();if(!e.repeat)ultimatePresentation.skip();}return;}
   if(!game||game.phase!=='playing')return;
   if(e.code==='Enter'&&game.tutorial?.active&&game.tutorial.step.button&&document.activeElement?.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat&&game.advanceTutorial()){handleEvents(game.drainEvents());updateHud();}return;}
@@ -344,7 +368,7 @@ window.addEventListener('keydown',e=>{
 window.addEventListener('keyup',e=>keys.delete(e.code));
 window.addEventListener('blur',()=>{audio.setSuspended(true);voice.suspend();resetInput();if(game?.phase==='playing'||ultimatePresentation.active)pause();});
 window.addEventListener('focus',()=>{audio.setSuspended(false);if(activeDialog!=='pause')voice.resume();});
-document.addEventListener('visibilitychange',()=>{audio.setSuspended(document.hidden);if(document.hidden){voice.suspend();persistProgression();resetInput();if(game?.phase==='playing'||ultimatePresentation.active)pause();}else if(activeDialog!=='pause')voice.resume();});
+document.addEventListener('visibilitychange',()=>{audio.setSuspended(document.hidden);weaponSummon.setHidden(document.hidden);if(document.hidden){voice.suspend();persistProgression();resetInput();if(game?.phase==='playing'||ultimatePresentation.active)pause();}else if(activeDialog!=='pause')voice.resume();});
 window.addEventListener('pagehide',()=>{audio.setSuspended(true);ultimatePresentation.cancel();voice.stop();persistProgression();});
 const canvas=$('#scene');
 canvas.addEventListener('pointerdown',e=>{
@@ -462,15 +486,15 @@ window.addEventListener('resize',resize);
 new ResizeObserver(resize).observe(canvas);
 function gamepad(){const pad=navigator.getGamepads?.()[0];if(!pad)return;for(const [i,kind] of [[0,'dash'],[1,'switch'],[3,'ultimate'],[9,'pause']]){const pressed=!!pad.buttons[i]?.pressed;if(pressed&&!previousPad[i]){if(kind==='pause'){if(activeDialog==='pause')closeDialog();else pause();}else if(kind==='dash'&&game?.tutorial?.active&&game.tutorial.step.button){if(game.advanceTutorial()){handleEvents(game.drainEvents());updateHud();}}else action(kind);}previousPad[i]=pressed;}}
 function frame(now){
-  const dt=Math.min((now-last)/1000,.1);last=now;renderFrames++;gamepad();if(!document.hidden)ultimatePresentation.tick(dt);
+  const dt=Math.min((now-last)/1000,.1);last=now;renderFrames++;gamepad();if(!document.hidden){ultimatePresentation.tick(dt);weaponSummon.tick(dt);}
   if(game?.phase==='playing'){accumulator+=dt;let ticks=0;while(accumulator>=1/60&&ticks<6){game.tick(1/60,axes());accumulator-=1/60;ticks++;if(game.phase!=='playing'){accumulator=0;break;}}handleEvents(game.drainEvents());}else accumulator=0;
-  if(world&&game){world.render(game,Math.min(dt,.05));drawNumbers();}if(game&&renderFrames%3===0)updateHud();audio.tick(musicScene(game),{paused:activeDialog==='pause'});requestAnimationFrame(frame);
+  if(world&&game){world.render(game,Math.min(dt,.05));drawNumbers();}if(game&&renderFrames%3===0)updateHud();audio.tick(weaponSummon.active?'summon':musicScene(game),{paused:activeDialog==='pause'});requestAnimationFrame(frame);
 }
 async function boot(){
   try{world=new World(canvas,settings);document.body.classList.toggle('reduce-motion',!settings.motion);resize();requestAnimationFrame(frame);await Promise.all([world.ready,...[publicUrl('assets/key-art-nox.png'),publicUrl('assets/nyanluna-reference.png'),publicUrl('assets/tsukineko-reference.png'),publicUrl('assets/meadow.png')].map(src=>new Promise(resolve=>{const img=new Image();img.onload=resolve;img.onerror=resolve;img.src=src;}))]);$('#loading').classList.add('finished');setTimeout(()=>$('#loading').remove(),650);}
   catch(error){console.error(error);$('#loading').innerHTML=`<div class="loading-moon">☾</div><span>ルナネコの不思議な冒険</span><p>3D画面を起動できませんでした。<br>WebGL対応のブラウザで、ページを再読み込みしてください。</p><button class="primary" id="reload">再読み込み</button>`;$('#reload').onclick=()=>location.reload();}
 }
 // The audit bridge is excluded from production builds. It exercises the real simulation.
-if(import.meta.env.DEV){window.__LUNARIA_TEST__={get state(){return game?.snapshot()??{phase:'home'};},get stats(){return world?.stats();},get game(){return game;},get world(){return world;},get voice(){return voice;},get audio(){return audio;},get ultimatePresentation(){return ultimatePresentation;},get story(){return story;},start(){start({withStory:false});},step(seconds,input={x:0,z:0}){if(!game)return;for(let i=0;i<seconds*60;i++){game.tick(1/60,input);if(game.phase!=='playing')break;}handleEvents(game.drainEvents());updateHud();},skill(id){if(game?.chooseSkill(id)){if($('#modal').open)$('#modal').close();activeDialog=null;$('#modal').classList.remove('wide');handleEvents(game.drainEvents());}},home:goHome};}
+if(import.meta.env.DEV){window.__LUNARIA_TEST__={get state(){return game?.snapshot()??{phase:'home'};},get stats(){return world?.stats();},get game(){return game;},get world(){return world;},get voice(){return voice;},get audio(){return audio;},get ultimatePresentation(){return ultimatePresentation;},get weaponSummon(){return weaponSummon;},get story(){return story;},start(){start({withStory:false});},step(seconds,input={x:0,z:0}){if(!game)return;for(let i=0;i<seconds*60;i++){game.tick(1/60,input);if(game.phase!=='playing')break;}handleEvents(game.drainEvents());updateHud();},skill(id){if(game?.chooseSkill(id)){if($('#modal').open)$('#modal').close();activeDialog=null;$('#modal').classList.remove('wide');handleEvents(game.drainEvents());}},home:goHome};}
 if(import.meta.env.PROD&&'serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register(publicUrl('sw.js'),{scope:import.meta.env.BASE_URL}).catch(()=>{}));}
 boot();
