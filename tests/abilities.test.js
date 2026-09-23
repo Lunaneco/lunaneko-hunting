@@ -13,11 +13,11 @@ const target=(g,type='boss',x=0,z=8)=>{const e=g.spawnEnemy(type,x,z);e.hp=e.max
 test('Tsukineko has higher basic HP, attack, defense and normal fire rate; Nyanluna has stronger skills and faster charge',()=>{
  const [n,t]=HEROES;assert.equal(n.baseHp,180);assert.equal(t.baseHp,210);
  for(const level of [1,20,50]){const p=normalizeProgression({characters:{nyanluna:{level,breaks:3},tsukineko:{level,breaks:3}}},HEROES),ns=characterStats(n,p.characters.nyanluna),ts=characterStats(t,p.characters.tsukineko);assert.ok(ts.maxHp>ns.maxHp&&ts.attack>ns.attack&&ts.defense>ns.defense);assert.ok(ts.attack/t.interval>ns.attack/n.interval);}
- const g=quiet();near(g.skillDamage(n.id,20),30);near(g.skillDamage(t.id,20),20);assert.equal(n.chargeRate,1.25);assert.equal(t.chargeRate,1);
+ const g=quiet();near(g.skillDamage(n.id,20),30);near(g.skillDamage(t.id,20),20);assert.equal(n.chargeRate,1.5);assert.equal(t.chargeRate,1);
 });
 test('charges belong to the attacking hero, including support; switching never transfers charge',()=>{
- const g=quiet(),enemy=target(g);g.hit(enemy,1,0,0,false,false,'nyanluna');g.hit(enemy,1,0,0,false,false,'tsukineko');near(g.player.charge,.65*1.25);near(g.chargeFor(1),.65);
- g.switchHero();near(g.player.charge,.65);g.player.charge=100;g.ultimate();near(g.chargeFor(0),.65*1.25);assert.equal(g.chargeFor(1),0);g.player.switchCooldown=0;g.switchHero();near(g.player.charge,.65*1.25);
+ const g=quiet(),enemy=target(g);g.hit(enemy,1,0,0,false,false,'nyanluna');g.hit(enemy,1,0,0,false,false,'tsukineko');near(g.player.charge,.65*1.5);near(g.chargeFor(1),.65);
+ g.switchHero();near(g.player.charge,.65);g.player.charge=100;g.ultimate();near(g.chargeFor(0),.65*1.5);assert.equal(g.chargeFor(1),0);g.player.switchCooldown=0;g.switchHero();near(g.player.charge,.65*1.5);
  g.skills.focus=1;const before=g.chargeFor(1);g.hit(enemy,1,0,0,false,false,'tsukineko');near(g.chargeFor(1)-before,.65*1.3);g.gainUltimateCharge('unknown',999);assert.equal(g.ultimateCharges.unknown,undefined);
 });
 test('a projectile fired before switching still fills its original caster gauge',()=>{

@@ -17,7 +17,7 @@ async function menu(page){await page.click('#chapter-menu-open');await page.clic
 try{
  const {context,page}=await open();await menu(page);
  for(const [id,name,hp] of [['nyanluna','月華の聖域',180],['tsukineko','星銃・彗星連射',210]]){assert.equal(await page.locator(`#growth-${id} .hero-signature strong`).innerText(),name);assert.equal(await page.locator(`#growth-${id} .growth-stats dd`).first().innerText(),String(hp));}
- assert.match(await page.locator('#growth-nyanluna .hero-trait').innerText(),/スキルダメージ \+50%／必殺ゲージ獲得 \+25%/);
+ assert.match(await page.locator('#growth-nyanluna .hero-trait').innerText(),/スキルダメージ \+50%／必殺ゲージ獲得 \+50%/);
  for(const size of sizes){await page.setViewportSize(size);for(const id of ['nyanluna','tsukineko']){const card=page.locator(`#growth-${id} .hero-abilities`);await card.scrollIntoViewIfNeeded();assert.equal(await card.evaluate(el=>el.scrollWidth>el.clientWidth),false);const b=await card.boundingBox();assert.ok(b.x>=0&&b.x+b.width<=size.width);if(size.width===390)await page.screenshot({path:`${out}/growth-${id}.png`});}}
  await page.setViewportSize(sizes[0]);await page.click('[data-menu-tab="equipment"]');assert.match(await page.locator('#equipment-content .hero-signature').innerText(),/月華の聖域/);await page.click('[data-equipment-hero="tsukineko"]');assert.match(await page.locator('#equipment-content .hero-signature').innerText(),/星銃・彗星連射/);pass('Growth and equipment explain each signature and permanent role; base HP is 180/210 and cards fit four layouts');
  await battle(page);await page.evaluate(()=>{const t=window.__LUNARIA_TEST__,g=t.game;g.player.charge=100;g.ultimateCharges.tsukineko=57;g.player.hp=90;const e=g.spawnEnemy('boss',0,8);e.hp=e.maxHp=10000;e.speed=0;e.attack=e.special=999;t.step(0);});

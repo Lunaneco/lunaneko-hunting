@@ -17,9 +17,9 @@ export const ATTACK_DURATION = .35;
 export const MELEE_MIN_DOT = -.15;
 export const STAGE_EXIT = Object.freeze({x:0,z:-16.6,radius:1.7});
 export const HEROES = [
-  { id: 'nyanluna', name: 'にゃんるな', title: '月光の魔法使い', color: '#d9baff', range:12, damage:17, baseHp:180, baseDefense:8, interval:.58, skillPower:1.5, chargeRate:1.25, role:'スキル特化', trait:'月光共鳴', traitText:'スキルダメージ +50%／必殺ゲージ獲得 +25%'  },
-  { id: 'tsukineko', name: 'つきねこ', title: '星影の銃使い', color: '#82e5ff', range:11, damage:26, baseHp:210, baseDefense:14, interval:.42, skillPower:1, chargeRate:1, role:'基礎能力特化', trait:'星影の鍛錬', traitText:'高いHP・攻撃力・防御力と、速い通常射撃'  },
-  {id:'omsolo',name:'オムソロ',title:'翠光の剣士',color:'#aaffba',range:3.2,damage:37,baseHp:250,baseDefense:21,interval:.66,skillPower:1.1,chargeRate:1,role:'近接・守護',trait:'守り手の剣',traitText:'扇状の近接攻撃／高いHPと防御力。必殺技で周囲を斬り払い、自分を守る'},
+  { id: 'nyanluna', name: 'にゃんるな', title: '月光の魔法使い', color: '#d9baff', range:12, damage:20, baseHp:180, baseDefense:8, interval:.55, skillPower:1.5, chargeRate:1.5, role:'スキル特化', trait:'月光共鳴', traitText:'スキルダメージ +50%／必殺ゲージ獲得 +50%'  },
+  { id: 'tsukineko', name: 'つきねこ', title: '星影の銃使い', color: '#82e5ff', range:11, damage:26, baseHp:210, baseDefense:14, interval:.46, skillPower:1, chargeRate:1, role:'基礎能力特化', trait:'星影の鍛錬', traitText:'高いHP・攻撃力・防御力と、速い通常射撃'  },
+  {id:'omsolo',name:'オムソロ',title:'翠光の剣士',color:'#aaffba',range:3.2,damage:42,baseHp:250,baseDefense:21,interval:.60,skillPower:1.1,chargeRate:1.2,role:'近接・守護',trait:'守り手の剣',traitText:'扇状の近接攻撃／高いHPと防御力／必殺ゲージ獲得 +20%。必殺技で周囲を斬り払い、自分を守る'},
 ];
 export {SKILLS} from './blessings.js';
 export const AREAS = [

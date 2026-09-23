@@ -39,7 +39,7 @@ test('only the equipped owner receives the bonus; draws preserve the selection a
  const p=fresh();p.inventory.weaponTicket=3;p.equipment.owned=['ruins-lens'];equipUnique(p.equipment,'nyanluna','ruins-lens');const before=HEROES.map(h=>combatStats(p,h));
  roll(p,0,.99);assert.equal(equipWeapon(p,'nyanluna','luna-staff-r4'),true);assert.equal(combatStats(p,HEROES[0]).attack,before[0].attack*1.4);assert.deepEqual(combatStats(p,HEROES[1]),before[1]);assert.deepEqual(combatStats(p,HEROES[2]),before[2]);assert.equal(p.equipment.loadout.nyanluna,'ruins-lens');
  const lower=roll(p,0,.1);assert.equal(lower.duplicate,false);assert.equal(equippedWeapon(p,'nyanluna').rarity.rank,4);
- const g=new Adventure({progression:p});assert.equal(g.statsFor(0).attack,combatStats(p,HEROES[0]).attack);g.rng=()=>1;const e=g.spawnEnemy('boss',0,5);g.attackFrom(g.player,0);assert.equal(g.projectiles[0].damage,g.statsFor(0).attack);assert.equal(g.skillDamage('nyanluna',10),10*g.statsFor(0).attack/HEROES[0].damage*HEROES[0].skillPower);
+ const g=new Adventure({progression:p});assert.equal(g.statsFor(0).attack,combatStats(p,HEROES[0]).attack);g.rng=()=>1;const e=g.spawnEnemy('boss',0,5);g.attackFrom(g.player,0);assert.equal(g.projectiles[0].damage,g.statsFor(0).attack);assert.ok(Math.abs(g.skillDamage('nyanluna',10)-10*g.statsFor(0).attack/HEROES[0].damage*HEROES[0].skillPower)<1e-9);
 });
 test('all three characters can wear any relic, with one slot each and one wearer per physical item',()=>{
  const e=normalizeEquipment({owned:['meadow-charm','dawn-seal'],loadout:{}});
@@ -107,6 +107,6 @@ test('guard weapon reduces only its owner damage and does not reset hero health 
  const g=quiet({progression:p,hero:2,party:['omsolo','nyanluna']});g.player.invincible=0;const hp=g.player.hp;g.hurt(30,1,1);assert.ok(Math.abs(hp-g.player.hp-30*100/(100+defense+18))<1e-9);
 });
 test('equipment comparison uses actual stats and lists only owned weapons',()=>{
- const p=allWeapons();equipWeapon(p,'nyanluna','luna-staff-r2');const html=weaponLoadoutView(p,HEROES[0]);assert.match(html,/data-weapon-option="lilica-staff-r2"/);assert.match(html,/装備中との差 -0.15秒/);assert.match(html,/装備する/);assert.match(html,/通常攻撃に適用/);
+ const p=allWeapons();equipWeapon(p,'nyanluna','luna-staff-r2');const html=weaponLoadoutView(p,HEROES[0]);assert.match(html,/data-weapon-option="lilica-staff-r2"/);assert.match(html,/装備中との差 -0.14秒/);assert.match(html,/装備する/);assert.match(html,/通常攻撃に適用/);
  const initial=weaponLoadoutView(fresh(),HEROES[0]);assert.equal([...initial.matchAll(/data-weapon-option=/g)].length,1);assert.match(initial,/data-weapon-option="luna-staff-r1"/);assert.doesNotMatch(initial,/data-weapon-option="lilica|ガチャで入手|未所持/);
 });

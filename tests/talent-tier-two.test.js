@@ -66,12 +66,12 @@ test('a strengthened rifle round hits four targets once and stops before a fifth
   for(let i=0;i<30;i++){enemies.forEach((e,j)=>Object.assign(e,{x:0,z:5+j*2,knockX:0,knockZ:0}));g.tick(1/60);}
   for(const e of enemies.slice(0,4))near(100000-e.hp,damage);assert.equal(enemies[4].hp,100000);
 });
-test('awakened Emerald Vow delivers seven pulses, heals 30 once and grants 2.2 seconds of invulnerability',()=>{
-  const g=quiet('omsolo'),e=target(g);g.player.hp=100;g.player.charge=100;g.ultimate();const damage=g.ultimateEffects[0].damage;near(g.player.invincible,2.2);assert.equal(g.player.hp,130);near(g.ultimateEffects[0].duration,1.54);
-  tick(g,110,e);assert.equal(g.drainEvents().filter(e=>e.type==='saberPulse').length,7);near(100000-e.hp,damage*7);assert.equal(g.player.hp,130);assert.equal(g.player.charge,0);
+test('awakened Emerald Vow delivers seven pulses, heals 40 once and grants 2.2 seconds of invulnerability',()=>{
+  const g=quiet('omsolo'),e=target(g);g.player.hp=100;g.player.charge=100;g.ultimate();const damage=g.ultimateEffects[0].damage;near(g.player.invincible,2.2);assert.equal(g.player.hp,140);near(g.ultimateEffects[0].duration,1.54);
+  tick(g,110,e);assert.equal(g.drainEvents().filter(e=>e.type==='saberPulse').length,7);near(100000-e.hp,damage*7);assert.equal(g.player.hp,140);assert.equal(g.player.charge,0);
 });
 test('charge growth applies to its owner once, stacks with focus and survives departure without leaking to a partner',()=>{
-  const g=quiet(),e=target(g);g.skills.focus=1;g.hit(e,1,0,0,false,false,'nyanluna');g.hit(e,1,0,0,false,false,'tsukineko');near(g.chargeFor(0),.65*1.25*1.25*1.3);near(g.chargeFor(1),.65*1.3);
+  const g=quiet(),e=target(g);g.skills.focus=1;g.hit(e,1,0,0,false,false,'nyanluna');g.hit(e,1,0,0,false,false,'tsukineko');near(g.chargeFor(0),.65*1.5*1.25*1.3);near(g.chargeFor(1),.65*1.3);
   const next=new Adventure({progression:JSON.parse(JSON.stringify(g.progression)),party:g.party});assert.deepEqual(next.skills,{});near(next.ultimateSpec().power,1.6);assert.equal(next.ultimateSpec().pulses,5);assert.equal(next.ultimateSpec(1).shots,8);
   next.player.charge=100;next.ultimate();next.pause();const before=structuredClone(next.ultimateEffects);tick(next,240);assert.deepEqual(next.ultimateEffects,before);
 });
