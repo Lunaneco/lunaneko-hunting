@@ -1,8 +1,8 @@
 // Dedicated attacks for the inhabitants corrupted by the siege of Homusubi.
 // Targets are fixed when the warning appears; no hidden tracking or instant hits.
-export function countryEnemyAttack(g,e,{angle,d,route,dt,slow,move,line,circle,charge,lockCast}){
+export function countryEnemyAttack(g,e,{angle,d,route,dt,slow,move,line,circle,charge,lockCast,cooldownRate=1}){
  const p=g.player;
- e.special-=dt;
+ e.special-=dt*cooldownRate;
  if(e.special<=0&&d<14){
   if(e.type==='reaper'&&d<4.4){
    line(g,e,angle,4.5,3.4,.95,38,0xff8875);lockCast(e,.95,{kind:'chant',angle});e.special=1.9;e.recovery=.6;

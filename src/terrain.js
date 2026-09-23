@@ -29,7 +29,11 @@ export const FIELD_LAYOUTS=Object.freeze([
 ].map((act,index)=>index<4?act:act.map((field,district)=>({...field,rooms:field.rooms.map(room=>({...room,country:['village','valley','town','fortress'][index-4],district,surface:index===4&&district===1?'wood':'stone'}))}))));
 export const ROUTE_REWARD=Object.freeze({starBud:10,moonDew:2,wardenCore:1});
 export const ROUTE_PORTALS=Object.freeze([{id:'safe',x:-12,z:-13,radius:1.8,label:'通常ルート',color:0x9eead6},{id:'elite',x:12,z:-13,radius:1.8,label:'強ボスルート',color:0xff8b99}]);
-export const fieldFor=(act,area)=>FIELD_LAYOUTS[act]?.[area]??FIELD_LAYOUTS[0][0];
+export const EXTRA_FIELD_LAYOUTS=Object.freeze([
+ [single(variant(petal,'extra-moon-meadow','深月の草原'),'最高難度 · 六種の魔物が最初から出現'),floors(variant(courtyard,'extra-moon-lower','星影の回廊・下層'),variant(roof,'extra-moon-upper','星影の上層回廊')),single(variant(eclipse,'extra-moon-altar','月蝕の深淵壇'),'最終決戦 · 最初から月蝕深化')],
+ [single(variant(garden,'extra-rice-road','黄金の修羅道','meadow',{country:'village',district:0,surface:'stone'}),'最高難度 · 連射と時間差攻撃'),floors(variant(courtyard,'extra-rice-lower','穂鐘の試練塔・下層','clock',{country:'town',district:1,surface:'stone'}),variant(roof,'extra-rice-upper','穂鐘の試練塔・上層','clock',{country:'town',district:1,surface:'stone'})),single(variant(eclipse,'extra-rice-arena','穂守りの極陣','eclipse',{country:'fortress',district:2,surface:'stone'}),'最終決戦 · 最初から巨神の猛攻')],
+]);
+export const fieldFor=(act,area)=>FIELD_LAYOUTS[act]?.[area]??EXTRA_FIELD_LAYOUTS[act-8]?.[area]??FIELD_LAYOUTS[0][0];
 export function layoutFor(act,area,wave,route='safe'){
  const f=fieldFor(act,area);return f.rooms[f.kind==='floors'?(wave%2===0?1:0):f.kind==='branch'&&wave%2===0?(route==='elite'?2:1):0];
 }

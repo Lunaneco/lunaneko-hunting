@@ -1,4 +1,5 @@
 // Combat data is shared by the simulation, readable HUD hints and the renderer.
+import {actFor} from './acts.js';
 export const ELITE_BOSS_MULTIPLIER=2;
 export const ELITE_BOSS_LABEL=`HP×${ELITE_BOSS_MULTIPLIER}・攻撃威力×${ELITE_BOSS_MULTIPLIER}`;
 export const ENEMY_TYPES=Object.freeze({
@@ -17,7 +18,7 @@ export const ENEMY_TYPES=Object.freeze({
 });
 export const CHAPTER_ONE_ENEMIES=Object.freeze(['moss','bat','golem','archer','mage','charger']);
 export const CHAPTER_TWO_ENEMIES=Object.freeze(['reaper','matchlock','stormlantern','pestmoth','ironcrab','ramcart']);
-export const enemyRosterForAct=act=>act>=4?CHAPTER_TWO_ENEMIES:CHAPTER_ONE_ENEMIES;
+export const enemyRosterForAct=act=>actFor(act)?.chapter===1?CHAPTER_TWO_ENEMIES:CHAPTER_ONE_ENEMIES;
 export const isRangedEnemy=type=>ENEMY_TYPES[type]?.ranged===true||['archer','mage'].includes(type);
 export const BOSSES=Object.freeze({
   thornmaw:{name:'茨牙の獣王',subtitle:'THE THORNMAW KING',role:'茨をまとう巨獣',color:0xffac69,speed:1.35,radius:2.1,attacks:['狩場の棘','獣王の咆哮','茨牙の突進'],hint:'棘は5か所へ時間差で出現。二段階に広がる咆哮から離れ、突進の後に反撃しよう。HP半分で猛攻。'},
@@ -32,6 +33,7 @@ export const BOSSES=Object.freeze({
 export const BOSS_IDS=Object.freeze(['treant','chronarch','tempest','eclipse','thornmaw','basalt','ironbell','colossus']);
 export function enemyForSpawn(act,wave,index,roll){
   if(wave===6)return 'boss';
+  if(actFor(act)?.extra){const roster=enemyRosterForAct(act);return roster[index<roster.length?index:Math.min(roster.length-1,Math.floor(roll*roster.length))];}
   if(act>=4){
     // Every second-chapter wave uses only the new roster, including the opening.
     const introductions=['reaper','matchlock','stormlantern','ironcrab','ramcart'];

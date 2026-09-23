@@ -34,7 +34,7 @@ try{
   }
   assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.voice.current),null);
  }
- assert.equal(voiced,47);assert.equal(silent,78);pass('All 125 story lines remain readable; only 47 selected lines play, including in all eight act replays');
+ assert.equal(voiced,46);assert.equal(silent,79);pass('All 125 story lines remain readable; only 46 selected lines play, including in all eight act replays');
  pass('Silent scenes hide replay, stop previous speech and prevent battle chatter without hiding the dialogue');
  const id='nyanluna-df12363a',item=VOICE_MANIFEST[id];let held;
  await page.route(`**/${item.file}`,route=>{held=route;});

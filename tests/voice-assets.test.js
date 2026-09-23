@@ -9,7 +9,7 @@ import {BATTLE_VOICES,dialogueVoiceId} from '../src/voice-catalog.js';
 
 test('only selected story lines, tutorials and character actions ship voice assets',async()=>{
  const story=ACT_SCENES.flatMap(s=>Object.values(s).flatMap(scene=>scene.lines));
- assert.equal(story.length,125);assert.equal(story.filter(line=>line.voiced).length,47);
+ assert.equal(story.length,125);assert.equal(story.filter(line=>line.voiced).length,46);
  for(const line of story.filter(line=>!line.voiced))assert.equal(VOICE_MANIFEST[dialogueVoiceId(line.who,line.text)],undefined,`Unselected story voice: ${line.text}`);
  const lines=[...story.filter(line=>line.voiced),...TUTORIAL_STEPS.map(s=>({who:'nyanluna',text:s.text}))].map(line=>({...line,id:dialogueVoiceId(line.who,line.text)}));
  lines.push(...Object.values(BATTLE_VOICES).flatMap(events=>Object.values(events).flat()));

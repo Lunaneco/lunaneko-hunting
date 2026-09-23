@@ -10,7 +10,7 @@ async function save(){return page.evaluate(()=>JSON.parse(localStorage.getItem('
 async function inside(selector){return page.locator(selector).evaluate(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.left>=-1&&r.right<=innerWidth+1&&r.top>=-1&&r.bottom<=innerHeight+1;});}
 try{
  await page.goto('http://127.0.0.1:5174/?v=chapter-two-audit');await page.waitForSelector('#loading',{state:'detached',timeout:60000});
- await page.click('#chapter-menu-open');assert.equal(await page.locator('[data-chapter="1"]').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('[data-act]').count(),4);assert.match(await page.locator('.chapter-intro h2').innerText(),/消えない光/);
+ await page.click('#chapter-menu-open');assert.equal(await page.locator('[data-chapter="1"]').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('.act-selector [data-act]').count(),4);assert.match(await page.locator('.chapter-intro h2').innerText(),/消えない光/);
  await page.click('[data-chapter="0"]');assert.equal(await page.locator('[data-act="0"]').count(),1);await page.click('[data-chapter="1"]');await page.click('[data-act="4"]');
  for(const [width,height] of [[320,640],[390,844],[844,390],[1440,900]]){await page.setViewportSize({width,height});await page.locator('[data-chapter="1"]').scrollIntoViewIfNeeded();assert.ok(await inside('[data-chapter="1"]'));const overflow=await page.locator('.chapter-shell').evaluate(el=>el.scrollWidth>el.clientWidth+1);assert.equal(overflow,false);await page.screenshot({path:`audit/chapter-two/menu-${width}.png`});}
  pass('Two clear chapter selectors with four local acts; mobile and landscape menu fits');

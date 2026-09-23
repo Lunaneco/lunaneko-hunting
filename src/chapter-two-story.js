@@ -1,4 +1,4 @@
-const scene=(act,area,kicker,title,next,lines,voiced=false)=>({act,area,kicker:`CHAPTER 02 · ACT 0${act%4+1} · ${kicker}`,title,next,lines:lines.map(([who,text])=>({who,text,voiced}))});
+const scene=(act,area,kicker,title,next,lines,voiced=false)=>({act,area,kicker:`CHAPTER 02 · ACT 0${act%4+1} · ${kicker}`,title,next,lines:lines.map(([who,text,lineVoiced=voiced])=>({who,text,voiced:lineVoiced}))});
 export const SECOND_CHAPTER_SCENES=[{
  opening:scene(4,0,'小さな願い','泣き声のしたほうへ。','こむすびの案内で里道へ',[
  ['narrator','月の道の先は、おむすびたちが暮らす「穂むすびの国」。金色の棚田を歩く二人の前に、青いかばんの小さな猫が泣きながら走ってきた。'],
@@ -100,6 +100,6 @@ export const SECOND_CHAPTER_SCENES=[{
  ['omsolo','ああ。よくがんばったな、こむすび。お前の声が、私をここまで連れ戻してくれた。'],
  ['tsukineko','二人とも、よかった……。もう、離れなくていいね。'],
  ['omsolo','この恩は、これからの旅で返させてくれ。遠くからの攻撃は君たちに任せる。近づく敵は、私の光刃で食い止めよう。'],
- ['narrator','休息をとり、再び立ち上がったオムソロの手に、緑の刃が灯る。近接キャラ「オムソロ」が仲間に加入。3人の中から最大2人を選んで出撃できるようになった。――第2章、おわり。'],
+ ['narrator','休息をとり、再び立ち上がったオムソロの手に、緑の刃が灯る。近接キャラ「オムソロ」が仲間に加入。3人の中から最大2人を選んで出撃できるようになった。――第2章、おわり。',false],
  ],true),
 }];

@@ -220,13 +220,6 @@ export const VOICE_MANIFEST={
     "duration": 2.62,
     "kind": "battle"
   },
-  "narrator-ea05446d": {
-    "file": "assets/voices/narrator/narrator-ea05446d.mp3",
-    "who": "narrator",
-    "text": "休息をとり、再び立ち上がったオムソロの手に、緑の刃が灯る。近接キャラ「オムソロ」が仲間に加入。3人の中から最大2人を選んで出撃できるようになった。――第2章、おわり。",
-    "duration": 17,
-    "kind": "story"
-  },
   "nyanluna-d6d6edc9": {
     "file": "assets/voices/nyanluna/nyanluna-d6d6edc9-fec2ca0c40ff.mp3",
     "who": "nyanluna",

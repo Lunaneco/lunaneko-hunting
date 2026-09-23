@@ -1,7 +1,8 @@
 import {fieldFor,layoutFor,walkingLayout,heightAt,contains,projectInside,moveWithin,navigation,clearPath,spawnPoint,ROUTE_PORTALS,ROUTE_REWARD} from './terrain.js';
 import {ENEMY_TYPES,BOSSES,ELITE_BOSS_MULTIPLIER,enemyForSpawn,distanceToHazard,isRangedEnemy} from './enemies.js';
 import {tickEnemyBehavior} from './enemy-combat.js';
-import {ACTS,isActUnlocked,completeAct} from './acts.js';
+import {actFor,isActUnlocked,completeAct,clearTicketReward} from './acts.js';
+import {EXTRA_COMBAT} from './extra-stages.js';
 import {castUltimate,tickUltimates,enemySpeedScale} from './ultimate-combat.js';
 import {ultimateFor} from './abilities.js';
 import {bossWeaponTicket,grantWeaponTickets,weaponAttackProfile,equippedWeapon} from './weapons.js';
@@ -32,10 +33,10 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export class Adventure {
   constructor({seed=Date.now(),hero=0,difficulty='normal',progression,party,tutorial=false,act=0}={}) {
     this.tutorial=tutorial?new FirstBattleTutorial():null;if(tutorial){hero=0;party=['nyanluna'];act=0;}
-    this.progression=normalizeProgression(progression,HEROES);this.guestHeroId=null;this.recruitedHeroId=null;this.act=isActUnlocked(this.progression,act)?act:0;this.actConfig=ACTS[this.act];this.pendingTrials=new Set();this.rescue=null;
+    this.progression=normalizeProgression(progression,HEROES);this.guestHeroId=null;this.recruitedHeroId=null;this.act=isActUnlocked(this.progression,act)?act:0;this.actConfig=actFor(this.act);this.pendingTrials=new Set();this.rescue=null;
     this.party=Object.freeze(normalizeParty(party,availableHeroes(this.progression,HEROES)));this.partyHeroes=this.party.map(id=>HEROES.findIndex(h=>h.id===id));hero=this.partyHeroes.includes(hero)?hero:this.partyHeroes[0];this.skillPool=Object.freeze(skillsForParty(this.party,this.progression));
-    this.earnedWeaponTickets=0;this.earnedMissions=[];this.earnedXp=Object.fromEntries(HEROES.map(h=>[h.id,0]));this.earnedMaterials=Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,0]));
-    this.rng=seededRandom(seed);this.lootRng=seededRandom(seed^0x57EA90C1);this.materialRng=seededRandom(seed^0x4D41544C);this.seed=seed;this.difficulty=difficulty;this.phase='playing';this.events=[];this.ids=1;
+    this.clearRewardTickets=0;this.earnedWeaponTickets=0;this.earnedMissions=[];this.earnedXp=Object.fromEntries(HEROES.map(h=>[h.id,0]));this.earnedMaterials=Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,0]));
+    this.rng=seededRandom(seed);this.lootRng=seededRandom(seed^0x57EA90C1);this.materialRng=seededRandom(seed^0x4D41544C);this.seed=seed;this.difficulty=this.actConfig.extra?'hard':difficulty;this.phase='playing';this.events=[];this.ids=1;
     this.heroHealth=Object.fromEntries(HEROES.map(h=>{const maxHp=combatStats(this.progression,h).maxHp;return [h.id,{hp:maxHp,maxHp}];}));
     this.player={x:0,z:3,hero,face:Math.PI,invincible:1,dash:0,dashCooldown:0,dx:0,dz:-1,attack:0,charge:0,switchCooldown:0};
     // HP follows the controlled character; switching never copies another character's damage.
@@ -161,8 +162,8 @@ export class Adventure {
     this.collectMaterials(gateMaterials(this.area,this.act,this.difficulty),'gate');this.combo=0;this.comboTimer=0;this.player.dash=0;this.player.moving=false;this.partner.moving=false;
     if(this.wave===6){
       this.claimMissions();
-      const tickets=grantWeaponTickets(this.progression);
-      this.earnedWeaponTickets+=tickets;
+      const tickets=grantWeaponTickets(this.progression,clearTicketReward(this.progression,this.act));
+      this.clearRewardTickets=tickets;this.earnedWeaponTickets+=tickets;
       if(tickets)this.emit('weaponTicket',{count:tickets,total:this.progression.inventory.weaponTicket,source:'actClear'});
       if(completeAct(this.progression,this.act)){this.recruitedHeroId=this.actConfig.recruit;this.emit('recruited',{heroId:this.recruitedHeroId});}
       this.guestHeroId=null;this.phase='victory';this.emit('victory');
@@ -179,14 +180,14 @@ export class Adventure {
   spawnEnemy(type,x,z,{elite=false}={}){
     const boss=type==='boss';const hard=this.difficulty==='hard'?1.3:1,power=boss&&elite?ELITE_BOSS_MULTIPLIER:1;
     const spec=boss?BOSSES[this.actConfig.bossId]:ENEMY_TYPES[type];if(!spec)throw new Error(`Unknown enemy: ${type}`);
-    const hp=(boss?this.actConfig.bossHp:spec.hp)*(boss?1:(1+(this.wave-1)*.14)*(1+this.act*.08))*hard*power;
-    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:spec.name+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed,damage:(boss?(this.act>=4?45:22):spec.damage)*hard*power,radius:spec.radius*(elite?1.12:1),hit:0,attack:1+this.rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:boss?3:1.4+this.rng(),cast:null,rush:null,recovery:0,enraged:false,navTimer:0};
+    const extra=this.actConfig.extra,hp=(boss?this.actConfig.bossHp:spec.hp)*(boss?1:(1+(this.wave-1)*.14)*(extra?this.actConfig.hpScale:1+this.act*.08))*hard*power;
+    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:spec.name+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed*(extra?EXTRA_COMBAT.moveScale:1),damage:(boss?(this.actConfig.chapter===1?45:22):spec.damage)*hard*power*(extra?this.actConfig.damageScale:1),radius:spec.radius*(elite?1.12:1),hit:0,attack:1+this.rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:boss?3:1.4+this.rng(),cast:null,rush:null,recovery:0,enraged:!!extra&&boss,navTimer:0};
     this.enemies.push(e);this.emit('spawn',{id:e.id,x,z,boss});return e;
   }
   spawn(){
     const angle=this.rng()*Math.PI*2;let {x,z}=spawnPoint(this.walkLayout,this.player,angle);
     let type=enemyForSpawn(this.act,this.wave,this.waveSpawned,this.rng());
-    if(isRangedEnemy(type)&&this.enemies.filter(e=>e.hp>0&&isRangedEnemy(e.type)).length>=(this.act>=4?4:3))type=this.act>=4?'reaper':'bat';
+    if(isRangedEnemy(type)&&this.enemies.filter(e=>e.hp>0&&isRangedEnemy(e.type)).length>=(this.actConfig.extra?EXTRA_COMBAT.rangedLimit:this.actConfig.chapter===1?4:3))type=this.actConfig.chapter===1?'reaper':'bat';
     if(type!=='boss'&&!this.seenEnemyTypes.has(type)){this.seenEnemyTypes.add(type);if(ENEMY_TYPES[type]?.chapter===1||['archer','mage','charger'].includes(type))this.emit('enemyIntro',{enemyType:type});}
     const elite=this.route==='elite'&&this.wave%2===0&&(this.wave===6||this.waveSpawned===this.waveGoal-1);
     if(elite)type='boss';
@@ -309,9 +310,9 @@ export class Adventure {
     if(!training)tickUltimates(this,dt);
     if(p.attack<=0&&this.attackFrom(p,p.hero))p.attack=this.attackProfile(p.hero).interval*Math.pow(.85,this.rank('haste'));
     if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=this.attackProfile(this.partnerHero).interval*2.6*Math.pow(.85,this.rank('haste'));
-    if(!training){this.spawnTimer-=dt;if(this.waveSpawned<this.waveGoal&&this.spawnTimer<=0){this.spawn();this.spawnTimer=this.wave===6?100:Math.max(.43,1.15-this.wave*.10);}}
+    if(!training){this.spawnTimer-=dt;if(this.waveSpawned<this.waveGoal&&this.spawnTimer<=0){this.spawn();this.spawnTimer=this.wave===6?100:Math.max(.43,1.15-this.wave*.10)*(this.actConfig.extra?EXTRA_COMBAT.spawnScale:1);}}
     for(const e of this.enemies){
-      if(e.hp<=0)continue;const enemyFrom={x:e.x,z:e.z};e.navTimer-=dt;e.age+=dt;e.hit=Math.max(0,e.hit-dt);e.attack-=dt;
+      if(e.hp<=0)continue;const enemyFrom={x:e.x,z:e.z};e.navTimer-=dt;e.age+=dt;e.hit=Math.max(0,e.hit-dt);e.attack-=dt*(this.actConfig.extra?EXTRA_COMBAT.cooldownRate:1);
       if(!e.training)tickEnemyBehavior(this,e,dt,enemySpeedScale(this,e));
       e.x+=e.knockX*dt;e.z+=e.knockZ*dt;e.knockX*=Math.max(0,1-dt*7);e.knockZ*=Math.max(0,1-dt*7);
       Object.assign(e,moveWithin(this.walkLayout,enemyFrom,e.x,e.z,Math.min(.8,e.radius)));

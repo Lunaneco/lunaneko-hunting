@@ -1,4 +1,6 @@
 import {FIELD_THEMES} from './field-themes.js';
+import {EXTRA_ACTS,EXTRA_FIRST_TICKETS,EXTRA_REPEAT_TICKETS} from './extra-stages.js';
+export {EXTRA_ACTS} from './extra-stages.js';
 const stage=(name,theme,note,index)=>({name,theme,image:FIELD_THEMES[theme].image,note,waves:`WAVE 0${index*2+1}–0${index*2+2}`});
 const acts=[
   {id:0,title:'はぐれた月の道',summary:'一緒に迷い込んだはずの親友を探し、最初の月の門を開く。',counts:[10,14,18,22,26,1],boss:'封印の番人',bossId:'treant',bossHp:1500,stages:[stage('星詠みの草原',0,'ほどけた光を道しるべに',0),stage('月影の遺跡',1,'離れた手と、残された記憶',1),stage('暁の聖域',2,'封印の向こうに続く道',2)]},
@@ -15,18 +17,23 @@ export const CHAPTERS=Object.freeze([
  {id:1,title:'小さな願いと、消えない光',summary:'おむすびたちが暮らす穂むすびの国。黄金の棚田から城下町、襲撃された砦へ。こむすびの願いを胸に、故郷を守ったオムソロを救いに行く。',start:4,end:7},
 ]);
 export const ACTS=Object.freeze(acts.map(a=>Object.freeze({...a,recommendedLevel:a.id>=4?30:null,chapter:Math.floor(a.id/4),number:a.id%4+1,recruit:a.id===3?'tsukineko':a.id===7?'omsolo':null})));
-export const chapterForAct=act=>CHAPTERS[ACTS[act]?.chapter??0];
-export const actLabel=act=>`第${chapterForAct(act).id+1}章・第${ACTS[act]?.number??1}幕`;
+export const PLAYABLE_ACTS=Object.freeze([...ACTS,...EXTRA_ACTS]);
+export const actFor=act=>PLAYABLE_ACTS[act];
+export const chapterForAct=act=>CHAPTERS[actFor(act)?.chapter??0];
+export const actLabel=act=>`第${chapterForAct(act).id+1}章・${actFor(act)?.extra?'エクストラ':`第${actFor(act)?.number??1}幕`}`;
+export const isActCleared=(profile,act)=>actFor(act)?.extra?profile?.story?.extraClears?.[actFor(act).chapter]===true:profile?.story?.actClears?.[act]===true;
+export const clearTicketReward=(profile,act)=>actFor(act)?.extra?(isActCleared(profile,act)?EXTRA_REPEAT_TICKETS:EXTRA_FIRST_TICKETS):1;
 export function normalizeStory(raw,legacy={}){
  const oldClear=raw?.chapterOneCleared===true||legacy?.chapterOneCleared===true;
  const actClears=ACTS.map((_,i)=>raw?.version===2?raw?.actClears?.[i]===true:i===0&&oldClear);
  for(let i=1;i<actClears.length;i++)if(!actClears[i-1])actClears[i]=false;
- return {version:2,actClears,chapterOneCleared:actClears.slice(0,4).every(Boolean),chapterTwoCleared:actClears.slice(4,8).every(Boolean),tsukinekoUnlocked:raw?.version===2?raw.tsukinekoUnlocked===true||actClears[3]:oldClear,omsoloUnlocked:actClears[7]};
+ return {version:2,actClears,extraClears:EXTRA_ACTS.map(a=>actClears[7]&&raw?.extraClears?.[a.chapter]===true),chapterOneCleared:actClears.slice(0,4).every(Boolean),chapterTwoCleared:actClears.slice(4,8).every(Boolean),tsukinekoUnlocked:raw?.version===2?raw.tsukinekoUnlocked===true||actClears[3]:oldClear,omsoloUnlocked:actClears[7]};
 }
-export const isActUnlocked=(profile,act)=>Number.isInteger(act)&&act>=0&&act<ACTS.length&&(act===0||profile?.story?.actClears?.[act-1]===true);
+export const isActUnlocked=(profile,act)=>Number.isInteger(act)&&act>=0&&act<PLAYABLE_ACTS.length&&(actFor(act).extra?ACTS.every(a=>profile?.story?.actClears?.[a.id]===true):act===0||profile?.story?.actClears?.[act-1]===true);
 export const nextAct=profile=>{const next=ACTS.findIndex((_,i)=>!profile.story.actClears[i]);return next<0?ACTS.length-1:next;};
 export function completeAct(profile,act){
  if(!isActUnlocked(profile,act))return false;
+ if(actFor(act).extra){profile.story.extraClears[actFor(act).chapter]=true;return false;}
  const hero=ACTS[act].recruit,recruited=hero&&!profile.story[`${hero}Unlocked`];
  profile.story.actClears[act]=true;profile.story.chapterOneCleared=profile.story.actClears.slice(0,4).every(Boolean);profile.story.chapterTwoCleared=profile.story.actClears.slice(4,8).every(Boolean);
  if(hero)profile.story[`${hero}Unlocked`]=true;
