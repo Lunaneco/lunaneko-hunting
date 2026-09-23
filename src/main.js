@@ -29,11 +29,12 @@ import './blessing-loadout.css';
 import './rewards.css';
 import './weapons.css';
 import './equipment-ui.css';
-import {drawWeapon,equipWeapon,weaponVariant} from './weapons.js';
-import {weaponGachaView,weaponDrawResult} from './weapons-ui.js';
+import {drawWeapons,equipWeapon,weaponVariant} from './weapons.js';
+import {weaponGachaView,weaponDrawResult,weaponBatchResult} from './weapons-ui.js';
 import {WeaponSummonPresentation} from './weapon-summon.js';
 import {WeaponSummonView} from './weapon-summon-view.js';
 import './weapon-summon.css';
+import './weapon-batch.css';
 import {talentView,materialsText} from './talent-ui.js';
 import {talentNode,nodeEffectText} from './talents.js';
 import {PROGRESSION_KEY,normalizeProgression,characterProgress,xpRequired,levelCap,LEVEL_RULES,grantLimitStone,unlockTalent} from './progression.js';
@@ -154,7 +155,7 @@ $('#ultimate-cutin').addEventListener('click',event=>{
 });
 const summonView=new WeaponSummonView($('#weapon-summon'));
 let summonPointer=null,summonFinishedAt=-Infinity;
-const weaponSummon=new WeaponSummonPresentation({view:summonView,audio,voice,onFinish:({item,duplicate})=>{summonFinishedAt=performance.now();announce(`${HEROES.find(h=>h.id===item.heroId).name}専用の★${item.rarity.rank}武器「${item.weapon.name}」を獲得。${duplicate?'重複分は星の芽へ変換しました。':''}`);}});
+const weaponSummon=new WeaponSummonPresentation({view:summonView,audio,voice,onFinish:({item,duplicate})=>{summonFinishedAt=performance.now();if(Array.isArray(currentWeaponDraw)){const added=currentWeaponDraw.filter(r=>!r.duplicate).length;announce(`10連ガチャの結果。新規${added}本、重複${10-added}本。10回分を保存しました。`);return;}announce(`${HEROES.find(h=>h.id===item.heroId).name}専用の★${item.rarity.rank}武器「${item.weapon.name}」を獲得。${duplicate?'重複分は星の芽へ変換しました。':''}`);}});
 // As with the cut-in, only a tap that starts on the summon stage skips it.
 $('#weapon-summon').addEventListener('pointerdown',event=>{summonPointer=null;if(event.button!==0||!event.isPrimary||event.target.closest('button,.draw-sheet'))return;summonPointer={id:event.pointerId,x:event.clientX,y:event.clientY};});
 $('#weapon-summon').addEventListener('pointerup',event=>{const tap=!!summonPointer&&event.pointerId===summonPointer.id&&Math.hypot(event.clientX-summonPointer.x,event.clientY-summonPointer.y)<18;summonPointer=null;if(tap)weaponSummon.skip();});
@@ -243,23 +244,25 @@ function updateGrowthLabels(){
   if($('#limit-stones'))$('#limit-stones').textContent=progression.inventory.limitStone.toLocaleString();
 }
 function ticketRewardText(count=0,clearTickets=0){return count?`<span class="run-ticket-reward">専用武器ガチャ券 +${count}枚${clearTickets===1?'（幕クリア保証1枚を含む）':clearTickets?`（クリア報酬${clearTickets}枚を含む）`:''}</span>`:'';}
-let currentWeaponDraw=null;
-function summonWeapon(){
+let currentWeaponDraw=null,lastWeaponDrawCount=1;
+const weaponResultMarkup=()=>Array.isArray(currentWeaponDraw)?weaponBatchResult(currentWeaponDraw,progression,storageAvailable):weaponDrawResult(currentWeaponDraw,progression,storageAvailable);
+function summonWeapon(amount=1){
   if(game||activeDialog||$('#chapter-menu').classList.contains('hidden'))return;
-  const result=drawWeapon(progression);if(!result)return;
+  const results=drawWeapons(progression,amount);if(!results)return;
+  const result=results.reduce((best,next)=>next.item.rarity.rank>best.item.rarity.rank?next:best);
   // Persist the roll before displaying it; closing or reloading never rerolls it.
   persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);
-  currentWeaponDraw=result;activeDialog='weapon-result';audio.init();
+  currentWeaponDraw=amount===1?result:results;lastWeaponDrawCount=amount;activeDialog='weapon-result';audio.init();
   const motion=settings.motion&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!weaponSummon.start(result,{motion,quality:settings.quality,markup:weaponDrawResult(result,progression,storageAvailable)})){activeDialog=null;return;}
-  if(motion)announce('専用武器を召喚中。画面をタップするとスキップできます。');
+  if(!weaponSummon.start(result,{motion,quality:settings.quality,markup:weaponResultMarkup()})){activeDialog=null;return;}
+  if(motion)announce(`${amount===10?'10連ガチャの':'専用武器を'}召喚中。画面をタップするとスキップできます。`);
 }
 // The first close request (Esc, back, close button) finishes an unfinished summon; a second
 // request within 350 ms of the result appearing is treated as the same press.
 function closeWeaponSummon(){
   if(weaponSummon.skip()||performance.now()-summonFinishedAt<350)return;
   weaponSummon.close();activeDialog=null;currentWeaponDraw=null;resetInput();
-  ($('[data-draw-weapon]:not(:disabled)')??$('[data-menu-tab="weapons"]'))?.focus({preventScroll:true});
+  ($(lastWeaponDrawCount===10?'[data-draw-weapons]:not(:disabled)':'[data-draw-weapon]:not(:disabled)')??$('[data-draw-weapon]:not(:disabled)')??$('[data-menu-tab="weapons"]'))?.focus({preventScroll:true});
 }
 function missionRunSummary(ids=[]){return ids.length?`<div class="mission-run-rewards">ミッション ${ids.length}件達成<br>${ids.map(id=>STAGE_MISSIONS.find(m=>m.id===id)).filter(Boolean).map(m=>`${m.name}：${missionRewardText(m)}`).join('<br>')}</div>`:'';}
 function renderRewards(){
@@ -325,9 +328,10 @@ document.addEventListener('click',event=>{
   if(target.dataset.partyLead&&!game){const index=Number(target.dataset.partyLead);if(selectedParty.includes(HEROES[index]?.id)){selectedHero=index;persistParty();updatePartyLabels();renderPartyDialog();}}
   if(target.dataset.equipWeapon&&!game&&!$('#chapter-menu').classList.contains('hidden')&&(!activeDialog||activeDialog==='weapon-result')){
     const id=target.dataset.equipWeapon,hero=target.dataset.weaponHero;
-    if(equipWeapon(progression,hero,id)){voice.cue(hero,'equip');persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);const message=`${weaponVariant(id).weapon.name}を装備しました。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;$('#equipment-feedback').textContent=message;announce(message);audio.play('upgrade');if(activeDialog==='weapon-result'&&currentWeaponDraw){weaponSummon.updateResult(weaponDrawResult(currentWeaponDraw,progression,storageAvailable));$('#weapon-draw-result [data-close]').focus({preventScroll:true});}else{$(`[data-weapon-option="${id}"]`).scrollIntoView({block:'nearest'});$(`[data-weapon-option="${id}"] summary`)?.focus({preventScroll:true});}}
+    if(equipWeapon(progression,hero,id)){voice.cue(hero,'equip');persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);const message=`${weaponVariant(id).weapon.name}を装備しました。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;$('#equipment-feedback').textContent=message;announce(message);audio.play('upgrade');if(activeDialog==='weapon-result'&&currentWeaponDraw){weaponSummon.updateResult(weaponResultMarkup());$('#weapon-draw-result [data-close]').focus({preventScroll:true});}else{$(`[data-weapon-option="${id}"]`).scrollIntoView({block:'nearest'});$(`[data-weapon-option="${id}"] summary`)?.focus({preventScroll:true});}}
   }
   if(target.hasAttribute('data-draw-weapon'))summonWeapon();
+  if(target.hasAttribute('data-draw-weapons'))summonWeapon(10);
   if(target.hasAttribute('data-summon-skip'))weaponSummon.skip();
   if(target.hasAttribute('data-open-weapons')&&!game){switchMenuTab('weapons');$('#weapons-panel').scrollIntoView({block:'start'});}
   if(target.dataset.equipmentHero&&!game&&isHeroUnlocked(progression,target.dataset.equipmentHero)){equipmentHero=target.dataset.equipmentHero;renderRewards();$('#equipment-feedback').textContent='';$(`[data-equipment-hero="${equipmentHero}"]`).focus({preventScroll:true});}

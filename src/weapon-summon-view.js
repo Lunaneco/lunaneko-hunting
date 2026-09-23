@@ -167,7 +167,7 @@ export class WeaponSummonView{
     const art=weaponImage(item);this.weapon.src=art;root.style.setProperty('--weapon-mask',`url("${art}")`);this.weapon.decode?.().catch(()=>{});
     root.style.removeProperty('--ray-gradient');
     if(plan.cutin){this.cutinImg.src=ultimateArtUrl(item.heroId);this.cutinImg.decode?.().catch(()=>{});this.cutinName.textContent=storySpeaker(item.heroId).name;root.style.setProperty('--cutin-color',ULTIMATE_ART[item.heroId].accent);root.style.setProperty('--ray-gradient',rainbowRays());}
-    this.result.innerHTML=markup;this.crack.innerHTML=crackPaths();
+    this.result.innerHTML=markup;root.classList.toggle('is-batch',!!this.result.querySelector('.weapon-batch-result'));this.crack.innerHTML=crackPaths();
     this.videoOn=video&&!!v.canPlayType?.('video/mp4');root.classList.toggle('no-video',!this.videoOn);
     if(this.videoOn){
       // Started inside the summon tap so low-power autoplay rules cannot block it.

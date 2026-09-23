@@ -1,0 +1,39 @@
+.weapon-draw-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:790px;margin:auto}
+.weapon-draw-options .primary{width:100%;gap:10px}
+.weapon-draw-options .multi-draw{background:linear-gradient(115deg,#fff0b5,#e9bd79);color:#322343}
+.weapon-batch-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;list-style:none;padding:0;margin:0}
+.weapon-batch-card{min-width:0;padding:12px;border:1px solid color-mix(in srgb,var(--rarity-color) 65%,transparent);border-radius:10px;background:linear-gradient(155deg,#26364d,#111c30);text-align:center;color:#f6e8cb}
+.batch-card-top{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#aabacf}
+.batch-card-top b{color:#ffe6a0;letter-spacing:1px}.batch-card-top .is-duplicate{color:#aabacf;font-weight:400}
+.weapon-batch-card img{display:block;width:88px;height:88px;max-width:100%;object-fit:contain;margin:5px auto;filter:drop-shadow(0 3px 8px #0008)}
+.weapon-batch-card h3{font-size:13px;line-height:1.6;margin:7px 0 3px;font-weight:600;overflow-wrap:anywhere}
+.weapon-batch-card p{font-size:10px;color:#b6c7da;margin:0 0 6px}
+.batch-outcome{display:block;font-size:11px;color:#e5d6b1;line-height:1.7}
+.weapon-batch-card .secondary{width:100%;min-height:44px;padding:8px 4px;margin:8px 0 0;font-size:11px}
+.last-weapon-batch{margin:24px 0}.last-weapon-batch>h3{font-size:15px;font-weight:500;color:#f1dbb0}
+.summon-root.is-batch .summon-result{inset:0;left:0;right:0;width:100%;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));align-items:center;box-sizing:border-box;transition:none;visibility:hidden}
+.summon-root.is-batch.is-final .summon-result{visibility:visible;pointer-events:auto}
+.summon-root.is-batch.is-final .summon-stage{opacity:.15;transition:opacity .3s}
+.weapon-batch-result{width:min(1080px,100%);max-height:100%;display:flex;flex-direction:column;min-height:0;padding:22px;border:1px solid #dcc48b80;border-radius:16px;background:#101b2bf5;box-shadow:0 20px 80px #000b;box-sizing:border-box;pointer-events:auto;text-align:center}
+.batch-result-header{flex-shrink:0}.batch-result-header .eyebrow{font-size:9px;color:#e6c987;letter-spacing:3px}
+.batch-result-header h2{font-size:25px;margin:10px 0;color:#fff0d3;font-weight:500}
+.batch-result-header p{font-size:12px;line-height:1.7;color:#d9c6a1;margin:0 0 18px}
+.weapon-batch-result .weapon-batch-grid{overflow-y:auto;overscroll-behavior:contain;min-height:0;scrollbar-width:thin;scrollbar-color:#b5a37f #111c30}
+.batch-result-footer{flex-shrink:0;padding-top:14px}.batch-result-footer p{font-size:11px;color:#bccbd7;margin:0 0 10px}
+.batch-result-footer .primary{width:min(340px,100%);min-height:46px;margin:0 auto;padding:12px}
+@media(max-width:760px){
+ .weapon-draw-options{grid-template-columns:1fr;gap:10px}
+ .weapon-batch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .summon-root.is-batch .summon-result{padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom))}
+ .weapon-batch-result{padding:14px;border-radius:12px}
+ .batch-result-header h2{font-size:21px;margin:7px 0}.batch-result-header p{font-size:11px;margin-bottom:12px}
+ .weapon-batch-card{padding:10px}.weapon-batch-card img{height:70px;width:70px}
+ .weapon-batch-card h3{font-size:12px}.batch-result-footer{padding-top:10px}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .weapon-batch-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+ .weapon-batch-result{padding:12px}.batch-result-header h2{font-size:19px;margin:4px 0}
+ .batch-result-header p{margin-bottom:8px}.batch-result-header .eyebrow{display:none}
+ .batch-result-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:8px}
+ .batch-result-footer p{margin:0}.batch-result-footer .primary{width:auto;margin:0;min-width:180px}
+}

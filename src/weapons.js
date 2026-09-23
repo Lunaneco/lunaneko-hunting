@@ -3,6 +3,7 @@ import {publicUrl} from './public-url.js';
 import {isHeroUnlocked} from './recruitment.js';
 
 export const WEAPON_TICKET_DROP_RATE=.05;
+export const WEAPON_MULTI_DRAW_COUNT=10;
 export const WEAPON_HERO_IDS=Object.freeze(['nyanluna','tsukineko','omsolo']);
 export const WEAPON_RARITIES=Object.freeze([
   Object.freeze({rank:1,name:'通常',color:'#b7cbc7',attack:0,chance:0,duplicateBuds:0}),
@@ -39,12 +40,12 @@ export function normalizeWeapons(raw){
       loadout[heroId]=WEAPON_CATALOG.filter(item=>item.heroId===heroId&&owned.includes(item.id)).sort((a,b)=>b.rarity.rank-a.rarity.rank)[0].id;
     }else loadout[heroId]=`${WEAPONS[heroId].id}-r1`;
   }
-  const last=weaponVariant(raw?.lastDraw?.weaponId),validLast=last?.rarity.rank>1&&owned.includes(last.id);
   // Older draws did not store their paid amount. Keep their pre-v1.41 history;
   // new draws record the actual grant so later reward changes cannot rewrite it.
-  const duplicate=raw?.lastDraw?.duplicate===true;
-  const duplicateBuds=duplicate&&validLast?count(raw.lastDraw.duplicateBuds??({2:10,3:30,4:100}[last.rarity.rank])):0;
-  return {version:2,owned,loadout,draws:count(raw?.draws),lastDraw:validLast?{weaponId:last.id,duplicate,...(duplicate?{duplicateBuds}:{})}:null};
+  const storedDraw=draw=>{const item=weaponVariant(draw?.weaponId);if(!item||item.rarity.rank===1||!owned.includes(item.id))return null;const duplicate=draw.duplicate===true;return {weaponId:item.id,duplicate,...(duplicate?{duplicateBuds:count(draw.duplicateBuds??({2:10,3:30,4:100}[item.rarity.rank]))}:{})};};
+  const lastDraw=storedDraw(raw?.lastDraw),batch=Array.isArray(raw?.lastBatch)&&raw.lastBatch.length===WEAPON_MULTI_DRAW_COUNT?raw.lastBatch.map(storedDraw):[];
+  const lastBatch=batch.length===WEAPON_MULTI_DRAW_COUNT&&batch.every(Boolean)&&JSON.stringify(batch.at(-1))===JSON.stringify(lastDraw)?batch:null;
+  return {version:2,owned,loadout,draws:count(raw?.draws),lastDraw,lastBatch};
 }
 export function equippedWeapon(profile,heroId){
   if(!WEAPON_HERO_IDS.includes(heroId))return null;
@@ -78,6 +79,14 @@ export function drawWeapon(profile,rng=Math.random){
   const collection=normalizeWeapons(profile.weapons),duplicate=collection.owned.includes(item.id);
   if(!duplicate)collection.owned.push(item.id);
   let duplicateBuds=0;if(duplicate){const before=count(profile.inventory.starBud);profile.inventory.starBud=count(before+rarity.duplicateBuds);duplicateBuds=profile.inventory.starBud-before;}
-  collection.draws=count(collection.draws+1);collection.lastDraw={weaponId:item.id,duplicate,...(duplicate?{duplicateBuds}:{})};profile.weapons=normalizeWeapons(collection);profile.inventory.weaponTicket=tickets-1;
+  collection.draws=count(collection.draws+1);collection.lastDraw={weaponId:item.id,duplicate,...(duplicate?{duplicateBuds}:{})};collection.lastBatch=null;profile.weapons=normalizeWeapons(collection);profile.inventory.weaponTicket=tickets-1;
   return {item,duplicate,duplicateBuds};
+}
+export function drawWeapons(profile,amount=WEAPON_MULTI_DRAW_COUNT,rng=Math.random){
+  if(![1,WEAPON_MULTI_DRAW_COUNT].includes(amount)||count(profile.inventory?.weaponTicket)<amount)return null;
+  // Work on a copy so an invalid roll never charges for only part of a batch.
+  const pending={...profile,inventory:{...profile.inventory},weapons:normalizeWeapons(profile.weapons)},results=[];
+  for(let i=0;i<amount;i++){const result=drawWeapon(pending,rng);if(!result)return null;results.push(result);}
+  if(amount===WEAPON_MULTI_DRAW_COUNT)pending.weapons.lastBatch=results.map(({item,duplicate,duplicateBuds})=>({weaponId:item.id,duplicate,...(duplicate?{duplicateBuds}:{})}));
+  profile.inventory=pending.inventory;profile.weapons=pending.weapons;return results;
 }
