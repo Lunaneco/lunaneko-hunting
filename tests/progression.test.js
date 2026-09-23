@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {HEROES,STAGE_EXIT,SKILLS} from '../src/model.js';
 import {normalizeProgression,awardCharacterXp,breakthrough,levelCap,xpRequired,grantLimitStone,characterStats,LEVEL_RULES} from '../src/progression.js';
+import {LEVEL_AWAKENING_COSTS} from '../src/level-rules.js';
 
 const fresh=()=>normalizeProgression({},HEROES);
 const tick=(g,n=1)=>{for(let i=0;i<n;i++)g.tick(1/60);};
@@ -55,12 +56,12 @@ test('new runs restore only permanent growth, without sharing a mutable profile'
  const g=new RecruitedAdventure();kill(g,1,'boss');g.skills.power=3;g.addCrystals(7);const saved=JSON.parse(JSON.stringify(g.progression));const next=new RecruitedAdventure({hero:1,progression:saved});assert.equal(next.progressFor(1).level,2);assert.equal(next.player.maxHp,216);assert.deepEqual(next.skills,{});assert.equal(next.stageCrystals,0);kill(next,1);assert.deepEqual(g.progression,saved);
 });
 test('level caps require the current cap and an item; XP waits and unlocks after consumption',()=>{
- const p=fresh();grantLimitStone(p,1);assert.equal(breakthrough(p,'nyanluna'),false);assert.equal(p.inventory.limitStone,1);
+ const p=fresh();Object.assign(p.inventory,LEVEL_AWAKENING_COSTS[0]);assert.equal(breakthrough(p,'nyanluna'),false);assert.equal(p.inventory.limitStone,1);
  awardCharacterXp(p,'nyanluna',9999);assert.equal(p.characters.nyanluna.level,20);assert.ok(p.characters.nyanluna.xp>0);const xp=p.characters.nyanluna.xp;
  assert.equal(breakthrough(p,'nyanluna'),true);assert.equal(p.inventory.limitStone,0);assert.equal(levelCap(p.characters.nyanluna),30);assert.ok(p.characters.nyanluna.level>20);assert.ok(p.characters.nyanluna.xp<xp);assert.equal(breakthrough(p,'nyanluna'),false);assert.equal(p.characters.tsukineko.breaks,0);
 });
 test('cap unlocks never exceed 50 or consume items once fully unlocked',()=>{
- const p=fresh();grantLimitStone(p,4);awardCharacterXp(p,'tsukineko',999999);
+ const p=fresh();for(const cost of LEVEL_AWAKENING_COSTS)for(const [id,n] of Object.entries(cost))p.inventory[id]+=n;grantLimitStone(p,1);awardCharacterXp(p,'tsukineko',999999);
  for(const cap of [30,40,50]){assert.equal(breakthrough(p,'tsukineko'),true);assert.equal(levelCap(p.characters.tsukineko),cap);}
  assert.equal(p.characters.tsukineko.level,50);assert.equal(p.characters.tsukineko.xp,0);assert.equal(breakthrough(p,'tsukineko'),false);assert.equal(p.inventory.limitStone,1);assert.equal(awardCharacterXp(p,'tsukineko',100).amount,0);
 });

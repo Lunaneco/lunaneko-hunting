@@ -1,6 +1,6 @@
 import {ENEMY_TYPES} from './enemies.js';
 import {MATERIALS,talentNode,isTalentUnlocked,normalizeTalentTree,talentBonuses} from './talents.js';
-import {LEVEL_RULES} from './level-rules.js';
+import {LEVEL_RULES,LEVEL_AWAKENING_COSTS} from './level-rules.js';
 import {normalizeEquipment,equipmentBonuses} from './equipment.js';
 import {normalizeWeapons,weaponAttackBonus,weaponDefenseBonus} from './weapons.js';
 import {normalizeMissions} from './missions.js';
@@ -48,12 +48,14 @@ export function combatStats(profile,hero){
 }
 export function breakthroughStatus(profile,id){
   const character=characterProgress(profile,id);if(!character)return {canBreak:false};
-  const cap=levelCap(character),maxed=cap>=LEVEL_RULES.maxLevel;
-  return {cap,nextCap:Math.min(LEVEL_RULES.maxLevel,cap+LEVEL_RULES.capStep),cost:LEVEL_RULES.stoneCost,maxed,canBreak:!maxed&&character.level>=cap&&profile.inventory.limitStone>=LEVEL_RULES.stoneCost};
+  const cap=levelCap(character),maxed=cap>=LEVEL_RULES.maxLevel,costs=LEVEL_AWAKENING_COSTS[character.breaks]??{};
+  const missing=Object.entries(costs).filter(([id,cost])=>integer(profile.inventory[id])<cost).map(([id,needed])=>({id,needed,owned:integer(profile.inventory[id])}));
+  return {cap,nextCap:Math.min(LEVEL_RULES.maxLevel,cap+LEVEL_RULES.capStep),cost:costs.limitStone??0,costs,missing,maxed,canBreak:!maxed&&character.level>=cap&&!missing.length};
 }
 export function breakthrough(profile,id){
   const status=breakthroughStatus(profile,id);if(!status.canBreak)return false;
-  profile.inventory.limitStone-=status.cost;const character=characterProgress(profile,id);character.breaks++;applyBankedXp(character);return true;
+  for(const [resource,cost] of Object.entries(status.costs))profile.inventory[resource]-=cost;
+  const character=characterProgress(profile,id);character.breaks++;applyBankedXp(character);return true;
 }
 export function grantLimitStone(profile,count=1){profile.inventory.limitStone=integer(profile.inventory.limitStone+integer(count));}
 export function grantMaterials(profile,rewards={}){

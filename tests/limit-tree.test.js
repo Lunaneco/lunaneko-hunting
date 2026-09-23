@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {HEROES} from '../src/model.js';
 import {normalizeProgression,talentStatus,unlockTalent,previewLimitBreak,levelCap,characterStats,LEVEL_RULES} from '../src/progression.js';
 import {LIMIT_BREAK_NODES,GROWTH_NODES,isTalentUnlocked,growthCount,nextLimitNode} from '../src/talents.js';
-const saved=(characters={},stones=3)=>normalizeProgression({characters,inventory:{limitStone:stones,starBud:100,moonDew:10,wardenCore:2}},HEROES);
+const saved=(characters={},stones=3)=>normalizeProgression({characters,inventory:{limitStone:stones,starBud:1000,moonDew:100,wardenCore:20,moonPrism:100,astralCore:30}},HEROES);
 
 test('the tree exposes exactly three cap steps from the shared level rules',()=>{
- assert.equal(GROWTH_NODES.length,19);assert.deepEqual(LIMIT_BREAK_NODES.map(n=>[n.level,n.cap,n.cost.limitStone]),[[20,30,1],[30,40,1],[40,50,1]]);
+ assert.equal(GROWTH_NODES.length,19);assert.deepEqual(LIMIT_BREAK_NODES.map(n=>[n.level,n.cap,n.cost.limitStone]),[[20,30,1],[30,40,2],[40,50,4]]);
  assert.equal(LIMIT_BREAK_NODES.at(-1).cap,LEVEL_RULES.maxLevel);
 });
 test('old breakthrough progress lights the correct tree nodes without requiring ability stars',()=>{
@@ -14,10 +14,10 @@ test('old breakthrough progress lights the correct tree nodes without requiring 
  assert.equal(talentStatus(p,'nyanluna','limit30').owned,true);assert.equal(talentStatus(p,'nyanluna','limit40').canUnlock,true);assert.equal(nextLimitNode(p.characters.nyanluna).id,'limit40');
  assert.equal(growthCount(p.characters.tsukineko),3);assert.equal(nextLimitNode(p.characters.tsukineko).id,'limit50');assert.equal(unlockTalent(p,'nyanluna','limit30'),false);assert.deepEqual(p,before);
 });
-test('a cap node spends only one stone and applies banked XP to the selected character',()=>{
+test('a cap node spends the stone and all materials and applies banked XP to the selected character',()=>{
  const p=saved({nyanluna:{level:20,xp:400,breaks:0}});const other=structuredClone(p.characters.tsukineko),wallet=structuredClone(p.inventory);
  assert.equal(unlockTalent(p,'nyanluna','limit30'),true);assert.deepEqual(p.characters.nyanluna,{level:21,xp:136,breaks:1,tree:[]});assert.deepEqual(p.characters.tsukineko,other);
- assert.deepEqual(p.inventory,{...wallet,limitStone:wallet.limitStone-1});assert.equal(unlockTalent(p,'nyanluna','limit30'),false);assert.equal(p.inventory.limitStone,2);
+ assert.deepEqual(p.inventory,{...wallet,...Object.fromEntries(Object.entries(LIMIT_BREAK_NODES[0].cost).map(([id,n])=>[id,wallet[id]-n]))});assert.equal(unlockTalent(p,'nyanluna','limit30'),false);assert.equal(p.inventory.limitStone,2);
 });
 test('an old clicked node cannot spend the next stone even if banked XP reaches the next cap',()=>{
  const p=saved({nyanluna:{level:20,xp:99999,breaks:0}});assert.equal(unlockTalent(p,'nyanluna','limit50'),false);

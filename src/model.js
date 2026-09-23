@@ -4,7 +4,7 @@ import {tickEnemyBehavior} from './enemy-combat.js';
 import {ACTS,isActUnlocked,completeAct} from './acts.js';
 import {castUltimate,tickUltimates,enemySpeedScale} from './ultimate-combat.js';
 import {ultimateFor} from './abilities.js';
-import {bossWeaponTicket,weaponAttackProfile,equippedWeapon} from './weapons.js';
+import {bossWeaponTicket,grantWeaponTickets,weaponAttackProfile,equippedWeapon} from './weapons.js';
 import {advanceMissions,claimActMissions,missionsFor,trialStatus} from './missions.js';
 import {skillsForParty} from './blessings.js';
 import {normalizeParty} from './party.js';
@@ -161,6 +161,9 @@ export class Adventure {
     this.collectMaterials(gateMaterials(this.area,this.act,this.difficulty),'gate');this.combo=0;this.comboTimer=0;this.player.dash=0;this.player.moving=false;this.partner.moving=false;
     if(this.wave===6){
       this.claimMissions();
+      const tickets=grantWeaponTickets(this.progression);
+      this.earnedWeaponTickets+=tickets;
+      if(tickets)this.emit('weaponTicket',{count:tickets,total:this.progression.inventory.weaponTicket,source:'actClear'});
       if(completeAct(this.progression,this.act)){this.recruitedHeroId=this.actConfig.recruit;this.emit('recruited',{heroId:this.recruitedHeroId});}
       this.guestHeroId=null;this.phase='victory';this.emit('victory');
     }
