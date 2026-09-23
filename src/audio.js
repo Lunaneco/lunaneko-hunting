@@ -1,7 +1,7 @@
 import {MusicPlayer} from './music.js';
 
 export class Soundscape {
-  constructor(){this.ctx=null;this.enabled=true;this.music=true;this.next=0;this.beat=0;this.master=null;this.menuBus=null;this.ducking=false;this.scene='menu';this.suspended=false;this.paused=false;this.bgm=new MusicPlayer();}
+  constructor(){this.ctx=null;this.enabled=true;this.music=true;this.next=0;this.beat=0;this.master=null;this.menuBus=null;this.ducking=false;this.summonSuspense=false;this.scene='menu';this.suspended=false;this.paused=false;this.bgm=new MusicPlayer();}
   init(){
     if(!this.ctx){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.master=this.ctx.createGain();this.master.gain.value=this.enabled?.34:0;this.master.connect(this.ctx.destination);this.menuBus=this.ctx.createGain();this.menuBus.connect(this.master);this.bgm.attach(this.ctx);}catch{return;}}
     if(this.ctx.state!=='running'&&this.ctx.state!=='closed')this.ctx.resume().catch(()=>{});
@@ -9,11 +9,12 @@ export class Soundscape {
   }
   setEnabled(value){this.enabled=value;if(this.master)this.master.gain.setTargetAtTime(value?(this.ducking?.11:.34):0,this.ctx.currentTime,.05);this.refreshMusic();}
   setDucking(value){this.ducking=value;if(this.master)this.master.gain.setTargetAtTime(this.enabled?(value?.11:.34):0,this.ctx.currentTime,.08);this.refreshMusic();}
+  setSummonSuspense(value){this.summonSuspense=value;this.refreshMusic();}
   setMusic(value){this.music=value;this.refreshMusic();}
   setSuspended(value){this.suspended=value;this.refreshMusic();}
   setPaused(value){this.paused=value;this.refreshMusic();}
   refreshMusic(){
-    this.bgm.update({scene:this.scene,enabled:this.enabled&&this.music,suspended:this.suspended||this.paused,ducked:this.ducking});
+    this.bgm.update({scene:this.scene,enabled:this.enabled&&this.music,suspended:this.suspended||this.paused,ducked:this.ducking||this.summonSuspense});
     const value=this.enabled&&this.music&&!this.suspended&&!this.paused&&this.scene==='menu'?1:0;
     if(this.menuBus&&value!==this.menuVolume){this.menuVolume=value;this.menuBus.gain.setTargetAtTime(value,this.ctx.currentTime,.035);}
   }
@@ -57,6 +58,21 @@ export class Soundscape {
     }
     if(name==='summonStar'){const f=[1175,1319,1568,1976][index]??1976;tone(f,.5,'sine',.08);tone(f*2,.3,'sine',.025,.01);if(rank===4&&index===rank-1)noise(.7,{volume:.05,type:'highpass',freq:5600,attack:.02,delay:.05});}
     if(name==='summonName')[392,494,587,784,988].forEach((f,i)=>tone(f,.9,'sine',.045,i*.045));
+    if(name==='summonGather'){
+      const f=[392,494,587,784,988,1175,1568,1976,2349,3136][index]??784;
+      tone(f,.28,'sine',.055);tone(f/2,.4,'triangle',.025);
+    }
+    if(name==='summonOrbit'){[196,294,392,587].forEach((f,i)=>tone(f,.7,'sine',.045,i*.04,null,.22));noise(.6,{volume:.07,freq:500,end:2400,attack:.3});}
+    if(name==='summonEclipse'){tone(65,.55,'sine',.12,0,32);noise(.22,{volume:.045,type:'lowpass',freq:300,end:80});}
+    if(name==='summonFan'){noise(.45,{volume:.075,type:'highpass',freq:1400,end:4600,attack:.18});[784,988,1175].forEach((f,i)=>tone(f,.4,'sine',.035,i*.045));}
+    if(name==='summonCard'){
+      const f=rank===4?1568:rank===3?1175:784;
+      tone(f,.3,'sine',.055);tone(f*1.5,.2,'sine',.025,.02);
+    }
+    if(name==='summonLegend'){
+      tone(49,.65,'sine',.2,0,32);noise(.4,{volume:.15,freq:800,end:4200,attack:.01});
+      [392,587,784,988,1568].forEach((f,i)=>tone(f,1.2,'triangle',.045,.03+i*.035));
+    }
   }
   play(name,detail){
     if(!this.enabled)return;

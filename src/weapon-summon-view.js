@@ -4,6 +4,7 @@ import {weaponImage} from './weapons.js';
 import {ULTIMATE_ART,ultimateArtUrl} from './ultimate-art.js';
 import {storySpeaker} from './story-cast.js';
 import {icon} from './icons.js';
+import {WeaponBatchScene} from './weapon-batch-view.js';
 
 export const SUMMON_ASSETS=Object.freeze({
   idle:'assets/gacha/moon-summon-v1.webp',light:'assets/gacha/summon-light-v1.webp',
@@ -156,7 +157,7 @@ export class WeaponSummonView{
     this.videoEl.preload='auto';this.videoEl.src=publicUrl(SUMMON_ASSETS.video);
     for(const img of [this.idle,this.light,this.reveal])img.decode?.().catch(()=>{});
   }
-  open(result,plan,{quality='high',markup='',video=true}={}){
+  open(result,plan,{quality='high',markup='',video=true,batch=null}={}){
     this.preload();
     const root=this.root,item=result.item,rank=item.rarity.rank,v=this.videoEl;
     this.isOpen=true;this.plan=plan;this.later=[];this.videoError=false;this.pauseAt=null;
@@ -168,6 +169,7 @@ export class WeaponSummonView{
     root.style.removeProperty('--ray-gradient');
     if(plan.cutin){this.cutinImg.src=ultimateArtUrl(item.heroId);this.cutinImg.decode?.().catch(()=>{});this.cutinName.textContent=storySpeaker(item.heroId).name;root.style.setProperty('--cutin-color',ULTIMATE_ART[item.heroId].accent);root.style.setProperty('--ray-gradient',rainbowRays());}
     this.result.innerHTML=markup;root.classList.toggle('is-batch',!!this.result.querySelector('.weapon-batch-result'));this.crack.innerHTML=crackPaths();
+    this.batchScene?.finish();this.batchScene=plan.batch?new WeaponBatchScene(root,batch,plan):null;
     this.videoOn=video&&!!v.canPlayType?.('video/mp4');root.classList.toggle('no-video',!this.videoOn);
     if(this.videoOn){
       // Started inside the summon tap so low-power autoplay rules cannot block it.
@@ -206,6 +208,11 @@ export class WeaponSummonView{
     root.dataset.phase=step.name;root.classList.add(`at-${step.name}`);
     if(step.color&&step.name!=='crack')this.setSignal(step.color);
     const color=SUMMON_SIGNALS[root.dataset.signal].color;
+    if(this.batchScene&&step.name.startsWith('batch')){
+      this.batchScene.step(step);
+      if(step.name==='batchBreak'&&this.plan.motion){this.pulse('fx-flash');P.explode(color,gold);}
+      return;
+    }
     if(step.name==='omen')this.pulse('fx-omen');
     else if(step.name==='awaken')P.converge('#8ff3ff');
     else if(step.name==='pillar'){root.classList.add('show-pillar');if(step.surge)this.pulse('fx-surge');P.rise(color,step.surge?.5:1.1);}
@@ -242,6 +249,7 @@ export class WeaponSummonView{
   pause(value){this.root.classList.toggle('is-paused',value);if(value)this.videoEl.pause();}
   finish({skipped=false}={}){
     const root=this.root,plan=this.plan,color=SUMMON_SIGNALS[plan.signal].color;
+    this.batchScene?.finish();this.batchScene=null;
     this.later=[];this.pauseAt=null;if(!this.videoEl.paused)this.videoEl.pause();
     root.classList.remove('show-pillar','show-letterbox','fx-crack','fx-cutin');
     if(skipped)root.classList.add('is-skipped');
@@ -257,6 +265,7 @@ export class WeaponSummonView{
     this.layout();
   }
   close(){
+    this.batchScene?.finish();this.batchScene=null;
     this.isOpen=false;this.later=[];this.pauseAt=null;this.observer?.disconnect();
     this.videoEl.pause();this.particles.clear();
     if(this.dialog.open)this.dialog.close();

@@ -255,7 +255,7 @@ function summonWeapon(amount=1){
   persistProgression();renderRewards();$('#growth-cards').innerHTML=growthCards(progression);
   currentWeaponDraw=amount===1?result:results;lastWeaponDrawCount=amount;activeDialog='weapon-result';audio.init();
   const motion=settings.motion&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!weaponSummon.start(result,{motion,quality:settings.quality,markup:weaponResultMarkup()})){activeDialog=null;return;}
+  if(!weaponSummon.start(result,{motion,quality:settings.quality,markup:weaponResultMarkup(),batch:amount===10?results:null})){activeDialog=null;return;}
   if(motion)announce(`${amount===10?'10連ガチャの':'専用武器を'}召喚中。画面をタップするとスキップできます。`);
 }
 // The first close request (Esc, back, close button) finishes an unfinished summon; a second

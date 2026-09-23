@@ -36,3 +36,5 @@
 .preview-actions [aria-pressed=true]{border-color:#ffd580;color:#ffe3a0;background:#ffd58024}
 .preview-bar[data-auto=true]:after{content:'';position:absolute;left:10px;right:10px;bottom:3px;height:2px;border-radius:2px;background:#ffd580;transform-origin:left;animation:preview-countdown var(--auto-next) linear both}
 @keyframes preview-countdown{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+#batch-preview{scroll-margin-top:20px}
+#batch-preview h2{flex-basis:100%;text-align:center;font-size:20px;line-height:1.5;font-weight:500;color:#f5e3bb;margin:4px 0 10px}
