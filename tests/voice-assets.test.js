@@ -20,7 +20,7 @@ test('only selected story lines, tutorials and character actions ship voice asse
   // Re-recordings get a content-addressed URL so existing browser caches cannot replay an old take.
   const digest=createHash('sha256').update(bytes).digest('hex').slice(0,12);
   const original=`assets/voices/${line.who}/${line.id}.mp3`,versioned=`assets/voices/${line.who}/${line.id}-${digest}.mp3`;
-  assert.ok(item.file===versioned||(line.who!=='nyanluna'&&item.file===original),`Stale or incorrect voice URL: ${item.file}`);
+  assert.ok(item.file===versioned||(!['nyanluna','tsukineko'].includes(line.who)&&item.file===original),`Stale or incorrect voice URL: ${item.file}`);
  }
  assert.equal(Object.keys(VOICE_MANIFEST).length,ids.size);
 });
