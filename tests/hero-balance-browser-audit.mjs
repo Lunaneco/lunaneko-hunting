@@ -1,7 +1,7 @@
 import {chromium,webkit} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
-const out='audit/hero-balance-v139';await mkdir(out,{recursive:true});
+const out='audit/hero-movement-v140';await mkdir(out,{recursive:true});
 const errors=[],checks=[];
 const profile={story:{version:2,actClears:Array(8).fill(true)},tutorial:{firstBattleCompleted:true},inventory:{weaponTicket:7,limitStone:2,starBud:85}};
 for(const engine of [chromium,webkit]){
@@ -18,7 +18,7 @@ for(const engine of [chromium,webkit]){
     const page=await context.newPage();page.on('pageerror',e=>errors.push(`${name}: ${e.message}`));
     await page.goto(process.env.AUDIT_URL??'http://127.0.0.1:4187/lunaneko-hunting/');
     await page.waitForSelector('#loading',{state:'detached',timeout:120000});
-    assert.match(await page.locator('.version').innerText(),/1\.39/);
+    assert.match(await page.locator('.version').innerText(),/1\.40/);
     assert.equal(await page.evaluate(()=>typeof window.__LUNARIA_TEST__),'undefined');
     await page.locator('#chapter-menu-open').tap();await page.locator('[data-menu-tab="growth"]').tap();
     for(const [id,hp,attack,defense] of [['nyanluna',180,20,8],['tsukineko',210,26,14],['omsolo',250,42,21]]){
@@ -26,6 +26,7 @@ for(const engine of [chromium,webkit]){
     }
     assert.match(await page.locator('#growth-nyanluna .hero-trait').innerText(),/必殺ゲージ獲得 \+50%/);
     assert.match(await page.locator('#growth-omsolo .hero-trait').innerText(),/必殺ゲージ獲得 \+20%/);
+    assert.match(await page.locator('#growth-omsolo .hero-trait').innerText(),/通常移動速度・回避距離2倍/);
     assert.match(await page.locator('#growth-omsolo .hero-signature').innerText(),/HPを28回復/);
     for(const size of [{width:320,height:568},{width:390,height:844},{width:844,height:390}]){
       await page.setViewportSize(size);
@@ -39,10 +40,21 @@ for(const engine of [chromium,webkit]){
     checks.push(`${name}: production stats, traits, ultimate description, 3 mobile layouts and save retention`);
     await page.setViewportSize({width:390,height:844});
     await page.goto(process.env.LUNARIA_URL??'http://127.0.0.1:5177/');await page.waitForSelector('#loading',{state:'detached',timeout:120000});
-    await page.evaluate(()=>{
+    const movement=await page.evaluate(()=>{
       const t=window.__LUNARIA_TEST__;t.start();const g=t.game;g.enemies=[];g.waveSpawned=g.waveGoal;g.waveBreak=-1000;
+      const measure=hero=>{
+        g.activateHero(hero);Object.assign(g.player,{x:0,z:3,dash:0,dashCooldown:0});
+        t.step(.5,{x:1,z:0});const walk=g.player.x;
+        Object.assign(g.player,{x:0,z:3});g.dash(1,0);t.step(.25);return {walk,dodge:g.player.x};
+      };
+      const nyanluna=measure(0),omsolo=measure(2);
+      Object.assign(g.player,{x:0,z:3});
       g.player.hp=100;g.player.charge=100;t.step(0);
+      return {nyanluna,omsolo};
     });
+    assert.ok(Math.abs(movement.omsolo.walk-movement.nyanluna.walk*2)<1e-8);
+    assert.ok(Math.abs(movement.omsolo.dodge-movement.nyanluna.dodge*2)<1e-8);
+    checks.push(`${name}: Omsolo walking and dodge distance are both exactly doubled (${JSON.stringify(movement)})`);
     assert.match(await page.locator('#hero-name').innerText(),/オムソロ/);
     await page.locator('#ultimate').tap();await page.waitForSelector('#ultimate-cutin:not(.hidden)');
     assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.game.player.hp),100);

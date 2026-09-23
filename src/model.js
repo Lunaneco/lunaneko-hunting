@@ -17,9 +17,9 @@ export const ATTACK_DURATION = .35;
 export const MELEE_MIN_DOT = -.15;
 export const STAGE_EXIT = Object.freeze({x:0,z:-16.6,radius:1.7});
 export const HEROES = [
-  { id: 'nyanluna', name: 'にゃんるな', title: '月光の魔法使い', color: '#d9baff', range:12, damage:20, baseHp:180, baseDefense:8, interval:.55, skillPower:1.5, chargeRate:1.5, role:'スキル特化', trait:'月光共鳴', traitText:'スキルダメージ +50%／必殺ゲージ獲得 +50%'  },
-  { id: 'tsukineko', name: 'つきねこ', title: '星影の銃使い', color: '#82e5ff', range:11, damage:26, baseHp:210, baseDefense:14, interval:.46, skillPower:1, chargeRate:1, role:'基礎能力特化', trait:'星影の鍛錬', traitText:'高いHP・攻撃力・防御力と、速い通常射撃'  },
-  {id:'omsolo',name:'オムソロ',title:'翠光の剣士',color:'#aaffba',range:3.2,damage:42,baseHp:250,baseDefense:21,interval:.60,skillPower:1.1,chargeRate:1.2,role:'近接・守護',trait:'守り手の剣',traitText:'扇状の近接攻撃／高いHPと防御力／必殺ゲージ獲得 +20%。必殺技で周囲を斬り払い、自分を守る'},
+  { id: 'nyanluna', name: 'にゃんるな', title: '月光の魔法使い', color: '#d9baff', moveSpeed:5.6, dashSpeed:24, range:12, damage:20, baseHp:180, baseDefense:8, interval:.55, skillPower:1.5, chargeRate:1.5, role:'スキル特化', trait:'月光共鳴', traitText:'スキルダメージ +50%／必殺ゲージ獲得 +50%'  },
+  { id: 'tsukineko', name: 'つきねこ', title: '星影の銃使い', color: '#82e5ff', moveSpeed:5.6, dashSpeed:24, range:11, damage:26, baseHp:210, baseDefense:14, interval:.46, skillPower:1, chargeRate:1, role:'基礎能力特化', trait:'星影の鍛錬', traitText:'高いHP・攻撃力・防御力と、速い通常射撃'  },
+  {id:'omsolo',name:'オムソロ',title:'翠光の剣士',color:'#aaffba',moveSpeed:11.2,dashSpeed:48,range:3.2,damage:42,baseHp:250,baseDefense:21,interval:.60,skillPower:1.1,chargeRate:1.2,role:'近接・守護',trait:'守り手の剣',traitText:'通常移動速度・回避距離2倍／扇状の近接攻撃／高いHPと防御力／必殺ゲージ獲得 +20%。必殺技で周囲を斬り払い、自分を守る'},
 ];
 export {SKILLS} from './blessings.js';
 export const AREAS = [
@@ -198,7 +198,7 @@ export class Adventure {
   dash(dx,dz){
     const p=this.player;if(this.phase!=='playing'||p.dashCooldown>0||this.tutorial?.active&&this.tutorial.step.id!=='dash')return false;
     const d=Math.hypot(dx,dz);p.dx=d>.01?dx/d:Math.sin(p.face);p.dz=d>.01?dz/d:Math.cos(p.face);
-    p.dash=.22;p.dashCooldown=Math.max(.65,1.5-this.rank('stride')*.2);p.invincible=.5;this.emit('dash',{x:p.x,z:p.z,hero:p.hero});this.observeTutorial('dash');return true;
+    p.dash=.22;p.dashSpeed=HEROES[p.hero].dashSpeed??24;p.dashCooldown=Math.max(.65,1.5-this.rank('stride')*.2);p.invincible=.5;this.emit('dash',{x:p.x,z:p.z,hero:p.hero});this.observeTutorial('dash');return true;
   }
   switchHero(){if(this.phase!=='playing'||!this.hasLivingPartner||this.player.switchCooldown>0)return false;this.activateHero(this.partnerHero);return true;}
   activateHero(hero,automatic=false){
@@ -288,8 +288,8 @@ export class Adventure {
     if(this.rescue?.active){this.rescue.remaining=Math.max(0,this.rescue.remaining-dt);if(this.rescue.remaining<=0){this.phase='defeat';this.ultimateEffects=[];this.projectiles=[];this.hazards=[];this.emit('defeat',{reason:'rescueTimeout'});return;}}
     const p=this.player,fromX=p.x,fromZ=p.z;
     for(const prop of ['attack','dashCooldown','invincible','switchCooldown'])p[prop]=Math.max(0,p[prop]-dt);
-    let dx=input.x||0,dz=input.z||0;const speed=5.6*(1+this.rank('stride')*.12);const length=Math.hypot(dx,dz);if(length>1){dx/=length;dz/=length;}
-    if(p.dash>0){p.dash=Math.max(0,p.dash-dt);dx=p.dx;dz=p.dz;p.x+=dx*24*dt;p.z+=dz*24*dt;}else{p.x+=dx*speed*dt;p.z+=dz*speed*dt;}
+    let dx=input.x||0,dz=input.z||0;const speed=(HEROES[p.hero].moveSpeed??5.6)*(1+this.rank('stride')*.12);const length=Math.hypot(dx,dz);if(length>1){dx/=length;dz/=length;}
+    if(p.dash>0){p.dash=Math.max(0,p.dash-dt);dx=p.dx;dz=p.dz;p.x+=dx*(p.dashSpeed??24)*dt;p.z+=dz*(p.dashSpeed??24)*dt;}else{p.x+=dx*speed*dt;p.z+=dz*speed*dt;}
     if(Math.hypot(dx,dz)>.05)p.face=Math.atan2(dx,dz);p.moving=Math.hypot(dx,dz)>.05;
     Object.assign(p,moveWithin(this.walkLayout,{x:fromX,z:fromZ},p.x,p.z));
     const partner=this.partner;const targetX=p.x-Math.cos(p.face)*1.7-Math.sin(p.face),targetZ=p.z+Math.sin(p.face)*1.7-Math.cos(p.face);
