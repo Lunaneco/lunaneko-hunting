@@ -2,6 +2,12 @@ import {SKILL_TALENT_NODES} from './skill-tree.js';
 import {isHeroUnlocked} from './recruitment.js';
 export const SKILL_SLOTS=3;
 export const SKILLS = [
+  {id:'mochiLull',requires:['mochinyafe'],name:'ねむねむのこだま',icon:'moon',type:'妨害',text:'ふぇ〜による雑魚の停止時間 +0.3秒',max:3},
+  {id:'mochiReach',requires:['mochinyafe'],name:'とどけ、小さな声',icon:'wind',type:'援護',text:'援護の声の射程 +2、貫通数 +1体',max:3},
+  {id:'mochiMend',requires:['mochinyafe'],name:'ほっとする声',icon:'heart',type:'回復',text:'援護の声を放つたび操作キャラのHPを2回復',max:3},
+  {id:'mochiWeaken',requires:['mochinyafe'],unlockNode:'blessing1',name:'闇をほどく声',icon:'shield',type:'妨害',text:'援護のボス攻撃・防御低下を5ポイント強化',max:2},
+  {id:'mochiBrave',requires:['mochinyafe'],unlockNode:'blessing2',name:'ちいさな勇気',icon:'heart',type:'攻撃',text:'もちにゃふぇの通常体当たり威力 +30%',max:3},
+  {id:'mochiCharge',requires:['mochinyafe'],unlockNode:'blessing3',name:'夢をつなぐ声',icon:'star',type:'必殺',text:'援護の声を放つたび本人の必殺ゲージを3獲得',max:3},
   { id:'power', requires:['nyanluna', 'tsukineko'], name:'月と銃の約束', icon:'spark', type:'攻撃', text:'ふたりの与えるダメージ +25%', max:4 },
   { id:'haste', requires:['tsukineko'], name:'星降るリズム', icon:'wind', type:'速度', text:'通常攻撃の間隔を 15% 短縮', max:3 },
   { id:'vitality', name:'生命の花冠', icon:'heart', type:'守護', text:'最大HP +40、HPを60回復', max:3 },
@@ -29,7 +35,7 @@ export const SKILLS = [
   {id:'counterGuard',requires:['omsolo'],unlockNode:'blessing2',name:'揺るがぬ守り',icon:'shield',type:'守護',text:'被弾後の無敵時間 +0.1秒',max:3},
   {id:'vowRecovery',requires:['omsolo'],unlockNode:'blessing3',name:'守り手の祈り',icon:'heart',type:'回復',text:'HP回復量 +15%。祝福・門の回復・必殺技に有効',max:3},
 ];
-export const PERSONAL_SKILLS=Object.freeze(Object.fromEntries(['nyanluna','tsukineko','omsolo'].map(id=>[id,SKILLS.filter(s=>s.requires?.length===1&&s.requires[0]===id)])));
+export const PERSONAL_SKILLS=Object.freeze(Object.fromEntries(['nyanluna','tsukineko','omsolo','mochinyafe'].map(id=>[id,SKILLS.filter(s=>s.requires?.length===1&&s.requires[0]===id)])));
 export function personalSkills(heroId){return Object.hasOwn(PERSONAL_SKILLS,heroId)?PERSONAL_SKILLS[heroId]:[];}
 export function defaultSkills(heroId){return personalSkills(heroId).filter(s=>!s.unlockNode).map(s=>s.id);}
 export function isSkillAvailable(profile,heroId,skillId){

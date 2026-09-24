@@ -1,3 +1,4 @@
+import {MOCHI_SUPPORT,mochiCryHit,mochiFrozen,mochiIncomingDamage,mochiDefenseMultiplier} from './mochi-combat.js';
 import {fieldFor,layoutFor,walkingLayout,heightAt,contains,projectInside,moveWithin,navigation,clearPath,spawnPoint,ROUTE_PORTALS,ROUTE_REWARD} from './terrain.js';
 import {ENEMY_TYPES,BOSSES,ELITE_BOSS_MULTIPLIER,enemyForSpawn,distanceToHazard,isRangedEnemy} from './enemies.js';
 import {tickEnemyBehavior} from './enemy-combat.js';
@@ -21,6 +22,7 @@ export const HEROES = [
   { id: 'nyanluna', name: 'にゃんるな', title: '月光の魔法使い', color: '#d9baff', moveSpeed:5.6, dashSpeed:24, range:12, damage:20, baseHp:180, baseDefense:8, interval:.55, skillPower:1.5, chargeRate:1.5, role:'スキル特化', trait:'月光共鳴', traitText:'スキルダメージ +50%／必殺ゲージ獲得 +50%'  },
   { id: 'tsukineko', name: 'つきねこ', title: '星影の銃使い', color: '#82e5ff', moveSpeed:5.6, dashSpeed:24, range:11, damage:26, baseHp:210, baseDefense:14, interval:.46, skillPower:1, chargeRate:1, role:'基礎能力特化', trait:'星影の鍛錬', traitText:'高いHP・攻撃力・防御力と、速い通常射撃'  },
   {id:'omsolo',name:'オムソロ',title:'翠光の剣士',color:'#aaffba',moveSpeed:11.2,dashSpeed:48,range:3.2,damage:42,baseHp:250,baseDefense:21,interval:.60,skillPower:1.1,chargeRate:1.2,role:'近接・守護',trait:'守り手の剣',traitText:'通常移動速度・回避距離2倍／扇状の近接攻撃／高いHPと防御力／必殺ゲージ獲得 +20%。必殺技で周囲を斬り払い、自分を守る'},
+  {id:'mochinyafe',name:'もちにゃふぇ',title:'最後のもちもち守り手',color:'#ffb8d4',moveSpeed:4.2,dashSpeed:20,range:2.3,damage:5,baseHp:75,baseDefense:1,interval:1.4,skillPower:1,chargeRate:1.3,role:'援護特化・大器晩成',trait:'小さな声の大きな奇跡',traitText:'援護のふぇ〜で雑魚を1.8秒停止／ボスの攻撃・防御を5秒間30%低下。初期能力は最弱、Lv.50では全員を超える基礎能力。ツリーのHP・防御成長3倍、攻撃成長2.5倍'},
 ];
 export {SKILLS} from './blessings.js';
 export const AREAS = [
@@ -147,6 +149,7 @@ export class Adventure {
     if(this.route==='elite'&&this.wave%2===0&&this.wave!==6)this.waveGoal++;
     if(this.meetTsukineko())this.spawn();
     if(this.act===7&&this.wave===6&&!isHeroUnlocked(this.progression,'omsolo')){this.rescue={active:true,remaining:180,total:180,saved:false,x:-6,z:-7};this.spawn();const boss=this.enemies.find(e=>e.type==='boss');if(boss)Object.assign(boss,{x:-6,z:-11,face:0});this.emit('rescueStart');}
+    if(this.act===11&&this.wave===6)this.spawn();
     this.emit('wave',{wave:this.wave,area:this.area,theme:this.actConfig.stages[this.area].theme,act:this.act,boss:this.wave===6});
     if(this.wave>1){this.heal(22);this.collectAll();}
   }
@@ -180,15 +183,15 @@ export class Adventure {
   spawnEnemy(type,x,z,{elite=false}={}){
     const boss=type==='boss';const hard=this.difficulty==='hard'?1.3:1,power=boss&&elite?ELITE_BOSS_MULTIPLIER:1;
     const spec=boss?BOSSES[this.actConfig.bossId]:ENEMY_TYPES[type];if(!spec)throw new Error(`Unknown enemy: ${type}`);
-    const extra=this.actConfig.extra,hp=(boss?this.actConfig.bossHp:spec.hp)*(boss?1:(1+(this.wave-1)*.14)*(extra?this.actConfig.hpScale:1+this.act*.08))*hard*power;
-    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:spec.name+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed*(extra?EXTRA_COMBAT.moveScale:1),damage:(boss?(this.actConfig.chapter===1?45:22):spec.damage)*hard*power*(extra?this.actConfig.damageScale:1),radius:spec.radius*(elite?1.12:1),hit:0,attack:1+this.rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:boss?3:1.4+this.rng(),cast:null,rush:null,recovery:0,enraged:!!extra&&boss,navTimer:0};
+    const extra=this.actConfig.extra,hp=(boss?this.actConfig.bossHp:spec.hp)*(boss?1:(1+(this.wave-1)*.14)*(extra?this.actConfig.hpScale:1+(this.actConfig.chapter===2?this.act-8:this.act)*.08))*hard*power;
+    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:spec.name+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed*(extra?EXTRA_COMBAT.moveScale:1),damage:(boss?(this.actConfig.chapter===2?62:this.actConfig.chapter===1?45:22):spec.damage)*hard*power*(extra?this.actConfig.damageScale:1),radius:spec.radius*(elite?1.12:1),hit:0,attack:1+this.rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:boss?3:1.4+this.rng(),cast:null,rush:null,recovery:0,enraged:!!extra&&boss,navTimer:0};
     this.enemies.push(e);this.emit('spawn',{id:e.id,x,z,boss});return e;
   }
   spawn(){
     const angle=this.rng()*Math.PI*2;let {x,z}=spawnPoint(this.walkLayout,this.player,angle);
     let type=enemyForSpawn(this.act,this.wave,this.waveSpawned,this.rng());
-    if(isRangedEnemy(type)&&this.enemies.filter(e=>e.hp>0&&isRangedEnemy(e.type)).length>=(this.actConfig.extra?EXTRA_COMBAT.rangedLimit:this.actConfig.chapter===1?4:3))type=this.actConfig.chapter===1?'reaper':'bat';
-    if(type!=='boss'&&!this.seenEnemyTypes.has(type)){this.seenEnemyTypes.add(type);if(ENEMY_TYPES[type]?.chapter===1||['archer','mage','charger'].includes(type))this.emit('enemyIntro',{enemyType:type});}
+    if(isRangedEnemy(type)&&this.enemies.filter(e=>e.hp>0&&isRangedEnemy(e.type)).length>=(this.actConfig.extra?EXTRA_COMBAT.rangedLimit:this.actConfig.chapter===1?4:3))type=this.actConfig.chapter===2?'mochiGoblin':this.actConfig.chapter===1?'reaper':'bat';
+    if(type!=='boss'&&!this.seenEnemyTypes.has(type)){this.seenEnemyTypes.add(type);if(ENEMY_TYPES[type]?.chapter>=1||['archer','mage','charger'].includes(type))this.emit('enemyIntro',{enemyType:type});}
     const elite=this.route==='elite'&&this.wave%2===0&&(this.wave===6||this.waveSpawned===this.waveGoal-1);
     if(elite)type='boss';
     if(type==='boss')({x,z}=projectInside(this.walkLayout,0,-11,2.3));
@@ -210,12 +213,15 @@ export class Adventure {
   ultimate(options){return castUltimate(this,options);}
   attackFrom(source,hero,support=false){
     if(!this.isHeroAlive(hero)||(support&&!this.hasLivingPartner))return false;
-    const stats=this.attackProfile(hero);const range=stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
+    const stats=this.attackProfile(hero);const range=hero===3&&support?MOCHI_SUPPORT.range+this.rank('mochiReach')*2:stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
     const angle=Math.atan2(enemy.x-source.x,enemy.z-source.z);source.face=angle;
     const heroId=HEROES[hero].id;let damage=this.statsFor(hero).attack*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*(support?.43*(1+this.rank('echo')*.35+this.rank('starBlade')*.2):1);
     const crit=this.rng()<.05+this.rank('crit')*.15;if(crit)damage*=2+this.rank('preciseAim')*.25;
     this.emit('attack',{x:source.x,z:source.z,angle,hero,support,range,color:equippedWeapon(this.progression,heroId)?.weapon.effectColor});
-    if(hero===0){
+    if(hero===3){
+      if(support){this.projectiles.push({id:this.ids++,owner:'player',heroId,kind:'mochiCry',x:source.x,z:source.z,vx:Math.sin(angle)*MOCHI_SUPPORT.speed,vz:Math.cos(angle)*MOCHI_SUPPORT.speed,life:(range+2)/MOCHI_SUPPORT.speed,damage,crit:false,radius:1.05,pierce:MOCHI_SUPPORT.pierce+this.rank('mochiReach'),hitIds:[]});if(this.rank('mochiMend'))this.heal(this.rank('mochiMend')*2);if(this.rank('mochiCharge'))this.gainUltimateCharge(heroId,this.rank('mochiCharge')*3);}
+      else this.hit(enemy,damage*(1+this.rank('mochiBrave')*.3),source.x,source.z,crit,false,heroId);
+    }else if(hero===0){
       const id=this.ids++;this.projectiles.push({id,owner:'player',heroId,x:source.x,z:source.z,vx:Math.sin(angle)*15,vz:Math.cos(angle)*15,kind:'magic',speed:15,life:Math.max(1.5,(range+2)/15),damage,crit,target:enemy.id,radius:.28});
     }else if(hero===1){
       const id=this.ids++;this.projectiles.push({id,owner:'player',kind:'gun',heroId,x:source.x,z:source.z,vx:Math.sin(angle)*28,vz:Math.cos(angle)*28,speed:28,life:(range+2)/28,damage,crit,radius:.23,pierce:stats.pierce,hitIds:[]});
@@ -226,7 +232,7 @@ export class Adventure {
     return true;
   }
   hit(e,damage,x,z,crit=false,chain=false,heroId=HEROES[this.player.hero].id,canCharge=true){
-    if(e.hp<=0||this.phase==='defeat'||this.phase==='victory')return;e.hp-=damage;e.hit=.15;if(!e.training)this.damageDealt+=Math.min(damage,e.hp+damage);
+    if(e.hp<=0||this.phase==='defeat'||this.phase==='victory')return;damage*=mochiDefenseMultiplier(this,e);e.hp-=damage;e.hit=.15;if(!e.training)this.damageDealt+=Math.min(damage,e.hp+damage);
     const dx=e.x-x,dz=e.z-z,d=Math.hypot(dx,dz)||1;const knock=e.type==='boss'?.5:3.5;e.knockX=dx/d*knock;e.knockZ=dz/d*knock;
     this.emit('hit',{id:e.id,x:e.x,z:e.z,damage:Math.round(damage),crit});
     if(e.training){if(e.hp<=0){this.emit('death',{id:e.id,x:e.x,z:e.z,enemyType:e.type,training:true});this.observeTutorial('defeat');}return;}
@@ -237,6 +243,7 @@ export class Adventure {
       if(canCharge)this.gainUltimateCharge(heroId,4+this.rank('rapidCharge'));
       const earned=awardCharacterXp(this.progression,heroId,ENEMY_REWARDS[e.type]?.xp??0);
       if(earned){this.earnedXp[heroId]=(this.earnedXp[heroId]??0)+earned.amount;this.refreshStats();this.emit('characterXp',earned);}
+      if(heroId!=='mochinyafe'&&e.mochiAssistUntil>this.time&&this.party.includes('mochinyafe')&&this.isHeroAlive(3)){const assist=awardCharacterXp(this.progression,'mochinyafe',ENEMY_REWARDS[e.type]?.xp??0);this.earnedXp.mochinyafe+=assist.amount;this.refreshStats();this.emit('characterXp',assist);}
       this.collectMaterials(enemyMaterials(e,this.act,this.difficulty,this.materialRng),'enemy');
       const tickets=bossWeaponTicket(this.progression,e,this.lootRng);if(tickets){this.earnedWeaponTickets+=tickets;this.emit('weaponTicket',{count:tickets,total:this.progression.inventory.weaponTicket});}
       if(e.elite){this.collectMaterials(ROUTE_REWARD,'route');this.routeRewards.push(this.area);this.emit('routeReward',{rewards:ROUTE_REWARD});}
@@ -309,22 +316,22 @@ export class Adventure {
     }
     if(!training)tickUltimates(this,dt);
     if(p.attack<=0&&this.attackFrom(p,p.hero))p.attack=this.attackProfile(p.hero).interval*Math.pow(.85,this.rank('haste'));
-    if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=this.attackProfile(this.partnerHero).interval*2.6*Math.pow(.85,this.rank('haste'));
+    if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=this.partnerHero===3?MOCHI_SUPPORT.interval:this.attackProfile(this.partnerHero).interval*2.6*Math.pow(.85,this.rank('haste'));
     if(!training){this.spawnTimer-=dt;if(this.waveSpawned<this.waveGoal&&this.spawnTimer<=0){this.spawn();this.spawnTimer=this.wave===6?100:Math.max(.43,1.15-this.wave*.10)*(this.actConfig.extra?EXTRA_COMBAT.spawnScale:1);}}
     for(const e of this.enemies){
-      if(e.hp<=0)continue;const enemyFrom={x:e.x,z:e.z};e.navTimer-=dt;e.age+=dt;e.hit=Math.max(0,e.hit-dt);e.attack-=dt*(this.actConfig.extra?EXTRA_COMBAT.cooldownRate:1);
+      if(e.hp<=0)continue;e.mochiFrozen=mochiFrozen(this,e);if(e.mochiFrozen){e.hit=Math.max(0,e.hit-dt);continue;}if(e.mochiWeakenUntil<=this.time){e.mochiAttackDown=0;e.mochiDefenseDown=0;}const enemyFrom={x:e.x,z:e.z};e.navTimer-=dt;e.age+=dt;e.hit=Math.max(0,e.hit-dt);e.attack-=dt*(this.actConfig.extra?EXTRA_COMBAT.cooldownRate:1);
       if(!e.training)tickEnemyBehavior(this,e,dt,enemySpeedScale(this,e));
       e.x+=e.knockX*dt;e.z+=e.knockZ*dt;e.knockX*=Math.max(0,1-dt*7);e.knockZ*=Math.max(0,1-dt*7);
       Object.assign(e,moveWithin(this.walkLayout,enemyFrom,e.x,e.z,Math.min(.8,e.radius)));
-      if(Math.hypot(p.x-e.x,p.z-e.z)<e.radius+.7&&e.attack<=0){this.hurt(e.damage,e.x,e.z);e.attack=1.2;if(this.phase==='defeat')return;}
+      if(Math.hypot(p.x-e.x,p.z-e.z)<e.radius+.7&&e.attack<=0){this.hurt(mochiIncomingDamage(this,e.damage,e.id),e.x,e.z);e.attack=1.2;if(this.phase==='defeat')return;}
     }
     for(let i=0;i<this.enemies.length;i++)for(let j=i+1;j<this.enemies.length;j++){
-      const a=this.enemies[i],b=this.enemies[j];if(a.hp<=0||b.hp<=0)continue;const x=b.x-a.x,z=b.z-a.z,d=Math.hypot(x,z)||.01,min=(a.radius+b.radius)*.82;
+      const a=this.enemies[i],b=this.enemies[j];if(a.hp<=0||b.hp<=0||mochiFrozen(this,a)||mochiFrozen(this,b))continue;const x=b.x-a.x,z=b.z-a.z,d=Math.hypot(x,z)||.01,min=(a.radius+b.radius)*.82;
       if(d<min){const k=(min-d)*dt*2.5;a.x-=x/d*k;a.z-=z/d*k;b.x+=x/d*k;b.z+=z/d*k;Object.assign(a,projectInside(this.walkLayout,a.x,a.z,.55));Object.assign(b,projectInside(this.walkLayout,b.x,b.z,.55));}
     }
     for(const bullet of this.projectiles){
       if(bullet.life<=0)continue;
-      bullet.life-=dt;if(bullet.owner==='player'&&bullet.kind!=='gun'){
+      bullet.life-=dt;if(bullet.owner==='player'&&bullet.kind==='magic'){
         const target=this.enemies.find(e=>e.id===bullet.target&&e.hp>0);if(target){const x=target.x-bullet.x,z=target.z-bullet.z,d=Math.hypot(x,z)||1;bullet.vx=x/d*15;bullet.vz=z/d*15;}
       }
       const fromX=bullet.x,fromZ=bullet.z;bullet.x+=bullet.vx*dt;bullet.z+=bullet.vz*dt;
@@ -332,16 +339,16 @@ export class Adventure {
         // Swept collision prevents fast rounds crossing a small enemy between frames.
         const dx=bullet.x-fromX,dz=bullet.z-fromZ,lengthSq=dx*dx+dz*dz;
         const hits=this.enemies.filter(e=>e.hp>0&&!bullet.hitIds?.includes(e.id)).map(e=>{const t=clamp(((e.x-fromX)*dx+(e.z-fromZ)*dz)/(lengthSq||1),0,1);return {e,t,d:Math.hypot(e.x-fromX-dx*t,e.z-fromZ-dz*t)};}).filter(h=>h.d<h.e.radius+bullet.radius).sort((a,b)=>a.t-b.t);
-        for(const {e} of hits){if(bullet.kind==='magic'&&bullet.heroId==='nyanluna'&&this.rank('moonFrost')){e.frostUntil=this.time+2;e.frostSlow=.25+this.rank('moonFrost')*.1;}this.hit(e,bullet.damage,fromX,fromZ,bullet.crit,false,bullet.heroId,!bullet.ultimate);if(bullet.kind==='gun'){bullet.hitIds.push(e.id);bullet.pierce--;if(bullet.pierce>0)continue;}bullet.life=0;break;}
+        for(const {e} of hits){if(bullet.kind==='mochiCry')mochiCryHit(this,e);if(bullet.kind==='magic'&&bullet.heroId==='nyanluna'&&this.rank('moonFrost')){e.frostUntil=this.time+2;e.frostSlow=.25+this.rank('moonFrost')*.1;}this.hit(e,bullet.damage,fromX,fromZ,bullet.crit,false,bullet.heroId,!bullet.ultimate);if(bullet.hitIds){bullet.hitIds.push(e.id);bullet.pierce--;if(bullet.pierce>0)continue;}bullet.life=0;break;}
       }
       else{
         const dx=bullet.x-fromX,dz=bullet.z-fromZ,l=dx*dx+dz*dz,t=clamp(((p.x-fromX)*dx+(p.z-fromZ)*dz)/(l||1),0,1);
-        if(Math.hypot(p.x-fromX-dx*t,p.z-fromZ-dz*t)<.6+bullet.radius){this.hurt(bullet.damage,bullet.x,bullet.z);bullet.life=0;if(this.phase==='defeat')return;}
+        if(Math.hypot(p.x-fromX-dx*t,p.z-fromZ-dz*t)<.6+bullet.radius){this.hurt(mochiIncomingDamage(this,bullet.damage,bullet.sourceId),bullet.x,bullet.z);bullet.life=0;if(this.phase==='defeat')return;}
       }
     }
     this.projectiles=this.projectiles.filter(b=>b.life>0);
     this.hazards=this.hazards.filter(h=>!h.sourceId||this.enemies.some(e=>e.id===h.sourceId&&e.hp>0));
-    for(const h of this.hazards){h.timer-=dt;if(h.timer<=0){if(h.damage)this.emit('hazard',{x:h.x,z:h.z,radius:h.radius,color:h.color,shape:h.shape,length:h.length,width:h.width,angle:h.angle});if(distanceToHazard(p.x,p.z,h)<.45&&h.damage){this.hurt(h.damage,h.x,h.z);if(this.phase==='defeat')return;}}}
+    for(const h of this.hazards){h.timer-=dt;if(h.timer<=0){if(h.damage)this.emit('hazard',{x:h.x,z:h.z,radius:h.radius,color:h.color,shape:h.shape,length:h.length,width:h.width,angle:h.angle});if(distanceToHazard(p.x,p.z,h)<.45&&h.damage){this.hurt(mochiIncomingDamage(this,h.damage,h.sourceId),h.x,h.z);if(this.phase==='defeat')return;}}}
     this.hazards=this.hazards.filter(h=>h.timer>0);
     this.orbitTimer-=dt;if(this.rank('orbit')&&this.orbitTimer<=0){this.orbitTimer=.45;for(let i=0;i<this.rank('orbit');i++){const a=this.time*2.3+i/this.rank('orbit')*Math.PI*2,x=p.x+Math.cos(a)*2.5,z=p.z+Math.sin(a)*2.5;for(const e of this.enemies)if(e.hp>0&&Math.hypot(e.x-x,e.z-z)<e.radius+1)this.hit(e,this.skillDamage(this.heroId(p.hero),12),p.x,p.z,false,false,HEROES[p.hero].id);}}
     for(const orb of this.orbs){orb.age+=dt;const x=p.x-orb.x,z=p.z-orb.z,d=Math.hypot(x,z)||.01;if(d<3.5+this.rank('reach')*1.5||orb.age>7){const k=Math.min(1,dt*(orb.age>7?5:9));orb.x+=x*k;orb.z+=z*k;}if(d<.8){this.addCrystals(orb.value);orb.value=0;this.emit('collect');}}

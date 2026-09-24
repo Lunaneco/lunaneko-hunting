@@ -55,6 +55,12 @@ export function nodeEffectText(node){return node.kind==='limit'?`レベル上限
 export function talentNode(id,heroId){
   const node=GROWTH_NODES.find(n=>n.id===id);if(!node)return null;
   if(node.kind==='skill'){const skill=personalSkills(heroId).find(s=>s.unlockNode===id);return skill?{...node,name:skill.name,icon:skill.icon,skill}:null;}
+  if(heroId==='mochinyafe'&&!node.kind){
+    if(id==='ultimateArt')return {...node,name:'やさしい子守唄',bonus:{ultimateHeal:24,ultimateRadius:2}};
+    if(id==='transcendence')return {...node,name:'ふぇ〜・大いなる目覚め',bonus:{ultimateDamage:.25,ultimatePulses:2,hp:120,attack:.25,defense:24}};
+    const bonus={...node.bonus};if(bonus.hp)bonus.hp*=3;if(bonus.defense)bonus.defense*=3;if(bonus.attack)bonus.attack*=2.5;
+    return {...node,name:id==='awakening'?'もちもちの目覚め':node.name,bonus};
+  }
   if(id==='awakening'&&heroId==='nyanluna')return {...node,name:'月光の極意',bonus:{hp:20,attack:.12,defense:4}};
   if(id==='awakening'&&heroId==='tsukineko')return {...node,name:'星影の極意',bonus:{hp:36,attack:.08,defense:8}};
   if(id==='awakening'&&heroId==='omsolo')return {...node,name:'翠刃の極意',bonus:{hp:44,attack:.10,defense:10}};

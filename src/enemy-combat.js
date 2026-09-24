@@ -6,7 +6,7 @@ const hard=g=>g.difficulty==='hard'?1.3:1;
 const telegraph=(g,duration)=>duration*(g.actConfig?.extra?EXTRA_COMBAT.telegraphScale:1);
 const cadence=g=>g.actConfig?.extra?EXTRA_COMBAT.cooldownRate:1;
 // Apply the same route multiplier to spells, beams and projectiles as body/charge damage.
-const damageScale=(g,e)=>hard(g)*(g.actConfig?.extra?g.actConfig.damageScale:1)*(e.type==='boss'&&g.actConfig?.chapter===1?1.7:1)*(e.type==='boss'&&e.elite?ELITE_BOSS_MULTIPLIER:1);
+const damageScale=(g,e)=>hard(g)*(g.actConfig?.extra?g.actConfig.damageScale:1)*(e.type==='boss'?(g.actConfig?.chapter===2?2.1:g.actConfig?.chapter===1?1.7:1):1)*(e.type==='boss'&&e.elite?ELITE_BOSS_MULTIPLIER:1);
 function circle(g,e,x,z,radius,delay,damage,color){delay=telegraph(g,delay);g.hazards.push({id:g.ids++,sourceId:e.id,kind:'sigil',x,z,radius,timer:delay,total:delay,damage:damage*damageScale(g,e),color});}
 function line(g,e,angle,length,width,delay,damage,color,kind='beam'){
  delay=telegraph(g,delay);g.hazards.push({id:g.ids++,sourceId:e.id,kind,shape:'line',angle,x:e.x+Math.sin(angle)*length/2,z:e.z+Math.cos(angle)*length/2,length,width,radius:width/2,timer:delay,total:delay,damage:damage*damageScale(g,e),color});
@@ -22,7 +22,8 @@ function charge(g,e,angle,delay,speed,duration,width,color){
 }
 function finishCast(g,e,c){
  if(c.kind==='charge'){e.rush={angle:c.angle,speed:c.speed,remaining:c.duration};return;}
- if(c.kind==='arrow')shot(g,e,c.angle);
+ if(c.kind==='arrow')shot(g,e,c.angle,{damage:e.type==='mochiSkeleton'?31:12});
+ if(c.kind==='mochiFire')for(const offset of [-.35,0,.35])shot(g,e,c.angle+offset,{kind:'enemyMoon',speed:7,damage:35,color:0xffa16e,radius:.38});
  if(c.kind==='riceVolley'){
   shot(g,e,c.angle-.11,{kind:'enemyMusket',speed:10,damage:34,radius:.24,color:0xffb76c});
   e.salvo={timer:.18,remaining:2,index:1,angle:c.angle};
@@ -37,10 +38,15 @@ function finishCast(g,e,c){
 }
 function bossAttack(g,e){
  const spec=BOSSES[e.bossId],p=g.player,angle=Math.atan2(p.x-e.x,p.z-e.z),action=e.action++%3,color=spec.color;
- const empowered=g.actConfig?.extra||(g.actConfig?.chapter===1||e.bossId==='eclipse')&&e.hp<=e.maxHp*.5;
- e.special=g.actConfig?.chapter===1?(empowered?3.1:4.2):(empowered?3.7:5.1);
+ const empowered=g.actConfig?.extra||(g.actConfig?.chapter>=1||e.bossId==='eclipse')&&e.hp<=e.maxHp*.5;
+ e.special=g.actConfig?.chapter>=1?(empowered?3.1:4.2):(empowered?3.7:5.1);
  g.emit('bossAttack',{kind:e.bossId==='chronarch'?(action===0?'rune':'stars'):['rune','stars','charge'][action],label:spec.attacks[action],bossId:e.bossId});
- if(e.bossId==='treant'){
+ if(g.actConfig?.chapter===2){
+  if(e.bossId==='darkmochi'){if(action===0){for(const o of [-.38,0,.38])line(g,e,angle+o,11,1.4,1.25,25,color);lockCast(g,e,1.25,{kind:'chant',angle});}else if(action===1)lockCast(g,e,1.1,{kind:'stars',angle,count:14,speed:5.5,color});else charge(g,e,angle,1.2,13,.75,3.8,color);}
+  else if(e.bossId==='dreammochi'){if(action===0){for(let i=0;i<4;i++)circle(g,e,p.x+Math.sin(i*2)*3,p.z+Math.cos(i*2)*3,2.3,1.4+i*.35,24,color);lockCast(g,e,1.4,{kind:'chant'});}else if(action===1)lockCast(g,e,1.2,{kind:'stars',angle,count:18,speed:4.5,color});else{circle(g,e,p.x,p.z,4.2,1.8,31,color);lockCast(g,e,1.8,{kind:'chant'});e.recovery=.9;}}
+  else if(e.bossId==='bellmochi'){if(action===0){for(let i=0;i<4;i++){line(g,e,angle+i*Math.PI/2,18,1.5,1.4,25,color);line(g,e,angle+Math.PI/4+i*Math.PI/2,18,1.5,2.3,25,color);}lockCast(g,e,1.4,{kind:'chant'});}else if(action===1)lockCast(g,e,1.2,{kind:'stars',angle,count:20,speed:5.2,color});else{circle(g,e,e.x,e.z,6,1.8,30,color);lockCast(g,e,1.8,{kind:'chant'});e.recovery=.8;}}
+  else{if(action===0){for(let i=0;i<(empowered?6:4);i++)circle(g,e,p.x+Math.sin(i*1.57)*4,p.z+Math.cos(i*1.57)*4,2.3,1.4+i*.25,28,color);lockCast(g,e,1.4,{kind:'chant'});}else if(action===1)lockCast(g,e,1.2,{kind:'stars',angle,count:empowered?22:18,speed:empowered?6.5:5,color});else charge(g,e,angle,1.4,empowered?16:13,.8,4.2,color);}
+ }else if(e.bossId==='treant'){
   if(action===0){for(let i=0;i<3;i++)circle(g,e,p.x+Math.sin(i*2.1)*i*2.4,p.z+Math.cos(i*2.1)*i*2.4,2.5,1.45+i*.2,22,color);lockCast(g,e,1.45,{kind:'chant'});}
   else if(action===1){line(g,e,angle,14,1,1,0,color,'aim');lockCast(g,e,1,{kind:'seed',angle});}
   else charge(g,e,angle,1.05,9,.6,3.2,color);
@@ -76,7 +82,7 @@ function bossAttack(g,e){
 }
 export function tickEnemyBehavior(g,e,dt,slow=1){
  const p=g.player,dx=p.x-e.x,dz=p.z-e.z,d=Math.hypot(dx,dz)||.01,angle=Math.atan2(dx,dz),route=g.steerEnemy(e);
- if(e.type==='boss'&&(e.bossId==='eclipse'||g.actConfig?.chapter===1)&&!e.enraged&&e.hp<=e.maxHp*.5){e.enraged=true;g.emit('bossPhase',{label:g.actConfig?.chapter===1?'猛攻開始 — 攻撃の間隔が短くなる':'月蝕深化 — 予告を見て回避しよう'});}
+ if(e.type==='boss'&&(e.bossId==='eclipse'||g.actConfig?.chapter>=1)&&!e.enraged&&e.hp<=e.maxHp*.5){e.enraged=true;g.emit('bossPhase',{label:g.actConfig?.chapter===1?'猛攻開始 — 攻撃の間隔が短くなる':'月蝕深化 — 予告を見て回避しよう'});}
  if(e.rush){const rush=e.rush;e.face=rush.angle;move(e,Math.sin(rush.angle),Math.cos(rush.angle),rush.speed*slow,Math.min(dt,rush.remaining));rush.remaining-=dt;if(rush.remaining<=0){e.rush=null;e.recovery=.8;}return;}
  if(e.cast){e.cast.remaining-=dt;if(e.cast.remaining<=0){const cast=e.cast;e.cast=null;finishCast(g,e,cast);}return;}
  if(e.salvo){const s=e.salvo;s.timer-=dt*cadence(g);if(s.timer<=0){shot(g,e,s.angle+(s.index-1)*.11,{kind:'enemyMusket',speed:10,damage:34,radius:.24,color:0xffb76c});s.index++;s.remaining--;s.timer+=.18;if(s.remaining<=0)e.salvo=null;}return;}
@@ -85,6 +91,18 @@ export function tickEnemyBehavior(g,e,dt,slow=1){
  if(e.type==='boss'){
   e.special-=dt*cadence(g);if(e.special<=0){bossAttack(g,e);return;}
   const preferred=e.bossId==='chronarch'?7:0;if(d>Math.max(preferred,e.radius+.6))move(e,route.x,route.z,e.speed*slow,dt);return;
+ }
+ if(e.type.startsWith('mochi')){
+  e.special-=dt;
+  if(e.special<=0&&d<14){
+   if(e.type==='mochiGoblin'){line(g,e,angle,3.6,2,1,31,0xffb477);lockCast(g,e,1,{kind:'chant',angle});e.special=3;}
+   if(e.type==='mochiSkeleton'){line(g,e,angle,15,.5,1,0,0xffb477,'aim');lockCast(g,e,1,{kind:'arrow',angle});e.special=3.2;}
+   if(e.type==='mochiDragon'){line(g,e,angle,13,3.5,1.2,0,0xff896f,'aim');lockCast(g,e,1.2,{kind:'mochiFire',angle});e.special=4.6;}
+   if(e.type==='mochiWolf'&&d>3){charge(g,e,angle,1,13,.6,2.1,0xff8b99);e.special=4.5;}
+   if((e.type==='mochiOrc'||e.type==='mochiGolem')&&d<5){circle(g,e,e.x,e.z,3.7,1.4,44,0xffb589);lockCast(g,e,1.4,{kind:'chant'});e.special=4.3;e.recovery=.8;}
+   if(e.cast)return;
+  }
+  if(d>(['mochiSkeleton','mochiDragon'].includes(e.type)?7:e.radius+.6))move(e,route.x,route.z,e.speed*slow,dt);return;
  }
  if(['reaper','matchlock','stormlantern','pestmoth','ironcrab','ramcart'].includes(e.type)){countryEnemyAttack(g,e,{angle,d,route,dt,slow,move,line,circle,charge,lockCast:(e,duration,action)=>lockCast(g,e,duration,action),cooldownRate:cadence(g)});return;}
  if(e.type==='archer'||e.type==='mage'){

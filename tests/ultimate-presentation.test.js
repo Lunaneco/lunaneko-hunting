@@ -7,7 +7,7 @@ import {battleVoiceCues} from '../src/voice-policy.js';
 
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function harness(hero=0){
-  const progression=normalizeProgression({story:{version:2,actClears:Array(8).fill(true),tsukinekoUnlocked:true,omsoloUnlocked:true}},HEROES);
+  const progression=normalizeProgression({story:{version:2,actClears:Array(12).fill(true),tsukinekoUnlocked:true,omsoloUnlocked:true}},HEROES);
   let game=new Adventure({hero,party:[HEROES[hero].id,HEROES[(hero+1)%3].id],progression});
   game.waveSpawned=game.waveGoal;game.waveBreak=-1000;game.player.attack=game.partner.attack=999;game.enemies=[];game.player.charge=100;game.drainEvents();
   const records=[],view={async show(id,line,spec){records.push(['show',id,line.text,spec.name]);},hide(){records.push(['hide']);},speaking(value){records.push(['speaking',value]);},pause(value){records.push(['pause',value]);},release(){records.push(['release']);}};

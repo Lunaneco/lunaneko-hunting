@@ -1,3 +1,4 @@
+import {buildMochiLandmarks} from './mochi-country.js';
 import * as THREE from 'three';
 import { part, bakeGroup } from './characters.js';
 
@@ -55,6 +56,7 @@ export class FieldEnvironment {
   createLandmarks(){
     return FIELD_THEMES.map((theme,index)=>{
       const group=new THREE.Group();group.name=`Field ${index+1} landmarks`;this.world.scene.add(group);
+      if(theme.mochi){buildMochiLandmarks(group,theme.mochi);bakeGroup(group);return group;}
       if(theme.country){buildCountryLandmarks(group,theme.country);bakeGroup(group);return group;}
       // Small 3D silhouettes sit beyond the playable boundary. The richly
       // detailed architecture farther away is supplied by the matte painting.

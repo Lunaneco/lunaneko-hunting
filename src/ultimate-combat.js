@@ -1,9 +1,10 @@
+import {mochiCryHit} from './mochi-combat.js';
 const EPSILON=1e-8;
 
 function pulse(game,effect){
   if(effect.kind==='bladeDance'){const source=game.sourceFor(effect.heroId);effect.x=source.x;effect.z=source.z;}
   game.emit(effect.kind==='bladeDance'?'saberPulse':'ultimatePulse',{x:effect.x,z:effect.z,radius:effect.radius,heroId:effect.heroId});
-  for(const enemy of [...game.enemies])if(enemy.hp>0&&Math.hypot(enemy.x-effect.x,enemy.z-effect.z)<=effect.radius+enemy.radius)game.hit(enemy,effect.damage,effect.x,effect.z,true,false,effect.heroId,false);
+  for(const enemy of [...game.enemies])if(enemy.hp>0&&Math.hypot(enemy.x-effect.x,enemy.z-effect.z)<=effect.radius+enemy.radius){if(effect.kind==='mochiLullaby')mochiCryHit(game,enemy,{ultimate:true});game.hit(enemy,effect.damage,effect.x,effect.z,true,false,effect.heroId,false);}
   effect.pulsesLeft--;
 }
 function shoot(game,effect){
@@ -22,7 +23,7 @@ export function castUltimate(game,{voicePresented=false}={}){
   const duration=spec.duration??spec.shots*spec.interval;
   const effect={id:game.ids++,kind:spec.kind,heroId,spec,duration,x:p.x,z:p.z,damage:game.skillDamage(heroId,spec.baseDamage),due:spec.interval,remaining:duration,interval:spec.interval};
   game.emit('ultimate',{x:p.x,z:p.z,hero:p.hero,heroId,abilityId:spec.id,voicePresented});
-  if(['sanctuary','bladeDance'].includes(spec.kind)){Object.assign(effect,{radius:spec.radius,pulsesLeft:spec.pulses});game.ultimateEffects.push(effect);game.heal(spec.heal);pulse(game,effect);}
+  if(['sanctuary','bladeDance','mochiLullaby'].includes(spec.kind)){Object.assign(effect,{radius:spec.radius,pulsesLeft:spec.pulses});game.ultimateEffects.push(effect);game.heal(spec.heal);pulse(game,effect);}
   else{effect.shotsLeft=spec.shots;game.ultimateEffects.push(effect);shoot(game,effect);}
   return true;
 }
@@ -30,10 +31,10 @@ export function tickUltimates(game,dt){
   for(const effect of game.ultimateEffects){
     effect.remaining-=dt;effect.due-=dt;
     while(effect.due<=EPSILON&&(effect.pulsesLeft>0||effect.shotsLeft>0)){
-      if(['sanctuary','bladeDance'].includes(effect.kind))pulse(game,effect);else shoot(game,effect);effect.due+=effect.interval;
+      if(['sanctuary','bladeDance','mochiLullaby'].includes(effect.kind))pulse(game,effect);else shoot(game,effect);effect.due+=effect.interval;
     }
   }
-  game.ultimateEffects=game.ultimateEffects.filter(effect=>effect.remaining>EPSILON&&(['sanctuary','bladeDance'].includes(effect.kind)||effect.shotsLeft>0));
+  game.ultimateEffects=game.ultimateEffects.filter(effect=>effect.remaining>EPSILON&&(['sanctuary','bladeDance','mochiLullaby'].includes(effect.kind)||effect.shotsLeft>0));
 }
 export function enemySpeedScale(game,enemy){
   let scale=enemy.frostUntil>game.time?1-enemy.frostSlow*(enemy.type==='boss'?.5:1):1;

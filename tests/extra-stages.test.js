@@ -30,7 +30,7 @@ test('both extras unlock only after chapter two final gate, including existing s
 });
 test('each extra awards ten tickets first, two on repeats, once at the final gate and across reloads',()=>{
  let p=profile(),total=0;
- for(const [act,expected] of [[9,10],[8,10],[9,2],[8,2],[8,2]]){
+ for(const [act,expected] of [[13,10],[12,10],[13,2],[12,2],[12,2]]){
   const g=new Adventure({act,progression:p});const before=structuredClone(g.progression.missions),storyClears=[...p.story.actClears];
   g.trackMission('kills',100);g.trackMission('crystals',100);gate(g,0);gate(g,1);assert.equal(g.earnedWeaponTickets,0);
   gate(g,2);total+=expected;assert.equal(g.clearRewardTickets,expected);assert.equal(g.progression.inventory.weaponTicket,total);assert.equal(g.recruitedHeroId,null);
@@ -57,7 +57,7 @@ test('extra encounters have chapter-specific rosters, valid unique terrain and n
  }
 });
 test('extra difficulty cannot be lowered and increases actual HP, damage, cadence, movement and projectiles',()=>{
- for(const [act,story,type] of [[8,3,'archer'],[9,7,'matchlock']]){
+ for(const [act,story,type] of [[12,3,'archer'],[13,7,'matchlock']]){
   assert.equal(new Adventure({act,progression:profile(),difficulty:'normal'}).difficulty,'hard');
   const base=attack(story,type),extra=attack(act,type);assert.ok(extra.e.hp>base.e.hp);assert.ok(extra.e.damage>base.e.damage);assert.ok(extra.e.speed>base.e.speed);assert.ok(extra.e.cast.total<base.e.cast.total);
   assert.equal(extra.e.cast.total,extra.g.hazards[0].total);

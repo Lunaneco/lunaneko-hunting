@@ -1,5 +1,6 @@
 import {publicUrl} from './public-url.js';
 export const WEAPONS=Object.freeze({
+  mochinyafe:{id:'mochi-voice',name:'もちもちの声',kind:'voice',icon:'heart',note:'もちにゃふぇの生まれ持った声。操作時は小さな体当たり、援護時は敵を止める「ふぇ〜」。固定装備。'},
   omsolo:{id:'light-saber',name:'ライトセーバー・翠守',kind:'saber',icon:'sword',note:'オムソロ専用。近距離の敵を扇状にまとめて斬り払う緑の光刃。'},
   nyanluna:{id:'luna-staff',name:'月詠の杖・ルナリア',kind:'staff',icon:'moon',note:'にゃんるな専用。敵を追いかける月光弾を放つ。'},
   tsukineko:{id:'nox-rifle',name:'星穿銃・ノクス',kind:'gun',icon:'gun',note:'つきねこ専用。直進する星弾が敵を2体まで貫通する。'},

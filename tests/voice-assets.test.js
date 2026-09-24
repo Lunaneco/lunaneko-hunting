@@ -9,7 +9,7 @@ import {BATTLE_VOICES,dialogueVoiceId} from '../src/voice-catalog.js';
 import {voicePlaybackGain} from '../src/voice-policy.js';
 
 test('all remaining battle clips have measured levels and the unwanted grunt is not shipped',()=>{
- const battle=Object.values(VOICE_MANIFEST).filter(v=>v.kind==='battle');assert.equal(battle.length,80);
+ const battle=Object.values(VOICE_MANIFEST).filter(v=>v.kind==='battle');assert.equal(battle.length,100);
  for(const item of battle){assert.ok(Number.isFinite(item.normalizationDb),item.file);assert.ok(item.normalizationDb>-12&&item.normalizationDb<6,item.file);assert.ok(voicePlaybackGain(item)>0&&voicePlaybackGain(item)<1,item.file);}
  assert.ok(!Object.values(VOICE_MANIFEST).some(v=>v.file.endsWith('tsukineko-hurt-1-a7437c6a58d1.mp3')));
  assert.equal(VOICE_MANIFEST['tsukineko-hurt-1'].text,'いたっ！');assert.equal(VOICE_MANIFEST['tsukineko-hurt-2'],undefined);
@@ -17,7 +17,7 @@ test('all remaining battle clips have measured levels and the unwanted grunt is 
 
 test('only selected story lines, tutorials and character actions ship voice assets',async()=>{
  const story=ACT_SCENES.flatMap(s=>Object.values(s).flatMap(scene=>scene.lines));
- assert.equal(story.length,125);assert.equal(story.filter(line=>line.voiced).length,46);
+ assert.equal(story.length,190);assert.equal(story.filter(line=>line.voiced).length,59);
  for(const line of story.filter(line=>!line.voiced))assert.equal(VOICE_MANIFEST[dialogueVoiceId(line.who,line.text)],undefined,`Unselected story voice: ${line.text}`);
  const lines=[...story.filter(line=>line.voiced),...TUTORIAL_STEPS.map(s=>({who:'nyanluna',text:s.text}))].map(line=>({...line,id:dialogueVoiceId(line.who,line.text)}));
  lines.push(...Object.values(BATTLE_VOICES).flatMap(events=>Object.values(events).flat()));
@@ -28,14 +28,14 @@ test('only selected story lines, tutorials and character actions ship voice asse
   // Re-recordings get a content-addressed URL so existing browser caches cannot replay an old take.
   const digest=createHash('sha256').update(bytes).digest('hex').slice(0,12);
   const original=`assets/voices/${line.who}/${line.id}.mp3`,versioned=`assets/voices/${line.who}/${line.id}-${digest}.mp3`;
-  assert.ok(item.file===versioned||(!['nyanluna','tsukineko'].includes(line.who)&&item.file===original),`Stale or incorrect voice URL: ${item.file}`);
+  assert.ok(item.file===versioned||(line.who==='mochinyafe'&&new RegExp(`^assets/voices/mochinyafe/mochi-[1-4]-${digest}\\.mp3$`).test(item.file))||(!['nyanluna','tsukineko'].includes(line.who)&&item.file===original),`Stale or incorrect voice URL: ${item.file}`);
  }
  assert.equal(Object.keys(VOICE_MANIFEST).length,ids.size);
 });
 test('voice distribution includes only approved MP3 clips and no private voice references',async()=>{
  const base=new URL('../public/assets/voices/',import.meta.url),expected=new Set(Object.values(VOICE_MANIFEST).map(v=>v.file));let count=0;
  for(const dir of await readdir(base,{withFileTypes:true})){
-  assert.ok(dir.isDirectory());assert.ok(['nyanluna','tsukineko','omsolo','omsolo_hurt','komusubi','guardian','narrator'].includes(dir.name));
+  assert.ok(dir.isDirectory());assert.ok(['nyanluna','tsukineko','omsolo','omsolo_hurt','komusubi','guardian','narrator','mochinyafe'].includes(dir.name));
   for(const name of await readdir(new URL(dir.name+'/',base))){assert.ok(expected.has(`assets/voices/${dir.name}/${name}`),`Unexpected file: ${name}`);count++;}
  }
  assert.equal(count,expected.size);

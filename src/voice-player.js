@@ -39,7 +39,7 @@ export class VoicePlayer{
  dialogue(who,text,mode='story'){this.setMode(mode);this.queue=[];return this.play(dialogueVoiceId(who,text),{priority:100,interrupt:true});}
  cue(who,event){
   if(this.mode!=='battle'&&!(this.mode==='menu'&&['equip','victory','recruit'].includes(event)))return false;const lines=BATTLE_VOICES[who]?.[event];if(!lines?.length||!this.audible)return false;
-  const key=`${who}:${event}`,now=this.clock(),last=this.cooldowns.get(key)??-Infinity;if(now-last<(VOICE_COOLDOWNS[event]??3))return false;
+  const key=`${who}:${event}`,now=this.clock(),last=this.cooldowns.get(key)??-Infinity;if(now-last<(who==='mochinyafe'&&event==='support'?3:VOICE_COOLDOWNS[event]??3))return false;
   const priority=VOICE_PRIORITIES[event]??20;if(this.current&&priority<=this.current.priority&&!(priority>=40&&priority<60))return false;
   const index=this.counters.get(key)??0;this.counters.set(key,index+1);this.cooldowns.set(key,now);void this.play(lines[index%lines.length].id,{priority});return true;
  }

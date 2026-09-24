@@ -1,8 +1,9 @@
 // Combat data is shared by the simulation, readable HUD hints and the renderer.
+import {MOCHI_ENEMIES,MOCHI_BOSSES} from './chapter-three-enemies.js';
 import {actFor} from './acts.js';
 export const ELITE_BOSS_MULTIPLIER=2;
 export const ELITE_BOSS_LABEL=`HP×${ELITE_BOSS_MULTIPLIER}・攻撃威力×${ELITE_BOSS_MULTIPLIER}`;
-export const ENEMY_TYPES=Object.freeze({
+export const ENEMY_TYPES=Object.freeze({...MOCHI_ENEMIES,
   moss:{name:'草の魔物',hp:29,speed:1.4,damage:9,radius:.64,role:'近接',hint:'近づいて体当たりする。距離を取ろう。',xp:3,crystals:1,buds:1},
   bat:{name:'月影コウモリ',hp:23,speed:2.35,damage:7,radius:.52,role:'飛行',hint:'素早く接近する。囲まれる前に倒そう。',xp:4,crystals:1,buds:1},
   golem:{name:'遺跡ゴーレム',hp:85,speed:.88,damage:17,radius:.95,role:'重装',hint:'頑丈だが足が遅い。周り込みながら攻撃しよう。',xp:9,crystals:3,buds:2},
@@ -18,9 +19,10 @@ export const ENEMY_TYPES=Object.freeze({
 });
 export const CHAPTER_ONE_ENEMIES=Object.freeze(['moss','bat','golem','archer','mage','charger']);
 export const CHAPTER_TWO_ENEMIES=Object.freeze(['reaper','matchlock','stormlantern','pestmoth','ironcrab','ramcart']);
-export const enemyRosterForAct=act=>actFor(act)?.chapter===1?CHAPTER_TWO_ENEMIES:CHAPTER_ONE_ENEMIES;
+export const CHAPTER_THREE_ENEMIES=Object.freeze(Object.keys(MOCHI_ENEMIES));
+export const enemyRosterForAct=act=>actFor(act)?.chapter===2?CHAPTER_THREE_ENEMIES:actFor(act)?.chapter===1?CHAPTER_TWO_ENEMIES:CHAPTER_ONE_ENEMIES;
 export const isRangedEnemy=type=>ENEMY_TYPES[type]?.ranged===true||['archer','mage'].includes(type);
-export const BOSSES=Object.freeze({
+export const BOSSES=Object.freeze({...MOCHI_BOSSES,
   thornmaw:{name:'茨牙の獣王',subtitle:'THE THORNMAW KING',role:'茨をまとう巨獣',color:0xffac69,speed:1.35,radius:2.1,attacks:['狩場の棘','獣王の咆哮','茨牙の突進'],hint:'棘は5か所へ時間差で出現。二段階に広がる咆哮から離れ、突進の後に反撃しよう。HP半分で猛攻。'},
   basalt:{name:'岩鎧の大蛇',subtitle:'THE JADE COIL',role:'翡翠の岩蛇',color:0x9ff4b6,speed:1.1,radius:2.1,attacks:['蛇骨の地割れ','翡翠の散弾','蛇尾のなぎ払い'],hint:'5方向の地割れの間へ移動。高速の散弾には隙間がある。広い尾の予告帯を離れよう。HP半分で猛攻。'},
   ironbell:{name:'鉄鐘の門衛',subtitle:'THE IRON BELL KEEPER',role:'鐘楼の鉄騎士',color:0xd7acff,speed:.8,radius:2,attacks:['封鎖の十字','鐘楼の落雷','鉄槌の一撃'],hint:'十字の衝撃に続き、斜めの衝撃が来る。先に消えた帯へ移動して連続攻撃を避けよう。HP半分で猛攻。'},
@@ -30,10 +32,11 @@ export const BOSSES=Object.freeze({
   tempest:{name:'雲海の番人',subtitle:'THE CLOUDSEA WYVERN',role:'雲海の翼竜',color:0xff9c7e,speed:1.3,radius:1.85,attacks:['風の三重奏','星羽の円環','翼竜の急降下'],hint:'星羽には隙間がある。急降下は長い予告帯の横へ回避。'},
   eclipse:{name:'月蝕の守護者',subtitle:'THE ECLIPSE WARDEN',role:'月を抱く石の守り手',color:0xff749d,speed:1.1,radius:1.9,attacks:['月蝕の刻印','欠け月の星弾','月蝕の突進'],hint:'刻印・星弾・突進を使う。HP半分で月蝕が深まり、攻撃が速くなる。'},
 });
-export const BOSS_IDS=Object.freeze(['treant','chronarch','tempest','eclipse','thornmaw','basalt','ironbell','colossus']);
+export const BOSS_IDS=Object.freeze(['treant','chronarch','tempest','eclipse','thornmaw','basalt','ironbell','colossus',...Object.keys(MOCHI_BOSSES)]);
 export function enemyForSpawn(act,wave,index,roll){
   if(wave===6)return 'boss';
   if(actFor(act)?.extra){const roster=enemyRosterForAct(act);return roster[index<roster.length?index:Math.min(roster.length-1,Math.floor(roll*roster.length))];}
+  if(actFor(act)?.chapter===2){const available=CHAPTER_THREE_ENEMIES.slice(0,Math.min(7,3+wave));return available[index<available.length?index:Math.min(available.length-1,Math.floor(roll*available.length))];}
   if(act>=4){
     // Every second-chapter wave uses only the new roster, including the opening.
     const introductions=['reaper','matchlock','stormlantern','ironcrab','ramcart'];

@@ -5,7 +5,7 @@ import {contains} from '../src/terrain.js';
 
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);
 function quiet(hero,options={}){
-  const g=new Adventure({hero,party:[HEROES[hero].id],progression:{story:{version:2,actClears:Array(8).fill(true)}},seed:93,...options});
+  const g=new Adventure({hero,party:[HEROES[hero].id],progression:{story:{version:2,actClears:Array(12).fill(true)}},seed:93,...options});
   g.enemies=[];g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.drainEvents();return g;
 }
 const distance=(g,start)=>Math.hypot(g.player.x-start.x,g.player.z-start.z);

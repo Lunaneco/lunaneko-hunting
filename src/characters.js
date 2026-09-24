@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {buildMochiEnemy,MOCHI_ENEMIES,MOCHI_BOSSES} from './chapter-three-enemies.js';
 import {buildChapterTwoBoss} from './chapter-two-bosses.js';
 import {buildCountryEnemy} from './chapter-two-enemies.js';
 import {CHAPTER_TWO_ENEMIES,ENEMY_TYPES} from './enemies.js';
@@ -17,7 +18,8 @@ export function bakeGroup(group){
 }
 export function createEnemy(type,bossId='eclipse'){
   const root=new THREE.Group(),body=new THREE.Group();root.add(body);let wings=[],rotors=[],focus=null;
-  if(CHAPTER_TWO_ENEMIES.includes(type)){
+  if(MOCHI_ENEMIES[type]||type==='boss'&&MOCHI_BOSSES[bossId]){({focus,wings,rotors}=buildMochiEnemy(type,bossId,root,body,{part,ball,tube}));
+  }else if(CHAPTER_TWO_ENEMIES.includes(type)){
     ({focus,wings,rotors}=buildCountryEnemy(type,root,body,{part,ball,tube,bakeGroup}));
   }else if(type==='moss'){
     ball(body,0x4d9d87,0,.58,0,[.61,.58,.55]);ball(body,0x9dd69a,0,.44,.28,[.47,.32,.34]);
@@ -130,11 +132,14 @@ export function createEnemy(type,bossId='eclipse'){
     part(body,new THREE.DodecahedronGeometry(.63),0x688d9b,0,2.76,.1,[1,.8,1]);
     part(body,new THREE.TorusGeometry(1.14,.05,6,40),0xe4d8a8,0,2.7,0,null,.2).rotation.x=Math.PI/2;
   }
-  if(focus)focus.userData.baseScale=focus.scale.clone();bakeGroup(body);root.userData={body,wings,rotors,focus,type,bossId:type==='boss'?bossId:null};return root;
+  const statusRing=new THREE.Mesh(new THREE.RingGeometry(.85,.93,32),new THREE.MeshBasicMaterial({color:0xffb8db,transparent:true,opacity:.65,side:THREE.DoubleSide,depthWrite:false}));statusRing.rotation.x=-Math.PI/2;statusRing.position.y=.13;statusRing.visible=false;root.add(statusRing);
+  if(focus)focus.userData.baseScale=focus.scale.clone();bakeGroup(body);root.userData={body,wings,rotors,focus,statusRing,type,bossId:type==='boss'?bossId:null};return root;
 }
 export function animateEnemy(root,e,time){
   const d=root.userData,flying=e.type==='bat'||ENEMY_TYPES[e.type]?.flying||e.bossId==='chronarch'||e.bossId==='tempest';
   root.position.set(e.x,0,e.z);root.rotation.y=e.face;
+  d.statusRing.scale.setScalar(e.type==='boss'?e.radius*1.15:1);d.statusRing.visible=!!e.mochiFrozen||e.mochiAttackDown>0;d.statusRing.material.opacity=.45+Math.sin(time*4)*.18;
+  if(e.mochiFrozen)return;
   d.body.position.y=flying?Math.sin(time*3+e.id)*.16:Math.abs(Math.sin(time*e.speed*5+e.id))*.08;
   d.body.rotation.z=e.type==='boss'?Math.sin(time*2)*.025:Math.sin(time*5+e.id)*.045;
   d.body.rotation.x=e.rush?-.12:e.cast?.kind==='charge'?.1:0;

@@ -1,3 +1,4 @@
+import {MOCHI_PALETTES} from './mochi-country.js';
 import {publicUrl} from './public-url.js';
 import * as THREE from 'three';
 import {part,bakeGroup} from './characters.js';
@@ -16,7 +17,7 @@ export class TerrainWorld{
  dispose(){this.root.traverse(o=>o.geometry?.dispose());this.root.clear();this.materials.forEach(m=>m.dispose());this.materials=[];this.markers.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});this.markers.clear();this.markerGroups=[];}
  mat(options){const m=new THREE.MeshStandardMaterial(options);this.materials.push(m);return m;}
  build(layout){
-  this.dispose();this.id=layout.id;this.layout=layout;const [ground,side,accent]=(COUNTRY_PALETTES[layout.country]??PALETTE[layout.style]),shape=shapeFor(layout.points),y=layout.height;
+  this.dispose();this.id=layout.id;this.layout=layout;const [ground,side,accent]=(MOCHI_PALETTES[layout.mochi]??COUNTRY_PALETTES[layout.country]??PALETTE[layout.style]),shape=shapeFor(layout.points),y=layout.height;
   const cliffGeo=new THREE.ExtrudeGeometry(shape,{depth:4,bevelEnabled:false}),vertices=cliffGeo.attributes.position;for(let i=0;i<vertices.count;i++){if(!layout.country&&vertices.getZ(i)===0){const x=vertices.getX(i),z=vertices.getY(i),scale=.79+Math.sin(Math.atan2(z,x)*5)*.035;vertices.setXYZ(i,x*scale,z*scale,0);}}cliffGeo.computeVertexNormals();const cliff=new THREE.Mesh(cliffGeo,this.mat({color:side,roughness:1}));cliff.rotation.x=-Math.PI/2;cliff.position.y=y-4;cliff.receiveShadow=true;cliff.castShadow=true;this.root.add(cliff);
   const map=layout.country?this.surfaces[layout.country==='village'||layout.country==='valley'?'earth':'stone']:layout.style==='meadow'||layout.style==='sky'?this.world.ground.material.map:this.world.floor.material.map;
   const topGeo=new THREE.ShapeGeometry(shape),uv=topGeo.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)/48+.5,uv.getY(i)/52+.5);const top=new THREE.Mesh(topGeo,this.mat({color:ground,map,roughness:1}));top.rotation.x=-Math.PI/2;top.position.y=y+.012;top.receiveShadow=true;this.root.add(top);

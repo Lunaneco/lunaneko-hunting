@@ -42,6 +42,7 @@ export function awardCharacterXp(profile,id,amount){
 }
 export function characterStats(hero,character){
   const growth=Math.max(0,character.level-1),tree=talentBonuses(character,hero.id);
+  if(hero.id==='mochinyafe'){const bloom=(growth/49)**3;return {maxHp:Math.round(75+800*bloom)+tree.hp,attack:(5+170*bloom)*(1+tree.attack),defense:Math.round(1+135*bloom)+tree.defense};}
   return {maxHp:(hero.baseHp??180)+growth*LEVEL_RULES.hpPerLevel+tree.hp,attack:hero.damage*(1+growth*LEVEL_RULES.attackPerLevel)*(1+tree.attack),defense:(hero.baseDefense??8)+growth*LEVEL_RULES.defensePerLevel+tree.defense};
 }
 export function combatStats(profile,hero){

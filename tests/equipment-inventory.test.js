@@ -6,10 +6,10 @@ import {UNIQUE_EQUIPMENT,equipUnique} from '../src/equipment.js';
 import {WEAPON_CATALOG,equipWeapon,drawWeapon} from '../src/weapons.js';
 import {equipmentView} from '../src/rewards-ui.js';
 
-const profile=()=>normalizeProgression({story:{version:2,actClears:Array(8).fill(true)},inventory:{starBud:75,weaponTicket:1},weapons:{version:2,owned:WEAPON_CATALOG.flatMap(w=>[w.id,w.id])},equipment:{owned:UNIQUE_EQUIPMENT.flatMap(w=>[w.id,w.id])}},HEROES);
+const profile=()=>normalizeProgression({story:{version:2,actClears:Array(12).fill(true)},inventory:{starBud:75,weaponTicket:1},weapons:{version:2,owned:WEAPON_CATALOG.flatMap(w=>[w.id,w.id])},equipment:{owned:UNIQUE_EQUIPMENT.flatMap(w=>[w.id,w.id])}},HEROES);
 const ids=(html,attribute)=>[...html.matchAll(new RegExp(`${attribute}="([^"]+)"`,'g'))].map(m=>m[1]);
 
-test('all 30 weapon variants and 10 relics coexist once each through equip, transfer and save reload',()=>{
+test('all 31 weapon variants including the fixed voice and 10 relics coexist once each through equip, transfer and save reload',()=>{
  let p=profile();const weapons=WEAPON_CATALOG.map(w=>w.id),relics=UNIQUE_EQUIPMENT.map(w=>w.id);
  assert.deepEqual(p.weapons.owned,weapons);assert.deepEqual(p.equipment.owned,relics);
  for(const item of WEAPON_CATALOG){assert.ok(equipWeapon(p,item.heroId,item.id));p=normalizeProgression(JSON.parse(JSON.stringify(p)),HEROES);assert.deepEqual(p.weapons.owned,weapons);assert.equal(p.weapons.loadout[item.heroId],item.id);}
@@ -36,7 +36,7 @@ test('inventory tabs contain each owned item once, hide unowned items and use a 
 test('all owned weapon rarities remain selectable and relic ownership is visible across heroes',()=>{
  const p=profile();equipUnique(p.equipment,'nyanluna','meadow-charm');
  for(const hero of HEROES){
-   const html=equipmentView(p,hero.id);assert.equal(ids(html,'data-weapon-option').length,10);
+   const html=equipmentView(p,hero.id);assert.equal(ids(html,'data-weapon-option').length,hero.id==='mochinyafe'?1:10);
    for(const item of WEAPON_CATALOG.filter(w=>w.heroId!==hero.id))assert.ok(!ids(html,'data-weapon-option').includes(item.id));
  }
  const relics=equipmentView(p,'tsukineko','unique');assert.equal(ids(relics,'data-equipment-card').length,10);assert.match(relics,/にゃんるなが装備中/);assert.match(relics,/にゃんるなから付け替える/);

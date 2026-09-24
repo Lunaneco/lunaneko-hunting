@@ -1,6 +1,7 @@
 import {publicUrl} from './public-url.js';
 // The narrator is represented by the lost moonlight already present in the story.
 export const STORY_CAST=Object.freeze({
+  mochinyafe:Object.freeze({name:'もちにゃふぇ',role:'声を届ける、最後の一匹',image:publicUrl('assets/story/mochinyafe.png'),alt:'丸くてもちもちした桃色の猫。小さな前足と茶色の瞳を持つ、もちにゃふぇ',color:'#ffc3dc'}),
   komusubi:Object.freeze({name:'こむすび',role:'お父さんを探す小さな子',image:publicUrl('assets/story/komusubi.png'),alt:'こむすび — 黒い帽子と青いリュックの小さな猫。涙を流して助けを求めている',color:'#ffe3a5'}),
   omsolo:Object.freeze({name:'オムソロ',role:'翠光の剣士',image:publicUrl('assets/story/omsolo.png'),alt:'オムソロ — 黒い帽子とサングラス、砂色のローブを着て緑のライトセーバーを持つ猫の剣士',color:'#adffc6'}),
   omsolo_hurt:Object.freeze({name:'オムソロ',role:'消えかけた命の灯り',image:publicUrl('assets/story/omsolo-hurt.png'),alt:'傷ついたオムソロ — 汚れたローブで膝をつき、消えた光剣の柄を握っている',color:'#bfe3cf'}),

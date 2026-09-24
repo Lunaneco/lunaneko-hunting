@@ -7,7 +7,7 @@ import {FIRST_TIER_NODES,TALENT_NODES} from '../src/talents.js';
 
 function probe(hero,{level=1,rank=1,tree=[],distance=2.5}={}){
   const id=HEROES[hero].id,weapon=`${WEAPONS[id].id}-r${rank}`;
-  const progression=normalizeProgression({story:{version:2,actClears:Array(8).fill(true)},characters:{[id]:{level,breaks:3,tree}},weapons:{version:2,owned:[weapon],loadout:{[id]:weapon}}},HEROES);
+  const progression=normalizeProgression({story:{version:2,actClears:Array(12).fill(true)},characters:{[id]:{level,breaks:3,tree}},weapons:{version:2,owned:[weapon],loadout:{[id]:weapon}}},HEROES);
   const g=new Adventure({hero,party:[id],progression,seed:91});
   g.enemies=[];g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.rng=()=>1;
   Object.assign(g.player,{x:0,z:0,invincible:999});

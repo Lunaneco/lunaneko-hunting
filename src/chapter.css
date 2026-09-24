@@ -30,3 +30,9 @@ body:has(#chapter-menu:not(.hidden)) :is(.toast,.wave-banner,.ultimate-banner,#d
   .chapter-header .secondary{min-height:48px}
   .chapter-header .icon-button{width:48px;height:48px;flex-shrink:0}
 }
+
+/* Chapter 3: fourth recruit and three-chapter navigation. */
+.portrait.mochinyafe{background-image:url('/assets/story/mochinyafe.png');background-size:125%;background-position:50% 44%;background-color:#644254}
+.tree-workbench.mochinyafe{--tree-glow:#ffc0d8;--tree-rgb:255,192,216}
+.chapter-selector{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:600px){.chapter-selector{gap:7px}.chapter-selector button{padding:12px 8px}.chapter-selector button span{font-size:10px;line-height:1.6}}

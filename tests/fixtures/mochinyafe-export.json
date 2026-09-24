@@ -1,0 +1,14 @@
+{
+  "source": "user-provided mochinyafe.blend",
+  "sourceSHA256": "33c5c2f68ad62a583c8f0e633eb126bda31ad12e9a3b05fc289ee6678b9b2fd9",
+  "status": "engine_candidate",
+  "units": "metres; runtime avatar height 1.55 game units",
+  "front": "Blender -Y / glTF +Z",
+  "pivot": "source origin; runtime centres XZ and places feet at ground",
+  "vertices": 6692,
+  "triangles": 12960,
+  "materials": 4,
+  "animation": "runtime squash, bob and turning; no skeletal rig",
+  "reference": "user-provided original model and design sheet",
+  "target": "mobile WebGL; one avatar / maximum two deployed heroes"
+}

@@ -61,3 +61,16 @@ for (const name of ['nyanluna', 'tsukineko', 'omsolo']) {
     assert.ok(report.meshes.every(m => !/FACE_FX_|SmoothLid|DANCE_GROUND/.test(m.source_mesh)));
   });
 }
+
+test('mochinyafe: supplied static model has portable pink materials, finite geometry and a mobile budget',()=>{
+ const {doc,read,bytes}=glb('mochinyafe');assert.equal(doc.meshes.length,1);assert.equal(doc.materials.length,4);assert.equal(doc.skins?.length??0,0);assert.equal(doc.images?.length??0,0);assert.ok(bytes<1048576);
+ let triangles=0,minY=Infinity,maxY=-Infinity;
+ for(const primitive of doc.meshes[0].primitives){
+  const positions=read(primitive.attributes.POSITION),normals=read(primitive.attributes.NORMAL),indices=read(primitive.indices);triangles+=indices.length/3;
+  for(const p of positions){assert.ok(p.every(Number.isFinite));minY=Math.min(minY,p[1]);maxY=Math.max(maxY,p[1]);}
+  for(const n of normals)assert.ok(n.every(Number.isFinite));for(const [index] of indices)assert.ok(index>=0&&index<positions.length);
+ }
+ assert.equal(triangles,12960);assert.ok(maxY-minY>.2&&maxY-minY<.4);
+ const pink=doc.materials.find(m=>m.name.includes('Mochi_Pink')).pbrMetallicRoughness.baseColorFactor;
+ assert.ok(pink[0]>pink[2]&&pink[2]>pink[1]);assert.ok(pink[1]<.7,'Pink albedo must survive GLB export instead of becoming white');
+});

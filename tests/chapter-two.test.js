@@ -26,8 +26,8 @@ test('chapter one saves keep every value and unlock only the second chapter, nev
  const p=normalizeProgression(raw,HEROES);assert.deepEqual(p.characters.nyanluna,{...raw.characters.nyanluna,breaks:0});assert.deepEqual(p.inventory,{...raw.inventory,moonPrism:0,astralCore:0,weaponTicket:0});assert.deepEqual(p.equipment,raw.equipment);assert.equal(p.missions.stages[0].kills,24);assert.ok(p.missions.claimed.includes('meadow-hunt'));assert.equal(nextAct(p),4);assert.ok(isHeroUnlocked(p,'tsukineko'));assert.equal(isHeroUnlocked(p,'omsolo'),false);assert.deepEqual(p.characters.omsolo,{level:1,xp:0,breaks:0,tree:[]});assert.deepEqual(normalizeProgression(p,HEROES),p);
  const corrupt=normalizeProgression({story:{...story(3),actClears:[true,true,true,false,true,true,true,true],omsoloUnlocked:true}},HEROES);assert.equal(isHeroUnlocked(corrupt,'omsolo'),false);assert.equal(corrupt.story.chapterTwoCleared,false);
 });
-test('eight sequential acts have matching story, terrains, distinct bosses and illustrated equipment',()=>{
- assert.equal(CHAPTERS.length,2);assert.equal(ACTS.length,8);assert.equal(ACT_SCENES.length,8);assert.deepEqual(ACTS.map(a=>a.bossId),BOSS_IDS);assert.equal(new Set(FIELD_LAYOUTS.flat().flatMap(f=>f.rooms).map(r=>r.id)).size,46);
+test('twelve sequential acts have matching story, terrains, distinct bosses and illustrated equipment',()=>{
+ assert.equal(CHAPTERS.length,3);assert.equal(ACTS.length,12);assert.equal(ACT_SCENES.length,12);assert.deepEqual(ACTS.map(a=>a.bossId),BOSS_IDS);assert.equal(new Set(FIELD_LAYOUTS.flat().flatMap(f=>f.rooms).map(r=>r.id)).size,66);
  for(const act of ACTS){assert.equal(actLabel(act.id),`第${act.chapter+1}章・第${act.number}幕`);assert.ok(BOSSES[act.bossId]);for(const scene of Object.values(ACT_SCENES[act.id]))for(const line of scene.lines)assert.ok(STORY_CAST[line.who],line.who);}
  for(const id of ['komusubi','omsolo','omsolo_hurt'])assert.ok(existsSync('public'+STORY_CAST[id].image));
  for(const item of UNIQUE_EQUIPMENT.filter(e=>e.act>=4)){assert.ok(existsSync('public'+equipmentImage(item.id)));const m=STAGE_MISSIONS.find(m=>m.equipment===item.id);assert.equal(m.act,item.act);assert.ok(m.trial);}

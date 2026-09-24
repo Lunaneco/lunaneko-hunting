@@ -27,7 +27,7 @@ test('all chapter-two spawns, including ranged-cap fallback, use an entirely sep
  }
 });
 test('all four acts advertise Lv.30 with preparation guidance; lower levels can still enter',()=>{
- for(const act of ACTS){const html=encounterPreparation(act,['nyanluna'],levelThirtyProfile({level:20}),HEROES);if(act.id<4){assert.equal(html,'');continue;}
+ for(const act of ACTS.slice(0,8)){const html=encounterPreparation(act,['nyanluna'],levelThirtyProfile({level:20}),HEROES);if(act.id<4){assert.equal(html,'');continue;}
   assert.equal(act.recommendedLevel,30);assert.match(html,/適正 Lv.30/);assert.match(html,/にゃんるな Lv.20/);assert.match(html,/現在のレベルでも出撃/);assert.match(html,/data-prepare-levels/);
   const g=new Adventure({act:act.id,progression:levelThirtyProfile({level:20})});assert.equal(g.phase,'playing');assert.equal(g.act,act.id);
  }

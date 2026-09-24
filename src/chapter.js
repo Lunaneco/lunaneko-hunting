@@ -1,3 +1,4 @@
+import {THIRD_CHAPTER_SCENES} from './chapter-three-story.js';
 import {SECOND_CHAPTER_SCENES} from './chapter-two-story.js';
 import {storySpeaker,preloadStoryCast} from './story-cast.js';
 import {ACTS,actLabel} from './acts.js';
@@ -102,7 +103,7 @@ export const ACT_SCENES=[{
  ['tsukineko','うん。道がなかったら、一緒に探そう。約束ね。'],
  ['narrator','二人は、もう一度しっかりと手をつないだ。つきねこと自由に編成できるようになった。元の世界への旅は、ここから二人で。――第1章、おわり。'],
  ],true),
-},...SECOND_CHAPTER_SCENES];
+},...SECOND_CHAPTER_SCENES,...THIRD_CHAPTER_SCENES];
 export const SCENES=ACT_SCENES[0];
 export class ChapterStory{
   constructor(){

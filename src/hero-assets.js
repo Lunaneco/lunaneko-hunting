@@ -5,7 +5,7 @@ import { part, bakeGroup } from './characters.js';
 import { ATTACK_DURATION } from './model.js';
 import {createWeaponVariant} from './weapon-models.js';
 
-const files = ['nyanluna', 'tsukineko', 'omsolo'];
+const files = ['nyanluna', 'tsukineko', 'omsolo', 'mochinyafe'];
 const axisX = new THREE.Vector3(1, 0, 0);
 const axisY = new THREE.Vector3(0, 1, 0);
 const axisZ = new THREE.Vector3(0, 0, 1);
@@ -73,6 +73,7 @@ function createWeapon(hero) {
 }
 
 export function setHeroWeapon(root,item){
+  if(root.userData.hero===3)return;
   const d=root.userData;if(!item||d.weapon.userData.family===item.weapon.id)return;
   d.weaponCache??=new Map([[d.weapon.userData.family,d.weapon]]);
   let next=d.weaponCache.get(item.weapon.id);
@@ -91,7 +92,7 @@ function createHero(asset, hero) {
   const bounds = new THREE.Box3().setFromObject(model, true);
   const height = bounds.max.y - bounds.min.y;
   if (!Number.isFinite(height) || height < .1) throw new Error(`Invalid character bounds: ${files[hero]}`);
-  const scale = (hero===2?2.8:3.1) / height;
+  const scale = (hero===3?1.55:hero===2?2.8:3.1) / height;
   model.scale.multiplyScalar(scale);
   model.position.set(-(bounds.min.x + bounds.max.x) * .5 * scale, -bounds.min.y * scale,
     -(bounds.min.z + bounds.max.z) * .5 * scale);
@@ -112,7 +113,7 @@ function createHero(asset, hero) {
       object.receiveShadow = false;
       // Skin bounds change with poses; a pair of always-present heroes need no frustum culling.
       object.frustumCulled = false;
-      object.material.roughness = .83;
+      if(hero!==3)object.material.roughness = .83;
       object.material.metalness = 0;
       // A soft albedo fill keeps the supplied facial colours legible beneath the
       // large fringe at the elevated gameplay camera, without flattening all lighting.
@@ -122,18 +123,18 @@ function createHero(asset, hero) {
       };
       object.material.customProgramCacheKey = () => 'lunaria-character-fill-v1';
       metrics.meshes++;
-      metrics.skinnedMeshes += Number(object.isSkinnedMesh);
+      metrics.skinnedMeshes += Number(!!object.isSkinnedMesh);
       metrics.vertices += object.geometry.attributes.position.count;
       metrics.triangles += (object.geometry.index?.count ?? object.geometry.attributes.position.count) / 3;
     }
   });
-  for (const required of ['head', 'upper_arm.L', 'upper_arm.R', 'thigh.L', 'thigh.R', 'hand.R']) {
+  for (const required of (hero===3?[]:['head', 'upper_arm.L', 'upper_arm.R', 'thigh.L', 'thigh.R', 'hand.R'])) {
     if (!bones.has(required)) throw new Error(`Character bone missing: ${files[hero]} / ${required}`);
   }
-  const weapon = createWeapon(hero);
+  const weapon = hero===3?new THREE.Group():createWeapon(hero);
   rig.add(weapon);
   const ring = new THREE.Mesh(new THREE.RingGeometry(.6, .66, 48),
-    new THREE.MeshBasicMaterial({ color: hero === 0 ? 0xd5adff : hero===1?0x8ce9ff:0x8affaf,
+    new THREE.MeshBasicMaterial({ color: hero===3?0xffb8d4:hero === 0 ? 0xd5adff : hero===1?0x8ce9ff:0x8affaf,
       transparent: true, opacity: .65, side: THREE.DoubleSide, depthWrite: false }));
   ring.rotation.x = -Math.PI / 2;
   root.add(ring);
@@ -157,6 +158,7 @@ function pose(data, name, x = 0, y = 0, z = 0) {
 
 export function animateHero(root, state, time, dt, active) {
   const d = root.userData;
+  if(d.hero===3){root.position.set(state.x,0,state.z);root.rotation.y+=Math.atan2(Math.sin(state.face-root.rotation.y),Math.cos(state.face-root.rotation.y))*Math.min(1,dt*14);d.attackTime=Math.max(0,d.attackTime-dt);const bounce=state.moving?Math.abs(Math.sin(time*10))*.16:Math.sin(time*2)*.015,cry=d.attackTime>0?Math.sin(d.attackTime/ATTACK_DURATION*Math.PI):0;d.rig.position.y=.04+bounce;d.rig.scale.set(1+cry*.16,1-cry*.12,1+cry*.16);d.rig.rotation.z=state.moving?Math.sin(time*10)*.06:0;d.rig.visible=!(active&&state.invincible>.05&&state.invincible<.8&&Math.floor(time*22)%3===0);d.ring.position.y=.025;d.ring.material.opacity=active?.6:.22;return;}
   d.rig.rotation.set(0,0,0);d.rig.position.x=0;d.weapon.visible=true;
   root.position.set(state.x, 0, state.z);
   const turn = Math.atan2(Math.sin(state.face - root.rotation.y), Math.cos(state.face - root.rotation.y));

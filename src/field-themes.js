@@ -22,4 +22,10 @@ export const FIELD_THEMES = [
   { country:'fortress', focus:.50, image:publicUrl('assets/fields/musubi-fortress.webp'), fog:0x718093, ground:0x939c99, grass:0x93a494,
     stone:0xb6b4a4, tint:0xd6d6d1, sky:0xbecbdd, bounce:0x4d555e, sun:0xf3d4ad, fill:0xa8c8d8,
     portal:0xc5edb3, motes:0xe2d0a3, accent:0xe0be86, sunPower:1.55, exposure:.94 },
+  ...[
+    ['mochi-village',0xc6a7b5,0xf0d3c7,0xffbed5,0xffe8d6],
+    ['mochi-teagarden',0xa4afc1,0xddc8bc,0xcab8fa,0xe8deff],
+    ['mochi-dreamtown',0x39304f,0xa8a0bf,0xdfa6ea,0xc9b2e8],
+    ['mochi-palace',0x6c5276,0xd9bdcf,0xffc1df,0xffd6d0],
+  ].map(([mochi,fog,ground,accent,sky])=>({mochi,focus:.5,image:publicUrl(`assets/fields/${mochi}.jpg`),fog,ground,grass:0xd4b2bd,stone:ground,tint:sky,sky,bounce:0x66546d,sun:0xffd8c9,fill:0xc5c4ff,portal:0xffd8e9,motes:0xffd8eb,accent,sunPower:1.7,exposure:.94})),
 ];
