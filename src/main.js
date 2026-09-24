@@ -102,7 +102,7 @@ $('#app').innerHTML=`
       <div class="start-meta"><button id="difficulty" aria-label="難易度を変更">${icon('shield')} <span>冒険モード</span> ${icon('chevron')}</button><span>1人プレイ <i>·</i> オート攻撃 <i>·</i> 記録を保存</span></div>
     </div>
     <div class="chapter-card"><span class="chapter-index">01</span><div><small>CHAPTER ONE</small><h2>迷子の月と、ふたりの約束</h2><p>親友を探して月の世界を巡る、全4幕。</p></div>${icon('compass')}</div>
-    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.44</span></footer>
+    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.45</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu hidden" tabindex="-1" aria-label="冒険メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">
@@ -116,7 +116,7 @@ $('#app').innerHTML=`
     <div id="acquired" class="acquired" aria-label="獲得した冒険スキル"></div>
     <div class="controls"><button id="switch-action" data-action="switch" class="action-button switch-action" aria-label="つきねこに操作を切り替え（Q）">${portrait(1)}<span class="swap-badge">${icon('swap')}</span><span class="switch-label">交代</span><small id="switch-target" class="switch-target">つきねこへ</small><kbd>Q</kbd><i class="cooldown-mask"></i></button><button id="dash" data-action="dash" class="action-button dash-button" aria-label="回避（Space）">${icon('wind')}<span>回避</span><kbd>SPACE</kbd><i class="cooldown-mask"></i></button><button id="ultimate" data-action="ultimate" class="action-button ultimate-button" aria-label="月華の聖域（E）"><div class="charge-ring"></div>${icon('moon')}<span id="ult-label">0%</span><kbd>E</kbd></button></div>
     <div id="exit-guide" class="exit-guide hidden" aria-live="polite"><span>月の門が開いた</span><strong id="exit-instruction">光る輪へ進もう</strong><small>矢印の先へ移動すると、次のステージへ</small></div>
-    <div id="field-map" class="field-map" aria-label="現在のフィールドの地図"></div><div id="passage-guide" class="passage-guide hidden" role="status"></div>
+    <div id="field-map" class="field-map" role="img" aria-label="現在のフィールドの地図"></div><div id="passage-guide" class="passage-guide hidden" role="status"></div>
     <div id="control-hint" class="control-hint"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移動</span><i></i><span>近くの敵を自動で攻撃</span><i></i><span>ドラッグでも移動</span></div>
     <div class="touch-hint">ドラッグで移動</div>
   </section>

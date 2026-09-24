@@ -2,6 +2,7 @@
 // v1.33: Nyanluna ribbon-promise dialogue retake using original and accepted references.
 // v1.43: Tsukineko story/battle retakes from the same irodori-TTS reference, selected with local ASR and acoustic checks.
 // v1.44: Tsukineko retakes use the user-approved blessing voice with scene-specific, warm conversational delivery.
+// v1.45: All 35 Tsukineko clips use a new Irodori voice design with soft, bright and expressive delivery.
 export const VOICE_MANIFEST={
   "nyanluna-a4069723": {
     "file": "assets/voices/nyanluna/nyanluna-a4069723-47459080630d.mp3",
@@ -53,17 +54,17 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-heal-1": {
-    "file": "assets/voices/tsukineko/tsukineko-heal-1-ba4d363868ab.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-heal-1-7f64150a65b2.mp3",
     "who": "tsukineko",
     "text": "助かった。まだまだ行けるよ！",
-    "duration": 2.9,
+    "duration": 3.72,
     "kind": "battle"
   },
   "tsukineko-3e85bbd1": {
-    "file": "assets/voices/tsukineko/tsukineko-3e85bbd1-092f24538a8e.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-3e85bbd1-9ffc05904b13.mp3",
     "who": "tsukineko",
     "text": "うん。だから今は動かないで。にゃんるな、結界は持ちそう？",
-    "duration": 6.97,
+    "duration": 6.46,
     "kind": "story"
   },
   "omsolo-attack-2": {
@@ -95,10 +96,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-levelup-2": {
-    "file": "assets/voices/tsukineko/tsukineko-levelup-2-55f2f8069370.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-levelup-2-0956c91e621e.mp3",
     "who": "tsukineko",
     "text": "また強くなったよ。頼りにしてね！",
-    "duration": 3.4,
+    "duration": 3.76,
     "kind": "battle"
   },
   "nyanluna-dash-1": {
@@ -109,10 +110,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-wave-1": {
-    "file": "assets/voices/tsukineko/tsukineko-wave-1-3443460fc5d4.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-wave-1-a0698d8480fe.mp3",
     "who": "tsukineko",
     "text": "次が来る。周りも見てね！",
-    "duration": 2.99,
+    "duration": 3.44,
     "kind": "battle"
   },
   "nyanluna-equip-1": {
@@ -123,10 +124,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-ultimate-1": {
-    "file": "assets/voices/tsukineko/tsukineko-ultimate-1-7eae5f458f9e.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-ultimate-1-d5821d60ada6.mp3",
     "who": "tsukineko",
     "text": "この一撃で、道をひらく！ 星銃、彗星連射！",
-    "duration": 6.05,
+    "duration": 6.56,
     "kind": "battle"
   },
   "omsolo-attack-3": {
@@ -165,10 +166,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-boss-1": {
-    "file": "assets/voices/tsukineko/tsukineko-boss-1-8f1e46ccc9b6.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-boss-1-cf6588a5c207.mp3",
     "who": "tsukineko",
     "text": "大物だね。弱点を見つけよう！",
-    "duration": 3.65,
+    "duration": 3.78,
     "kind": "battle"
   },
   "omsolo-start-1": {
@@ -186,10 +187,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-down-1": {
-    "file": "assets/voices/tsukineko/tsukineko-down-1-e15b45924d47.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-down-1-31a1df5784e3.mp3",
     "who": "tsukineko",
     "text": "ごめん……先に、行って……。",
-    "duration": 3.24,
+    "duration": 3.48,
     "kind": "battle"
   },
   "nyanluna-switch-1": {
@@ -214,10 +215,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-support-1": {
-    "file": "assets/voices/tsukineko/tsukineko-support-1-75483f2b9d79.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-support-1-0a775ebf7bd1.mp3",
     "who": "tsukineko",
     "text": "背中は、わたしが守る！",
-    "duration": 2.62,
+    "duration": 3.6,
     "kind": "battle"
   },
   "nyanluna-d6d6edc9": {
@@ -263,10 +264,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-hurt-1": {
-    "file": "assets/voices/tsukineko/tsukineko-hurt-1-a4dcc35743d2.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-hurt-1-a7437c6a58d1.mp3",
     "who": "tsukineko",
     "text": "うっ！",
-    "duration": 0.72,
+    "duration": 0.68,
     "kind": "battle"
   },
   "nyanluna-defeat-1": {
@@ -284,10 +285,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "tsukineko-d60b3e1": {
-    "file": "assets/voices/tsukineko/tsukineko-d60b3e1-e2cbce660ce8.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-d60b3e1-c9d30bc063bb.mp3",
     "who": "tsukineko",
     "text": "二人とも、よかった……。もう、離れなくていいね。",
-    "duration": 5.2,
+    "duration": 5,
     "kind": "story"
   },
   "nyanluna-heal-1": {
@@ -312,24 +313,24 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "tsukineko-attack-2": {
-    "file": "assets/voices/tsukineko/tsukineko-attack-2-5fd0bec1da5a.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-attack-2-f348d9bbb08a.mp3",
     "who": "tsukineko",
     "text": "狙い通り！",
-    "duration": 1.12,
+    "duration": 1.23,
     "kind": "battle"
   },
   "tsukineko-58b9bfe9": {
-    "file": "assets/voices/tsukineko/tsukineko-58b9bfe9-0beac954f6a2.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-58b9bfe9-28c6fa3e7e2b.mp3",
     "who": "tsukineko",
     "text": "うん。道がなかったら、一緒に探そう。約束ね。",
-    "duration": 5.27,
+    "duration": 5.46,
     "kind": "story"
   },
   "tsukineko-switch-2": {
-    "file": "assets/voices/tsukineko/tsukineko-switch-2-db164fb84934.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-switch-2-4708a15ad484.mp3",
     "who": "tsukineko",
     "text": "任せて。前に出るよ！",
-    "duration": 2.35,
+    "duration": 3.44,
     "kind": "battle"
   },
   "narrator-b7b3e182": {
@@ -340,10 +341,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "tsukineko-dash-1": {
-    "file": "assets/voices/tsukineko/tsukineko-dash-1-e1577dcb2961.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-dash-1-9d2f10c2ed9a.mp3",
     "who": "tsukineko",
     "text": "遅いよ！",
-    "duration": 1,
+    "duration": 0.99,
     "kind": "battle"
   },
   "nyanluna-wave-1": {
@@ -354,17 +355,17 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-241cff32": {
-    "file": "assets/voices/tsukineko/tsukineko-241cff32-61be902017ba.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-241cff32-63312e44afc0.mp3",
     "who": "tsukineko",
     "text": "置いてきたんじゃない。助けを呼びに来てくれたんだよ。にゃんるな、行こう。",
-    "duration": 6.94,
+    "duration": 6.19,
     "kind": "story"
   },
   "tsukineko-attack-3": {
-    "file": "assets/voices/tsukineko/tsukineko-attack-3-65494379184b.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-attack-3-814b02a5a02d.mp3",
     "who": "tsukineko",
     "text": "当てるよ！",
-    "duration": 0.98,
+    "duration": 0.68,
     "kind": "battle"
   },
   "komusubi-f59f414f": {
@@ -417,10 +418,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-34c8da3e": {
-    "file": "assets/voices/tsukineko/tsukineko-34c8da3e-ab8dfce834a0.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-34c8da3e-492be5939bcb.mp3",
     "who": "tsukineko",
     "text": "間に合う。絶対に、間に合わせる！",
-    "duration": 3.79,
+    "duration": 4.27,
     "kind": "story"
   },
   "nyanluna-427f9300": {
@@ -459,17 +460,17 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-victory-2": {
-    "file": "assets/voices/tsukineko/tsukineko-victory-2-02e01b0d75b1.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-victory-2-880ba4ed78ca.mp3",
     "who": "tsukineko",
     "text": "二人なら、ちゃんと越えられるね！",
-    "duration": 2.73,
+    "duration": 3.44,
     "kind": "battle"
   },
   "tsukineko-lowhp-1": {
-    "file": "assets/voices/tsukineko/tsukineko-lowhp-1-42c16f5574ec.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-lowhp-1-f0ae2b5c70d6.mp3",
     "who": "tsukineko",
     "text": "ちょっと、立て直そう……！",
-    "duration": 2.24,
+    "duration": 3.15,
     "kind": "battle"
   },
   "omsolo-heal-1": {
@@ -480,10 +481,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-blessing-1": {
-    "file": "assets/voices/tsukineko/tsukineko-blessing-1-01e9a0d40c0a.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-blessing-1-2fff0fbff2eb.mp3",
     "who": "tsukineko",
     "text": "この力、使いこなしてみせる！",
-    "duration": 2.75,
+    "duration": 3.64,
     "kind": "battle"
   },
   "nyanluna-victory-2": {
@@ -494,10 +495,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-treasure-1": {
-    "file": "assets/voices/tsukineko/tsukineko-treasure-1-2d071b2a346c.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-treasure-1-a4b3be9d6138.mp3",
     "who": "tsukineko",
     "text": "いいもの見つけた。持って帰ろう！",
-    "duration": 3.09,
+    "duration": 3.55,
     "kind": "battle"
   },
   "nyanluna-b317d4f2": {
@@ -508,17 +509,17 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "tsukineko-victory-1": {
-    "file": "assets/voices/tsukineko/tsukineko-victory-1-25491b3f4f21.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-victory-1-26f29d5e57f1.mp3",
     "who": "tsukineko",
     "text": "やった！ わたしたちの勝ちだね。",
-    "duration": 3.12,
+    "duration": 3.73,
     "kind": "battle"
   },
   "tsukineko-55b9f93b": {
-    "file": "assets/voices/tsukineko/tsukineko-55b9f93b-b8f871561ebb.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-55b9f93b-3f71f03fb9ee.mp3",
     "who": "tsukineko",
     "text": "やっと隣に戻れた。……もう、はぐれたくない。",
-    "duration": 4.9,
+    "duration": 4.94,
     "kind": "story"
   },
   "omsolo-defeat-1": {
@@ -536,17 +537,17 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "tsukineko-62307a56": {
-    "file": "assets/voices/tsukineko/tsukineko-62307a56-9b94dd621a93.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-62307a56-2f8c9675ffce.mp3",
     "who": "tsukineko",
     "text": "うん。いつもどおり、にゃんるなが光でひらいて、わたしが狙う。背中、任せて！",
-    "duration": 8.64,
+    "duration": 8.6,
     "kind": "story"
   },
   "tsukineko-dash-2": {
-    "file": "assets/voices/tsukineko/tsukineko-dash-2-1d4de1c04b0d.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-dash-2-ac00f98831ee.mp3",
     "who": "tsukineko",
     "text": "かわす！",
-    "duration": 0.7,
+    "duration": 0.85,
     "kind": "battle"
   },
   "narrator-e2da479b": {
@@ -585,17 +586,17 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "tsukineko-exit-1": {
-    "file": "assets/voices/tsukineko/tsukineko-exit-1-0f4b97054d52.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-exit-1-4973d63c3864.mp3",
     "who": "tsukineko",
     "text": "出口が開いたよ。先へ進もう！",
-    "duration": 3.13,
+    "duration": 3.62,
     "kind": "battle"
   },
   "tsukineko-55e7d668": {
-    "file": "assets/voices/tsukineko/tsukineko-55e7d668-fc75e98d4bcc.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-55e7d668-15ac5186a932.mp3",
     "who": "tsukineko",
     "text": "にゃんるな……！ ずっと探してた！ 出口に行けば会えるかもって……でも、こいつが強くて。",
-    "duration": 10.02,
+    "duration": 9.48,
     "kind": "story"
   },
   "nyanluna-18e6bf0f": {
@@ -606,10 +607,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "tsukineko-attack-1": {
-    "file": "assets/voices/tsukineko/tsukineko-attack-1-b70c411c782b.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-attack-1-90966afb20ea.mp3",
     "who": "tsukineko",
     "text": "そこっ！",
-    "duration": 0.84,
+    "duration": 0.85,
     "kind": "battle"
   },
   "narrator-ba772d7c": {
@@ -648,10 +649,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "tsukineko-switch-1": {
-    "file": "assets/voices/tsukineko/tsukineko-switch-1-bae6557471f1.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-switch-1-b73ced0d1d09.mp3",
     "who": "tsukineko",
     "text": "ここからは、わたしの番！",
-    "duration": 2.24,
+    "duration": 3.75,
     "kind": "battle"
   },
   "nyanluna-9e40c289": {
@@ -669,24 +670,24 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-start-1": {
-    "file": "assets/voices/tsukineko/tsukineko-start-1-f572cd006a0b.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-start-1-e1f117605f0f.mp3",
     "who": "tsukineko",
     "text": "準備できたよ。さあ、行こう！",
-    "duration": 3.19,
+    "duration": 3.7,
     "kind": "battle"
   },
   "tsukineko-equip-1": {
-    "file": "assets/voices/tsukineko/tsukineko-equip-1-91e0fa01dec8.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-equip-1-1c2b6e8e91e5.mp3",
     "who": "tsukineko",
     "text": "いい重さ。狙いが定まりそう！",
-    "duration": 3.48,
+    "duration": 3.7,
     "kind": "battle"
   },
   "tsukineko-recruit-1": {
-    "file": "assets/voices/tsukineko/tsukineko-recruit-1-4904509622df.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-recruit-1-72fb7c67cb2d.mp3",
     "who": "tsukineko",
     "text": "これからは一緒だよ。よろしくね！",
-    "duration": 2.9,
+    "duration": 3.66,
     "kind": "battle"
   },
   "omsolo-boss-1": {
@@ -704,10 +705,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-hurt-2": {
-    "file": "assets/voices/tsukineko/tsukineko-hurt-2-f70dc213ab21.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-hurt-2-e606cd72eb1b.mp3",
     "who": "tsukineko",
     "text": "これくらい！",
-    "duration": 1.01,
+    "duration": 1.2,
     "kind": "battle"
   },
   "omsolo-2f3a0270": {
@@ -774,10 +775,10 @@ export const VOICE_MANIFEST={
     "kind": "battle"
   },
   "tsukineko-defeat-1": {
-    "file": "assets/voices/tsukineko/tsukineko-defeat-1-d48e403b9cfc.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-defeat-1-049fb796ed2e.mp3",
     "who": "tsukineko",
     "text": "次は負けない。もう一度、作戦を立てよう。",
-    "duration": 4.26,
+    "duration": 4.68,
     "kind": "battle"
   },
   "narrator-ef04c0b0": {
@@ -879,10 +880,10 @@ export const VOICE_MANIFEST={
     "kind": "story"
   },
   "tsukineko-levelup-1": {
-    "file": "assets/voices/tsukineko/tsukineko-levelup-1-864049850c40.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-levelup-1-e3e8894ef0c2.mp3",
     "who": "tsukineko",
     "text": "いい感じ。もっと遠くまで狙えるね。",
-    "duration": 3.73,
+    "duration": 3.75,
     "kind": "battle"
   },
   "nyanluna-7e7e7f28": {
