@@ -1,19 +1,19 @@
 // Silhouettes and colours adapted from the supplied Mochinyafe Dungeon cast.
 import * as THREE from 'three';
 export const MOCHI_ENEMIES=Object.freeze({
- mochiSlime:{name:'スライム',hp:130,speed:1.4,damage:28,radius:.7,role:'もちの里の侵入者',chapter:2,hint:'青いしずくの魔物。近づく前に撃退しよう。',xp:20,crystals:2,buds:3},
- mochiGoblin:{name:'ゴブリン',hp:170,speed:1.9,damage:34,radius:.7,role:'棍棒の近接',chapter:2,hint:'緑の体と木の棍棒。振りかぶりの予告帯から横へ逃げよう。',xp:22,crystals:2,buds:3},
- mochiSkeleton:{name:'スケルトン',hp:145,speed:1.4,damage:30,radius:.65,role:'骨の弓兵',chapter:2,ranged:true,hint:'白い骨の弓兵。橙の照準線を見たら横へ動こう。',xp:23,crystals:2,buds:3},
- mochiOrc:{name:'オーク',hp:320,speed:1.05,damage:48,radius:1,role:'重い一撃',chapter:2,hint:'大きな緑の体と斧。丸い予告から離れ、空振りの後に反撃。',xp:30,crystals:3,buds:4},
- mochiWolf:{name:'ワーウルフ',hp:210,speed:2.55,damage:37,radius:.8,role:'狼の突進',chapter:2,hint:'灰色の狼。赤い帯の先へ飛びかかるので横へ回避しよう。',xp:26,crystals:2,buds:4},
- mochiGolem:{name:'ゴーレム',hp:410,speed:.8,damage:52,radius:1.12,role:'岩の重装',chapter:2,hint:'岩を積み重ねた巨体。足は遅いが近距離の踏みつけは強烈。',xp:34,crystals:3,buds:4},
- mochiDragon:{name:'ドラゴン',hp:270,speed:1.2,damage:38,radius:.95,role:'扇状の炎',chapter:2,ranged:true,hint:'赤い翼と角を持つ竜。三方向の火球の隙間を抜けよう。',xp:32,crystals:3,buds:4},
+ mochiSlime:{name:'スライム',hp:130,speed:1.65,damage:28,radius:.7,role:'跳ねる突進',chapter:2,hint:'青いしずくの魔物。水色の帯に向かって跳び込むので、横へ逃げよう。',xp:20,crystals:2,buds:3},
+ mochiGoblin:{name:'ゴブリン',hp:170,speed:2.15,damage:34,radius:.7,role:'棍棒の二連撃',chapter:2,hint:'棍棒を二度振り下ろす。最初の一撃を避けた後も、予告帯へ戻らないように。',xp:22,crystals:2,buds:3},
+ mochiSkeleton:{name:'スケルトン',hp:145,speed:1.6,damage:30,radius:.65,role:'弓の四連射',chapter:2,ranged:true,hint:'橙の照準を固定して四連射。矢が止まるまで横へ動き続けよう。',xp:23,crystals:2,buds:3},
+ mochiOrc:{name:'オーク',hp:320,speed:1.25,damage:48,radius:1,role:'斧の二段衝撃',chapter:2,hint:'斧の衝撃が二段階に広がる。外側の丸まで離れ、二撃目の後に反撃。',xp:30,crystals:3,buds:4},
+ mochiWolf:{name:'ワーウルフ',hp:210,speed:2.85,damage:37,radius:.8,role:'狼の突進',chapter:2,hint:'短い予告から素早く飛びかかる。赤い帯を横へかわし、止まった隙に反撃。',xp:26,crystals:2,buds:4},
+ mochiGolem:{name:'ゴーレム',hp:410,speed:.95,damage:52,radius:1.12,role:'三連の地響き',chapter:2,hint:'地響きが三つの丸を順に走る。縦に逃げず、予告の列を横へ抜けよう。',xp:34,crystals:3,buds:4},
+ mochiDragon:{name:'ドラゴン',hp:270,speed:1.4,damage:38,radius:.95,role:'七方向の炎',chapter:2,ranged:true,hint:'七方向へ高速の火球を放つ。橙の線の隙間か、竜の背後へ動こう。',xp:32,crystals:3,buds:4},
 });
 export const MOCHI_BOSSES=Object.freeze({
- darkmochi:{name:'ダークもちにゃふぇ・影爪',subtitle:'THE SHADOW PAW',role:'里を襲う黒い影',color:0xff81b2,speed:1.7,radius:1.9,attacks:['影爪の三連撃','闇のふぇ〜','もちもち突進'],hint:'三本の爪痕を横へ回避。闇の声の弾には隙間がある。突進が止まった後に反撃。'},
- dreammochi:{name:'ダークもちにゃふぇ・夢喰',subtitle:'THE DREAM EATER',role:'眠りを奪う影',color:0xc99aff,speed:1.1,radius:2,attacks:['夢喰のまくら','まどろみの輪','ねむねむ落下'],hint:'紫の丸印が順に破裂する。足元に出る大きな丸から早めに離れよう。'},
- bellmochi:{name:'ダークもちにゃふぇ・黒鈴',subtitle:'THE HOLLOW BELL',role:'声を閉じる影',color:0xffc17b,speed:1.25,radius:2,attacks:['黒鈴の十字','こだまの散弾','沈黙の鐘'],hint:'十字の予告の後に斜めの帯が来る。消えた帯へ動くと連撃を避けられる。'},
- kingmochi:{name:'ダークもちにゃふぇ・闇の王',subtitle:'THE LAST ECLIPSE',role:'最後の声を奪う王',color:0xff719a,speed:1.35,radius:2.3,attacks:['最後の夜','王のふぇ〜','孤独の大突進'],hint:'円形の封印と散弾をかわそう。HP半分で攻撃が速まる。大突進の後が救出への好機。'},
+ darkmochi:{name:'ダークもちにゃふぇ・影爪',subtitle:'THE SHADOW PAW',role:'里を襲う黒い影',color:0xff81b2,speed:1.7,radius:1.9,attacks:['影爪の追い連撃','闇のふぇ〜','もちもち突進'],hint:'三本の爪痕の間に二本の追撃が来る。避けた後も予告を見よう。HP半分で弾幕と突進が加速。'},
+ dreammochi:{name:'ダークもちにゃふぇ・夢喰',subtitle:'THE DREAM EATER',role:'眠りを奪う影',color:0xc99aff,speed:1.1,radius:2,attacks:['夢喰のまくら','まどろみの輪','ねむねむ落下'],hint:'六つの夢印が時間差で破裂。落下攻撃は二段階に広がる。HP半分で夢印と弾が増える。'},
+ bellmochi:{name:'ダークもちにゃふぇ・黒鈴',subtitle:'THE HOLLOW BELL',role:'声を閉じる影',color:0xffc17b,speed:1.25,radius:2,attacks:['黒鈴の十字','こだまの散弾','沈黙の鐘'],hint:'十字と斜めの帯を交互にかわそう。HP半分では三連撃。鐘の衝撃も二度広がる。'},
+ kingmochi:{name:'ダークもちにゃふぇ・闇の王',subtitle:'THE LAST ECLIPSE',role:'最後の声を奪う王',color:0xff719a,speed:1.35,radius:2.3,attacks:['最後の夜','王のふぇ〜','孤独の大突進'],hint:'六つの封印と高速の散弾をかわそう。HP半分で八つの封印へ増え、攻撃間隔も短縮。突進後に反撃。'},
 });
 export function buildMochiEnemy(type,bossId,root,body,{part,ball,tube}){
  const boss=type==='boss',wings=[],rotors=[];let focus=null;

@@ -184,13 +184,13 @@ export class Adventure {
     const boss=type==='boss';const hard=this.difficulty==='hard'?1.3:1,power=boss&&elite?ELITE_BOSS_MULTIPLIER:1;
     const spec=boss?BOSSES[this.actConfig.bossId]:ENEMY_TYPES[type];if(!spec)throw new Error(`Unknown enemy: ${type}`);
     const extra=this.actConfig.extra,hp=(boss?this.actConfig.bossHp:spec.hp)*(boss?1:(1+(this.wave-1)*.14)*(extra?this.actConfig.hpScale:1+(this.actConfig.chapter===2?this.act-8:this.act)*.08))*hard*power;
-    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:spec.name+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed*(extra?EXTRA_COMBAT.moveScale:1),damage:(boss?(this.actConfig.chapter===2?62:this.actConfig.chapter===1?45:22):spec.damage)*hard*power*(extra?this.actConfig.damageScale:1),radius:spec.radius*(elite?1.12:1),hit:0,attack:1+this.rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:boss?3:1.4+this.rng(),cast:null,rush:null,recovery:0,enraged:!!extra&&boss,navTimer:0};
+    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:spec.name+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed*(extra?EXTRA_COMBAT.moveScale:1),damage:(boss?(this.actConfig.chapter===2?62:this.actConfig.chapter===1?45:22):spec.damage)*hard*power*(extra?this.actConfig.damageScale:1),radius:spec.radius*(elite?1.12:1),hit:0,attack:1+this.rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:this.actConfig.chapter===2?(boss?2.4:1.1+this.rng()*.7):boss?3:1.4+this.rng(),cast:null,rush:null,recovery:0,enraged:!!extra&&boss,navTimer:0};
     this.enemies.push(e);this.emit('spawn',{id:e.id,x,z,boss});return e;
   }
   spawn(){
     const angle=this.rng()*Math.PI*2;let {x,z}=spawnPoint(this.walkLayout,this.player,angle);
     let type=enemyForSpawn(this.act,this.wave,this.waveSpawned,this.rng());
-    if(isRangedEnemy(type)&&this.enemies.filter(e=>e.hp>0&&isRangedEnemy(e.type)).length>=(this.actConfig.extra?EXTRA_COMBAT.rangedLimit:this.actConfig.chapter===1?4:3))type=this.actConfig.chapter===2?'mochiGoblin':this.actConfig.chapter===1?'reaper':'bat';
+    if(isRangedEnemy(type)&&this.enemies.filter(e=>e.hp>0&&isRangedEnemy(e.type)).length>=(this.actConfig.extra?EXTRA_COMBAT.rangedLimit:this.actConfig.chapter>=1?4:3))type=this.actConfig.chapter===2?'mochiGoblin':this.actConfig.chapter===1?'reaper':'bat';
     if(type!=='boss'&&!this.seenEnemyTypes.has(type)){this.seenEnemyTypes.add(type);if(ENEMY_TYPES[type]?.chapter>=1||['archer','mage','charger'].includes(type))this.emit('enemyIntro',{enemyType:type});}
     const elite=this.route==='elite'&&this.wave%2===0&&(this.wave===6||this.waveSpawned===this.waveGoal-1);
     if(elite)type='boss';
