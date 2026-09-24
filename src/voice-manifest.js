@@ -4,6 +4,7 @@
 // v1.44: Tsukineko retakes use the user-approved blessing voice with scene-specific, warm conversational delivery.
 // v1.45: All 35 Tsukineko clips use a new Irodori voice design with soft, bright and expressive delivery.
 // v1.46: Measured battle loudness supports per-clip normalization before 50% playback. Removed Tsukineko damage grunt.
+// v1.47: Tsukineko damage reaction retaken as a soft, cute ita; calibrated to the existing battle level.
 export const VOICE_MANIFEST={
   "nyanluna-a4069723": {
     "file": "assets/voices/nyanluna/nyanluna-a4069723-47459080630d.mp3",
@@ -1002,11 +1003,11 @@ export const VOICE_MANIFEST={
     "kind": "tutorial"
   },
   "tsukineko-hurt-1": {
-    "file": "assets/voices/tsukineko/tsukineko-hurt-1-e606cd72eb1b.mp3",
+    "file": "assets/voices/tsukineko/tsukineko-hurt-1-5f08b5017c7f.mp3",
     "who": "tsukineko",
-    "text": "これくらい！",
-    "duration": 1.2,
+    "text": "いたっ！",
+    "duration": 0.85,
     "kind": "battle",
-    "normalizationDb": 0.4
+    "normalizationDb": 0.41
   }
 };

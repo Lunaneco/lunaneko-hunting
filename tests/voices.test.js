@@ -23,8 +23,8 @@ test('all playable heroes have attack, damage, dash, ultimate, growth, defeat an
  for(const [who,events] of Object.entries(BATTLE_VOICES))for(const key of ['attack','hurt','dash','ultimate','levelup','switch','support','lowhp','down','victory','defeat','start','wave','boss','exit','blessing','treasure','recruit','heal','equip']){assert.ok(events[key]?.length,`${who}/${key}`);for(const line of events[key])assert.equal(line.who,who);}
 });
 test('Tsukineko damage cues never rotate back to the removed grunt',async()=>{
- const h=harness();h.voice.setMode('battle');assert.deepEqual(BATTLE_VOICES.tsukineko.hurt.map(line=>line.text),['これくらい！']);
- for(let i=0;i<4;i++){h.voice.handle([{type:'hurt'}],{player:{hero:1,hp:100,maxHp:100}});await flush();assert.equal(h.captions.at(-1).text,'これくらい！');h.sources.at(-1).onended();h.advance(1);}
+ const h=harness();h.voice.setMode('battle');assert.deepEqual(BATTLE_VOICES.tsukineko.hurt.map(line=>line.text),['いたっ！']);
+ for(let i=0;i<4;i++){h.voice.handle([{type:'hurt'}],{player:{hero:1,hp:100,maxHp:100}});await flush();assert.equal(h.captions.at(-1).text,'いたっ！');h.sources.at(-1).onended();h.advance(1);}
 });
 test('battle voices match loudness then halve amplitude without changing dialogue gain',()=>{
  for(const normalizationDb of [-4.5,0,1.5]){const gain=voicePlaybackGain({kind:'battle',normalizationDb});assert.ok(Math.abs(gain/(10**(normalizationDb/20))-.5)<1e-10);}

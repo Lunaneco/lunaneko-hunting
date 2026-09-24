@@ -82,7 +82,11 @@ export class Soundscape {
     if(name==='hit')this.tone(180,.07,'triangle',.15,0,70);
     if(name==='collect')this.tone(1300,.09,'sine',.035);
     if(name==='dash')this.tone(300,.2,'sine',.16,0,950);
-    if(name==='hurt'){this.tone(125,.2,'sawtooth',.14,0,48);}
+    if(name==='hurt'){
+      // Keep Tsukineko's light damage reaction clear of the low, rough hit sound.
+      if(detail?.hero===1)this.tone(560,.075,'sine',.075,0,330);
+      else this.tone(125,.2,'sawtooth',.14,0,48);
+    }
     if(name==='switch'){[440,660,880].forEach((n,i)=>this.tone(n,.22,'sine',.13,i*.055));}
     if(name==='upgrade'||name==='wave'){[392,494,587,784].forEach((n,i)=>this.tone(n,.7,'sine',.2,i*.1));}
     if(name==='ultimateGun'){[220,330,660].forEach((n,i)=>this.tone(n,.25,'sawtooth',.06,i*.06));}

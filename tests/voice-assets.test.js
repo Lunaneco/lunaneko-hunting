@@ -12,7 +12,7 @@ test('all remaining battle clips have measured levels and the unwanted grunt is 
  const battle=Object.values(VOICE_MANIFEST).filter(v=>v.kind==='battle');assert.equal(battle.length,80);
  for(const item of battle){assert.ok(Number.isFinite(item.normalizationDb),item.file);assert.ok(item.normalizationDb>-12&&item.normalizationDb<6,item.file);assert.ok(voicePlaybackGain(item)>0&&voicePlaybackGain(item)<1,item.file);}
  assert.ok(!Object.values(VOICE_MANIFEST).some(v=>v.file.endsWith('tsukineko-hurt-1-a7437c6a58d1.mp3')));
- assert.equal(VOICE_MANIFEST['tsukineko-hurt-1'].text,'これくらい！');assert.equal(VOICE_MANIFEST['tsukineko-hurt-2'],undefined);
+ assert.equal(VOICE_MANIFEST['tsukineko-hurt-1'].text,'いたっ！');assert.equal(VOICE_MANIFEST['tsukineko-hurt-2'],undefined);
 });
 
 test('only selected story lines, tutorials and character actions ship voice assets',async()=>{

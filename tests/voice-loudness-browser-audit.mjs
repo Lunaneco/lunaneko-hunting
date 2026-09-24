@@ -54,12 +54,13 @@ try{
  }
  console.log(`PASS ${entries.filter(([,v])=>v.kind==='battle').length} battle clips render at matching loudness and 50% gain; dialogue/tutorial gain stays unchanged`);
  await page.locator('[data-open=settings]').click();await page.locator('#modal .primary[data-close]').click();
- await page.evaluate(()=>{const t=window.__LUNARIA_TEST__;t.start();t.game.enemies=[];t.game.player.hero=1;t.game.pause();t.game.drainEvents();t.voice.stop();});
+ await page.evaluate(()=>{const t=window.__LUNARIA_TEST__;t.start();t.game.enemies=[];t.game.player.hero=1;t.game.pause();t.game.drainEvents();t.voice.stop();const tone=t.audio.tone.bind(t.audio);window.__damageTones=[];t.audio.tone=(...args)=>{window.__damageTones.push({frequency:args[0],duration:args[1],waveform:args[2]});return tone(...args);};});
  for(let i=0;i<4;i++){
-  await page.evaluate(()=>{const t=window.__LUNARIA_TEST__,g=t.game;t.voice.stop();t.voice.cooldowns.clear();g.phase='playing';g.player.hp=g.player.maxHp;g.player.invincible=0;g.hurt(1,0,0);g.pause();t.step(0);});
+  await page.evaluate(()=>{const t=window.__LUNARIA_TEST__,g=t.game;t.voice.stop();t.voice.cooldowns.clear();window.__damageTones=[];g.phase='playing';g.player.hp=g.player.maxHp;g.player.invincible=0;g.hurt(1,0,0);g.pause();t.step(0);});
   await page.waitForFunction(()=>!!window.__LUNARIA_TEST__.voice.current?.source);
-  const state=await page.evaluate(()=>{const v=window.__LUNARIA_TEST__.voice;return {text:v.manifest[v.current.id].text,clipGain:v.clipGain.gain.value,volume:v.gain.gain.value};});
-  assert.equal(state.text,'これくらい！');assert.ok(Math.abs(state.volume-.44)<1e-6);assert.ok(Math.abs(state.clipGain-voicePlaybackGain(VOICE_MANIFEST['tsukineko-hurt-1']))<1e-6);
+  const state=await page.evaluate(()=>{const v=window.__LUNARIA_TEST__.voice;return {text:v.manifest[v.current.id].text,clipGain:v.clipGain.gain.value,volume:v.gain.gain.value,effects:window.__damageTones};});
+  assert.equal(state.text,'いたっ！');assert.ok(Math.abs(state.volume-.44)<1e-6);assert.ok(Math.abs(state.clipGain-voicePlaybackGain(VOICE_MANIFEST['tsukineko-hurt-1']))<1e-6);
+  assert.equal(state.effects.length,1);assert.equal(state.effects[0].waveform,'sine');assert.ok(state.effects[0].frequency>300&&state.effects[0].duration<=.1,'Tsukineko damage must not add a low, rough grunt-like effect');
  }
  console.log('PASS repeated in-game Tsukineko damage only plays the remaining line with normalized half-volume and the saved volume setting');
  assert.deepEqual(errors,[]);await writeFile(`${OUT}/${engine}-loudness-report.json`,JSON.stringify({engine,rows,errors},null,2));await context.close();
