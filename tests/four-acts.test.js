@@ -7,6 +7,7 @@ import {normalizeMissions,missionIndex} from '../src/missions.js';
 import {isHeroUnlocked} from '../src/recruitment.js';
 import {equipUnique,UNIQUE_EQUIPMENT} from '../src/equipment.js';
 import {botInput,chooseOffer} from './bot.js';
+import {trialInput} from './country-bot.js';
 const gate=(g,area)=>{g.phase='playing';g.area=area;g.wave=area*2+2;g.exitOpen=true;g.exitDelay=0;g.pendingBlessings=0;Object.assign(g.player,g.exitPoint);assert.equal(g.crossExit(),true);};
 test('old chapter clear preserves recruitment but only completes act one, including on repeated migration',()=>{
  const p=normalizeProgression({story:{chapterOneCleared:true},characters:{tsukineko:{level:17,xp:4}},inventory:{limitStone:3}},HEROES);
@@ -62,7 +63,7 @@ for(const [act,seed] of [[0,1],[1,3],[2,5],[3,2]])test(`all difficult missions a
  const p=normalizeProgression({story:{version:2,actClears:[true,true,true,true],tsukinekoUnlocked:true},characters:{nyanluna:{level:20},tsukineko:{level:20}}},HEROES);
  const g=new Adventure({act,seed,hero:1,difficulty:'hard',progression:p});
  for(let frame=0;frame<60*300;frame++){
-  while(g.phase==='upgrade')g.chooseSkill(chooseOffer(g));if(g.phase==='transition')g.advanceStage();if(g.phase!=='playing')break;g.tick(1/60,botInput(g));g.drainEvents();
+  while(g.phase==='upgrade')g.chooseSkill(chooseOffer(g));if(g.phase==='transition')g.advanceStage();if(g.phase!=='playing')break;g.tick(1/60,g.enemies.some(e=>e.type==='boss')?trialInput(g):botInput(g));g.drainEvents();
  }
  assert.equal(g.phase,'victory');assert.equal(g.runHits,0);assert.equal(g.earnedMissions.length,act===0?12:11);assert.equal(g.progression.equipment.owned.length,act===0?3:1);assert.equal(g.progression.inventory.limitStone,act===0?0:1);
 });

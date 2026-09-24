@@ -32,9 +32,9 @@ export function normalizeStory(raw,legacy={}){
  const oldClear=raw?.chapterOneCleared===true||legacy?.chapterOneCleared===true;
  const actClears=ACTS.map((_,i)=>raw?.version===2?raw?.actClears?.[i]===true:i===0&&oldClear);
  for(let i=1;i<actClears.length;i++)if(!actClears[i-1])actClears[i]=false;
- return {version:2,actClears,extraClears:EXTRA_ACTS.map(a=>actClears[7]&&raw?.extraClears?.[a.chapter]===true),chapterOneCleared:actClears.slice(0,4).every(Boolean),chapterTwoCleared:actClears.slice(4,8).every(Boolean),tsukinekoUnlocked:raw?.version===2?raw.tsukinekoUnlocked===true||actClears[3]:oldClear,omsoloUnlocked:actClears[7],chapterThreeCleared:actClears.slice(8,12).every(Boolean),mochinyafeUnlocked:actClears[11]};
+ return {version:2,actClears,extraClears:EXTRA_ACTS.map(a=>actClears.slice(0,a.unlockAfterAct+1).every(Boolean)&&raw?.extraClears?.[a.chapter]===true),chapterOneCleared:actClears.slice(0,4).every(Boolean),chapterTwoCleared:actClears.slice(4,8).every(Boolean),tsukinekoUnlocked:raw?.version===2?raw.tsukinekoUnlocked===true||actClears[3]:oldClear,omsoloUnlocked:actClears[7],chapterThreeCleared:actClears.slice(8,12).every(Boolean),mochinyafeUnlocked:actClears[11]};
 }
-export const isActUnlocked=(profile,act)=>Number.isInteger(act)&&act>=0&&act<PLAYABLE_ACTS.length&&(actFor(act).extra?ACTS.slice(0,8).every(a=>profile?.story?.actClears?.[a.id]===true):act===0||profile?.story?.actClears?.[act-1]===true);
+export const isActUnlocked=(profile,act)=>Number.isInteger(act)&&act>=0&&act<PLAYABLE_ACTS.length&&(actFor(act).extra?ACTS.slice(0,actFor(act).unlockAfterAct+1).every(a=>profile?.story?.actClears?.[a.id]===true):act===0||profile?.story?.actClears?.[act-1]===true);
 export const nextAct=profile=>{const next=ACTS.findIndex((_,i)=>!profile.story.actClears[i]);return next<0?ACTS.length-1:next;};
 export function completeAct(profile,act){
  if(!isActUnlocked(profile,act))return false;

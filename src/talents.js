@@ -1,4 +1,5 @@
 import {ENEMY_TYPES} from './enemies.js';
+import {GOLDEN_SLIME} from './golden-slime.js';
 import {LEVEL_RULES,LEVEL_AWAKENING_COSTS} from './level-rules.js';
 import {SKILL_TALENT_NODES} from './skill-tree.js';
 import {personalSkills} from './blessings.js';
@@ -10,11 +11,12 @@ export const MATERIALS=Object.freeze({
   moonPrism:{rarity:2,name:'月虹の結晶',icon:'moon',source:'第2章・チャレンジの門',note:'第2章、または全章のチャレンジモードで、月の門から1個ずつ、全3個。毎回入手でき、第2章の突破ミッションでも獲得。2段目とLv.40・50へのレベル覚醒に使用。'},
   astralCore:{rarity:2,name:'深星の宝珠',icon:'star',source:'第2章・高難度のボス',note:'第2章またはチャレンジモードのボス、全章の分岐の強ボスから毎回1個。第2章の最終エリア突破ミッションでも1個。2段目とLv.40・50へのレベル覚醒に使用。'},
 });
-export const TREE_RESOURCES=Object.freeze({...MATERIALS,limitStone:{name:'覚醒の輝石',icon:'crystal',source:'章クリア・高難度試練',note:'各章の第4幕クリアで毎回1個。各章の時間制限・ノーダメージ試練でも各1個。レベルの道で素材と一緒に使用。必要数は1・2・4個へ増加し、上限を10ずつ解放。'}});
+export const TREE_RESOURCES=Object.freeze({...MATERIALS,limitStone:{name:'覚醒の輝石',icon:'crystal',source:'章クリア・高難度試練・レア討伐',note:'各章の第4幕クリアで毎回1個。第3章の金色のスライム討伐1体につき1個。各章の時間制限・ノーダメージ試練でも各1個。レベルの道で素材と一緒に使用。必要数は1・2・4個へ増加し、上限を10ずつ解放。'}});
 export const MATERIAL_DROPS=Object.freeze({...Object.fromEntries(Object.entries(ENEMY_TYPES).map(([id,s])=>[id,{starBud:s.buds}])),boss:{starBud:3,wardenCore:1}});
 // Higher-rarity rewards supplement normal drops; replaying an eligible stage earns them again.
 export const MATERIAL_DROP_CHANCE=.5;
 export function enemyMaterials(enemy,act,difficulty,random=Math.random){
+  if(enemy.type===GOLDEN_SLIME.type)return {...GOLDEN_SLIME.materials};
   if(enemy.type!=='boss'&&random()>=MATERIAL_DROP_CHANCE)return {};
   return {...MATERIAL_DROPS[enemy.type],...(enemy.type==='boss'&&(act>=4||difficulty==='hard'||enemy.elite)?{astralCore:1}:{})};
 }

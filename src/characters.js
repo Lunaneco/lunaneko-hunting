@@ -18,7 +18,7 @@ export function bakeGroup(group){
 }
 export function createEnemy(type,bossId='eclipse'){
   const root=new THREE.Group(),body=new THREE.Group();root.add(body);let wings=[],rotors=[],focus=null;
-  if(MOCHI_ENEMIES[type]||type==='boss'&&MOCHI_BOSSES[bossId]){({focus,wings,rotors}=buildMochiEnemy(type,bossId,root,body,{part,ball,tube}));
+  if(type==='goldenSlime'||MOCHI_ENEMIES[type]||type==='boss'&&MOCHI_BOSSES[bossId]){({focus,wings,rotors}=buildMochiEnemy(type,bossId,root,body,{part,ball,tube}));
   }else if(CHAPTER_TWO_ENEMIES.includes(type)){
     ({focus,wings,rotors}=buildCountryEnemy(type,root,body,{part,ball,tube,bakeGroup}));
   }else if(type==='moss'){

@@ -40,7 +40,7 @@ test('guest can fire, swap and earn her own XP; paired blessings become eligible
   const g=encounter(finale());g.player.attack=999;g.partner.attack=999;g.enemies=[];g.waveBreak=-100;
   const enemy=g.spawnEnemy('moss',g.partner.x,g.partner.z+3);enemy.hp=1;
   assert.equal(g.attackFrom(g.partner,1,true),true);assert.equal(g.projectiles[0].kind,'gun');
-  for(let i=0;i<15;i++)g.tick(1/60);assert.equal(g.earnedXp.tsukineko,3);assert.equal(g.earnedXp.nyanluna,0);assert.equal(g.switchHero(),true);
+  for(let i=0;i<15;i++)g.tick(1/60);assert.equal(g.earnedXp.tsukineko,3);assert.equal(g.earnedXp.nyanluna,1.5);assert.equal(g.switchHero(),true);
   g.addCrystals(8);g.offerSkills();assert.equal(g.offers.length,3);assert.ok(g.offers.some(s=>s.requires?.length===2));assert.equal(isHeroUnlocked(g.progression,'tsukineko'),false);
 });
 test('boss defeat and guest XP do not recruit; only crossing the final gate persists joining once',()=>{

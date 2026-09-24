@@ -10,8 +10,8 @@ const tick=(g,n=1)=>{for(let i=0;i<n;i++)g.tick(1/60);};
 const quiet=g=>{g.enemies=[];g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.player.attack=g.partner.attack=1000;g.drainEvents();};
 const kill=(g,hero=0,type='moss')=>{const e=g.spawnEnemy(type,10,10);g.hit(e,10000,0,0,false,false,HEROES[hero].id);return e;};
 
-test('kill XP belongs only to its attacker and crystals grant no character XP',()=>{
- const g=new RecruitedAdventure();quiet(g);kill(g,1);assert.equal(g.progressFor(1).xp,3);assert.equal(g.progressFor(0).xp,0);assert.equal(g.stageCrystals,0);assert.equal(g.orbs[0].value,1);
+test('kill XP gives 100% to its attacker and 50% to the deployed partner and crystals grant no character XP',()=>{
+ const g=new RecruitedAdventure();quiet(g);kill(g,1);assert.equal(g.progressFor(1).xp,3);assert.equal(g.progressFor(0).xp,1.5);assert.equal(g.stageCrystals,0);assert.equal(g.orbs[0].value,1);
  const before=structuredClone(g.progression);g.collectAll();g.addCrystals(20);tick(g);assert.equal(g.phase,'upgrade');assert.deepEqual(g.progression.characters,before.characters);assert.equal(g.progression.inventory.moonDew,0);assert.equal(g.progression.missions.stages[0].crystals,12);assert.equal(g.progression.missions.claimed.includes('meadow-crystals'),false);assert.equal(g.offers.length,3);
 });
 test('XP levels a character immediately without opening the crystal choice',()=>{
@@ -19,18 +19,18 @@ test('XP levels a character immediately without opening the crystal choice',()=>
 });
 test('a projectile keeps its caster after swapping before impact',()=>{
  const g=new RecruitedAdventure();quiet(g);const e=g.spawnEnemy('moss',0,-2);e.hp=1;g.attackFrom(g.player,0);assert.equal(g.projectiles[0].heroId,'nyanluna');g.switchHero();g.player.attack=1000;tick(g,30);
- assert.equal(g.kills,1);assert.equal(g.progressFor(0).xp,3);assert.equal(g.progressFor(1).xp,0);
+ assert.equal(g.kills,1);assert.equal(g.progressFor(0).xp,3);assert.equal(g.progressFor(1).xp,1.5);
 });
 test('both gun and magic support attacks award the supporting character',()=>{
- for(const lead of [0,1]){const g=new RecruitedAdventure({hero:lead});quiet(g);const e=g.spawnEnemy('moss',g.partner.x,g.partner.z+2);e.hp=1;g.attackFrom(g.partner,1-lead,true);tick(g,25);assert.equal(g.kills,1);assert.equal(g.progressFor(1-lead).xp,3);assert.equal(g.progressFor(lead).xp,0);}
+ for(const lead of [0,1]){const g=new RecruitedAdventure({hero:lead});quiet(g);const e=g.spawnEnemy('moss',g.partner.x,g.partner.z+2);e.hp=1;g.attackFrom(g.partner,1-lead,true);tick(g,25);assert.equal(g.kills,1);assert.equal(g.progressFor(1-lead).xp,3);assert.equal(g.progressFor(lead).xp,1.5);}
 });
 test('chain explosions credit the triggering attacker and duplicate hits do not award twice',()=>{
  const g=new RecruitedAdventure();quiet(g);g.skills.nova=1;const a=g.spawnEnemy('moss',10,10),b=g.spawnEnemy('bat',11,10);b.hp=1;g.hit(a,999,0,0,false,false,'tsukineko');g.hit(a,999,0,0,false,false,'nyanluna');
- assert.equal(g.kills,2);assert.equal(g.progressFor(1).xp,7);assert.equal(g.progressFor(0).xp,0);assert.equal(g.drainEvents().filter(e=>e.type==='death').length,2);
+ assert.equal(g.kills,2);assert.equal(g.progressFor(1).xp,7);assert.equal(g.progressFor(0).xp,3.5);assert.equal(g.drainEvents().filter(e=>e.type==='death').length,2);
 });
 test('ultimate and orbit credit the controlled hero',()=>{
  const g=new RecruitedAdventure({hero:1});quiet(g);g.spawnEnemy('moss',0,5);g.player.charge=100;g.ultimate();tick(g,120);assert.equal(g.progressFor(1).xp,3);
- g.skills.orbit=1;const angle=(g.time+1/60)*2.3;const e=g.spawnEnemy('moss',g.player.x+Math.cos(angle)*2.5,g.player.z+Math.sin(angle)*2.5);e.hp=1;tick(g);assert.equal(g.progressFor(1).xp,6);assert.equal(g.progressFor(0).xp,0);
+ g.skills.orbit=1;const angle=(g.time+1/60)*2.3;const e=g.spawnEnemy('moss',g.player.x+Math.cos(angle)*2.5,g.player.z+Math.sin(angle)*2.5);e.hp=1;tick(g);assert.equal(g.progressFor(1).xp,6);assert.equal(g.progressFor(0).xp,3);
 });
 test('defeat cannot award a late projectile kill',()=>{
  const g=new RecruitedAdventure({party:['nyanluna']});quiet(g);const e=g.spawnEnemy('boss',10,10);g.player.invincible=0;g.hurt(999,0,0);g.hit(e,9999,0,0);assert.equal(g.kills,0);assert.equal(g.progressFor(0).xp,0);

@@ -1,9 +1,10 @@
 // Combat data is shared by the simulation, readable HUD hints and the renderer.
 import {MOCHI_ENEMIES,MOCHI_BOSSES} from './chapter-three-enemies.js';
 import {actFor} from './acts.js';
+import {GOLDEN_SLIME} from './golden-slime.js';
 export const ELITE_BOSS_MULTIPLIER=2;
 export const ELITE_BOSS_LABEL=`HP×${ELITE_BOSS_MULTIPLIER}・攻撃威力×${ELITE_BOSS_MULTIPLIER}`;
-export const ENEMY_TYPES=Object.freeze({...MOCHI_ENEMIES,
+export const ENEMY_TYPES=Object.freeze({...MOCHI_ENEMIES,goldenSlime:GOLDEN_SLIME,
   moss:{name:'草の魔物',hp:29,speed:1.4,damage:9,radius:.64,role:'近接',hint:'近づいて体当たりする。距離を取ろう。',xp:3,crystals:1,buds:1},
   bat:{name:'月影コウモリ',hp:23,speed:2.35,damage:7,radius:.52,role:'飛行',hint:'素早く接近する。囲まれる前に倒そう。',xp:4,crystals:1,buds:1},
   golem:{name:'遺跡ゴーレム',hp:85,speed:.88,damage:17,radius:.95,role:'重装',hint:'頑丈だが足が遅い。周り込みながら攻撃しよう。',xp:9,crystals:3,buds:2},
@@ -23,14 +24,14 @@ export const CHAPTER_THREE_ENEMIES=Object.freeze(Object.keys(MOCHI_ENEMIES));
 export const enemyRosterForAct=act=>actFor(act)?.chapter===2?CHAPTER_THREE_ENEMIES:actFor(act)?.chapter===1?CHAPTER_TWO_ENEMIES:CHAPTER_ONE_ENEMIES;
 export const isRangedEnemy=type=>ENEMY_TYPES[type]?.ranged===true||['archer','mage'].includes(type);
 export const BOSSES=Object.freeze({...MOCHI_BOSSES,
-  thornmaw:{name:'茨牙の獣王',subtitle:'THE THORNMAW KING',role:'茨をまとう巨獣',color:0xffac69,speed:1.35,radius:2.1,attacks:['狩場の棘','獣王の咆哮','茨牙の突進'],hint:'棘は5か所へ時間差で出現。二段階に広がる咆哮から離れ、突進の後に反撃しよう。HP半分で猛攻。'},
-  basalt:{name:'岩鎧の大蛇',subtitle:'THE JADE COIL',role:'翡翠の岩蛇',color:0x9ff4b6,speed:1.1,radius:2.1,attacks:['蛇骨の地割れ','翡翠の散弾','蛇尾のなぎ払い'],hint:'5方向の地割れの間へ移動。高速の散弾には隙間がある。広い尾の予告帯を離れよう。HP半分で猛攻。'},
-  ironbell:{name:'鉄鐘の門衛',subtitle:'THE IRON BELL KEEPER',role:'鐘楼の鉄騎士',color:0xd7acff,speed:.8,radius:2,attacks:['封鎖の十字','鐘楼の落雷','鉄槌の一撃'],hint:'十字の衝撃に続き、斜めの衝撃が来る。先に消えた帯へ移動して連続攻撃を避けよう。HP半分で猛攻。'},
-  colossus:{name:'蹂躙の巨神・ヴォルガント',subtitle:'VOLGANT · THE STARBREAKER',role:'砦を砕く巨神',color:0xff876e,speed:.95,radius:2.65,attacks:['巨腕の崩落','落星の包囲','星砦砕き'],hint:'Lv.30を目安に準備し、180秒以内にオムソロを救出。巨腕の三連撃は時間差。HP半分から猛攻が速まる。'},
-  treant:{name:'封印の番人',subtitle:'THE ROOTBOUND SENTINEL',role:'古樹の巨人',color:0xf4b56e,speed:1,radius:1.9,attacks:['根縛り','種子の三連弾','根の突進'],hint:'根の魔法陣を避け、種子の三連弾の横へ。突進の後が好機。'},
-  chronarch:{name:'時守の残響',subtitle:'THE ASTRAL CHRONARCH',role:'浮遊する星時計',color:0xffd079,speed:.9,radius:1.7,attacks:['五刻の魔法陣','時針の十字砲','時計仕掛けの連射'],hint:'五つの刻印と十字の予告線に注意。線の間へ動こう。'},
-  tempest:{name:'雲海の番人',subtitle:'THE CLOUDSEA WYVERN',role:'雲海の翼竜',color:0xff9c7e,speed:1.3,radius:1.85,attacks:['風の三重奏','星羽の円環','翼竜の急降下'],hint:'星羽には隙間がある。急降下は長い予告帯の横へ回避。'},
-  eclipse:{name:'月蝕の守護者',subtitle:'THE ECLIPSE WARDEN',role:'月を抱く石の守り手',color:0xff749d,speed:1.1,radius:1.9,attacks:['月蝕の刻印','欠け月の星弾','月蝕の突進'],hint:'刻印・星弾・突進を使う。HP半分で月蝕が深まり、攻撃が速くなる。'},
+  thornmaw:{name:'茨牙の獣王',subtitle:'THE THORNMAW KING',role:'茨をまとう巨獣',color:0xffac69,speed:1.35,radius:2.1,attacks:["追い込む茨爪","三段の獣吼","獣王の跳撃"],hint:'左右の茨爪が中央へ迫り、最後に噛み砕く。咆哮は内から外へ三段階。突進先の爆発と、その外側の衝撃までかわして反撃。'},
+  basalt:{name:'岩鎧の大蛇',subtitle:'THE JADE COIL',role:'翡翠の岩蛇',color:0x9ff4b6,speed:1.1,radius:2.1,attacks:["蛇行する地割れ","脱皮の岩礫","蛇尾の連続薙ぎ"],hint:'蛇のように曲がる地割れを横へ抜けよう。岩礫は角度を変えて連射。尾は扇状に順番になぎ払うので、消えた帯へ切り返そう。'},
+  ironbell:{name:'鉄鐘の門衛',subtitle:'THE IRON BELL KEEPER',role:'鐘楼の鉄騎士',color:0xd7acff,speed:.8,radius:2,attacks:["開門の交差鐘","波紋の三重奏","落鐘の断罪"],hint:'十字と斜めの鐘撃を交互に回避。輪の波紋には安全な中央がある。足元への落鐘の後、十字の亀裂が走るので斜めへ逃げよう。'},
+  colossus:{name:'蹂躙の巨神・ヴォルガント',subtitle:'VOLGANT · THE STARBREAKER',role:'砦を砕く巨神',color:0xff876e,speed:.95,radius:2.65,attacks:["蹂躙する巨歩","砦を砕く流星群","双腕・地殻崩し"],hint:'Lv.30を目安に準備し、180秒以内に救出。足踏みから輪状の余震、流星と星弾の同時攻撃。左右の亀裂の後は中央が砕ける。'},
+  treant:{name:'封印の番人',subtitle:'THE ROOTBOUND SENTINEL',role:'古樹の巨人',color:0xf4b56e,speed:1,radius:1.9,attacks:["這い根の分岐","芽吹きの連弾","根走りの挟撃"],hint:'足元から左右へ根が連鎖。横へ逃げ続けず根の列を縦に抜けよう。種弾は二連射、突進後には左右の根が追撃。HP半分で連撃が増加。'},
+  chronarch:{name:'時守の残響',subtitle:'THE ASTRAL CHRONARCH',role:'浮遊する星時計',color:0xffd079,speed:.9,radius:1.7,attacks:["終刻の文字盤","回転する時針","巻き戻しの連射"],hint:'刻印が時計回りに破裂し、最後に中央を攻撃。十字の針は三段階に回転。先に消えた線へ移り、連射が止まってから反撃。'},
+  tempest:{name:'雲海の番人',subtitle:'THE CLOUDSEA WYVERN',role:'雲海の翼竜',color:0xff9c7e,speed:1.3,radius:1.85,attacks:["薙ぎ渡る風壁","旋回する星羽","急降下の風圧"],hint:'風の帯が横から順に通過。消えた帯へ切り返そう。星羽は切れ目が動く連続弾幕。急降下の後は着地点を囲む風圧に注意。'},
+  eclipse:{name:'月蝕の守護者',subtitle:'THE ECLIPSE WARDEN',role:'月を抱く石の守り手',color:0xff749d,speed:1.1,radius:1.9,attacks:["満ち欠けの月蝕","螺旋の欠け月","月影の残響"],hint:'輪の中央へ入り、続く中央爆発では外へ。星弾は切れ目が動く連射。突進した跡にも月影が連鎖する。HP半分で三連撃へ。'},
 });
 export const BOSS_IDS=Object.freeze(['treant','chronarch','tempest','eclipse','thornmaw','basalt','ironbell','colossus',...Object.keys(MOCHI_BOSSES)]);
 export function enemyForSpawn(act,wave,index,roll){
@@ -55,6 +56,7 @@ export function enemyForSpawn(act,wave,index,roll){
   for(const [id,weight] of available){value-=weight;if(value<0)return id;}return 'moss';
 }
 export function distanceToHazard(x,z,h){
+  if(h.shape==='ring'){const r=Math.hypot(x-h.x,z-h.z);return Math.max(h.innerRadius-r,r-h.radius);}
   if(h.shape!=='line')return Math.hypot(x-h.x,z-h.z)-h.radius;
   const dx=x-h.x,dz=z-h.z,along=dx*Math.sin(h.angle)+dz*Math.cos(h.angle),across=dx*Math.cos(h.angle)-dz*Math.sin(h.angle);
   const a=Math.abs(along)-h.length/2,b=Math.abs(across)-h.width/2;

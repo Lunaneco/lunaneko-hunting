@@ -114,22 +114,29 @@ export class World {
     for(const e of events){
       if(e.type==='attack'){const hero=this.heroes[e.hero];hero.userData.attackTime=ATTACK_DURATION;if(e.hero===1)this.burst(e.x+Math.sin(e.angle)*1.05,e.z+Math.cos(e.angle)*1.05,0xb8f4ff,7,2);if(e.hero===2){const slash=createSwordSlash({...e,color:e.color??0x85ffae,name:'omsolo-saber-slash'});slash.mesh.position.y+=game.layout.height;this.fx.add(slash.mesh);this.rings.push(slash);}}
       if(e.type==='hit'){this.burst(e.x,e.z,e.crit?0xffdd99:0xc8eef5,e.crit?12:5,2.4);this.numbers.push({x:e.x,y:(this.surface?.height??0)+2.25,z:e.z,text:e.damage,crit:e.crit,life:.7,max:.7});if(this.numbers.length>40)this.numbers.shift();}
-      if(e.type==='death'){this.burst(e.x,e.z,e.enemyType==='boss'?0xffe3a8:0xb6ead3,e.enemyType==='boss'?150:23,4);this.ring(e.x,e.z,0xc8f5d3,1.1,.35);}
+      if(e.type==='death'){this.burst(e.x,e.z,e.enemyType==='boss'||e.enemyType==='goldenSlime'?0xffe3a8:0xb6ead3,e.enemyType==='boss'?150:23,4);this.ring(e.x,e.z,0xc8f5d3,1.1,.35);}
       if(e.type==='dash'){this.burst(e.x,e.z,0xcde7ff,24,1.8);this.ring(e.x,e.z,0xcdeaff,1.4,.3);}
       if(e.type==='switch'){this.ring(e.x,e.z,0xe2c6ff,2.1,.55);this.burst(e.x,e.z,0xdeccff,30,2);}
       if(e.type==='ultimate'){this.shake=this.settings.motion===false?0:(e.hero===0?.38:.22);this.burst(e.x,e.z,e.hero===0?0xe8c3ff:e.hero===2?0x9dffb8:0x95f2ff,65,e.hero===0?7:3);this.ring(e.x,e.z,e.hero===0?0xe4b9ff:e.hero===2?0x78ffad:0x8bf0ff,e.hero===0?3:1.8,.55);}
       if(e.type==='saberPulse'){this.heroes[2].userData.attackTime=ATTACK_DURATION;this.ring(e.x,e.z,0x85ffae,e.radius,.3);this.burst(e.x,e.z,0xbcffd0,36,4);}
+      if(e.type==='rareSpawn'){this.burst(e.x,e.z,0xffdb70,36,3);this.ring(e.x,e.z,0xffd56b,2,.8);}
+      if(e.type==='rareEscape'){this.burst(e.x,e.z,0xffe7ae,24,2);this.ring(e.x,e.z,0xffe7ae,1.2,.6);}
+      if(e.type==='rareDefeated'){this.burst(e.x,e.z,0xffd467,90,5);this.ring(e.x,e.z,0xffe4a3,3,.8);}
       if(e.type==='mochiCryHit'){this.ring(e.x,e.z,0xffbddb,e.boss?2:1,.6);this.numbers.push({x:e.x,y:(this.surface?.height??0)+2.7,z:e.z,text:e.boss?'攻↓ 防↓':'すやぁ…',crit:false,life:.85,max:.85});}
       if(e.type==='ultimatePulse'){this.ring(e.x,e.z,e.heroId==='mochinyafe'?0xffb8d4:0xe8c3ff,e.radius,.5);this.burst(e.x,e.z,0xe3c5ff,44,6);}
       if(e.type==='ultimateShot'){this.heroes[1].userData.attackTime=ATTACK_DURATION;this.burst(e.x+Math.sin(e.angle)*1.05,e.z+Math.cos(e.angle)*1.05,0xb8f4ff,14,3);}
       if(e.type==='hurt')this.shake=this.settings.motion===false?0:.18;
-      if(e.type==='nova')this.ring(e.x,e.z,0xffdda3,3.8,.4);
+      if(e.type==='nova')this.ring(e.x,e.z,0xffdda3,e.radius??3.8,.4);
       if(e.type==='hazard'){
         if(e.shape==='line'){for(let z=-e.length/2;z<=e.length/2;z+=2)this.burst(e.x+Math.sin(e.angle)*z,e.z+Math.cos(e.angle)*z,e.color??0xffbcd4,5,2);}
+        else if(e.shape==='ring'){
+          // Keep the safe centre empty when the annular hit resolves, too.
+          const mesh=createTelegraph({...e,kind:'shockwave',timer:0,total:1});mesh.position.set(e.x,(this.surface?.height??0),e.z);this.fx.add(mesh);this.rings.push({mesh,kind:'shockwave',life:.4,max:.4});
+        }
         else{this.ring(e.x,e.z,e.color??0xffa3b4,e.radius,.4);this.burst(e.x,e.z,e.color??0xffbcd4,18,3);}
       }
       if(e.type==='enemyShot')this.burst(e.x,e.z,e.color,5,1.5);
-      if(e.type==='passageEntered'){this.particleData.forEach(p=>p.life=0);for(const r of this.rings){r.mesh.removeFromParent();r.mesh.geometry.dispose();r.mesh.material.dispose();}this.rings=[];this.numbers=[];}
+      if(e.type==='passageEntered'){this.particleData.forEach(p=>p.life=0);for(const r of this.rings){r.mesh.removeFromParent();r.mesh.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}this.rings=[];this.numbers=[];}
       if(e.type==='stageEntered')this.cameraTarget.set(game.player.x*FIELD_CAMERA.follow,game.layout.height,game.player.z*FIELD_CAMERA.follow);
       if(e.type==='wave'&&this.area!==(e.theme??e.area)){this.area=e.theme??e.area;this.fields.setArea(this.area,{immediate:this.settings.motion===false});}
     }
@@ -150,7 +157,7 @@ export class World {
       this.syncMap(this.orbMeshes,game.orbs,o=>{const m=new THREE.Mesh(new THREE.OctahedronGeometry(o.value>1?.18:.13),material(0xc7f3ce,.7));m.userData.disposable=true;return m;},(m,o)=>{m.position.set(o.x,game.layout.height+.3+Math.sin(t*4+o.id)*.1,o.z);m.rotation.y=t;});
       this.syncMap(this.hazardMeshes,game.hazards,createTelegraph,(m,h)=>{updateTelegraph(m,h);m.position.y=game.layout.height;});
       this.syncMap(this.ultimateMeshes,game.ultimateEffects.filter(e=>e.kind==='sanctuary'),createSanctuary,(m,e)=>{updateSanctuary(m,e);m.position.y+=game.layout.height;});
-      this.orbit.forEach((s,i)=>{s.visible=i<game.rank('orbit');const a=game.time*2.3+i/Math.max(1,game.rank('orbit'))*Math.PI*2;s.position.set(p.x+Math.cos(a)*2.5,game.layout.height+1.0+Math.sin(t*3)*.15,p.z+Math.sin(a)*2.5);s.rotation.y=t*2;});
+      this.orbit.forEach((s,i)=>{s.visible=i<game.effectRank('orbit');const a=game.time*2.3+i/Math.max(1,game.effectRank('orbit'))*Math.PI*2;s.position.set(p.x+Math.cos(a)*2.5,game.layout.height+1.0+Math.sin(t*3)*.15,p.z+Math.sin(a)*2.5);s.rotation.y=t*2;});
     }else{if(this.rescueDome)this.rescueDome.visible=false;this.heroes.forEach((h,i)=>{h.visible=i<2;animateHero(h,{x:i===0?-1.1:1.1,z:i===0?0:.3,face:.35,moving:false,invincible:0},t,dt,i===0);});}
     this.camera.position.copy(this.cameraTarget).add(FIELD_CAMERA.offset);if(this.shake>0){this.camera.position.x+=Math.sin(t*72)*this.shake*.4;this.camera.position.y+=Math.cos(t*88)*this.shake*.3;}
     this.camera.lookAt(this.cameraTarget.x,this.cameraTarget.y+FIELD_CAMERA.lookHeight,this.cameraTarget.z);
@@ -160,7 +167,7 @@ export class World {
     }
     this.fields.update(dt,this.cameraTarget,this.settings.motion!==false);this.stageGate.update(game,t);
     if(this.grassShader)this.grassShader.uniforms.uTime.value=t;this.portalCore.rotation.y=t*.7;this.portalCore.position.y=3.45+Math.sin(t*1.5)*.18;this.portalGlow.rotation.z=t*.1;this.motes.rotation.y=t*.008;
-    for(let i=this.rings.length-1;i>=0;i--){const r=this.rings[i];if(r.kind==='sword-slash')updateSwordSlash(r,dt);else{r.life-=dt;r.mesh.material.opacity=Math.max(0,r.life/r.max)*.8;r.mesh.scale.setScalar(.7+(1-r.life/r.max)*.65);}if(r.life<=0){r.mesh.removeFromParent();r.mesh.geometry.dispose();r.mesh.material.dispose();this.rings.splice(i,1);}}
+    for(let i=this.rings.length-1;i>=0;i--){const r=this.rings[i];if(r.kind==='sword-slash')updateSwordSlash(r,dt);else if(r.kind==='shockwave'){r.life-=dt;r.mesh.traverse(o=>{if(o.material)o.material.opacity=Math.max(0,r.life/r.max)*.7;});}else{r.life-=dt;r.mesh.material.opacity=Math.max(0,r.life/r.max)*.8;r.mesh.scale.setScalar(.7+(1-r.life/r.max)*.65);}if(r.life<=0){r.mesh.removeFromParent();r.mesh.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});this.rings.splice(i,1);}}
     for(let i=0;i<this.capacity;i++){const p=this.particleData[i];p.life-=dt;if(p.life>0){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.vy-=5*dt;this.particlePositions[i*3]=p.x;this.particlePositions[i*3+1]=p.y;this.particlePositions[i*3+2]=p.z;}else this.particlePositions[i*3+1]=-100;}
     this.particleMesh.geometry.attributes.position.needsUpdate=true;this.particleMesh.geometry.attributes.color.needsUpdate=true;
     this.numbers=this.numbers.filter(n=>{n.life-=dt;n.y+=dt*1.4;return n.life>0;});
@@ -169,7 +176,7 @@ export class World {
   project(x,y,z){const v=new THREE.Vector3(x,y,z).project(this.camera);return {x:(v.x*.5+.5)*this.canvas.clientWidth,y:(-v.y*.5+.5)*this.canvas.clientHeight,visible:v.z<1};}
   resize(){const w=Math.max(1,this.canvas.clientWidth),h=Math.max(1,this.canvas.clientHeight);this.renderer.setSize(w,h,false);resizeFieldCamera(this.camera,w,h,this.tutorialFraming);this.composer?.setSize(w,h);}
   setQuality(quality){this.settings.quality=quality;this.renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='low'?1:1.65));this.renderer.shadowMap.enabled=quality!=='low';this.resize();}
-  reset(){this.rescueDome.visible=false;this.terrain.update(null,0);for(const map of [this.entities,this.bullets,this.orbMeshes,this.hazardMeshes,this.ultimateMeshes])this.syncMap(map,[],()=>{},()=>{});for(const r of this.rings){r.mesh.removeFromParent();r.mesh.geometry.dispose();r.mesh.material.dispose();}this.rings=[];this.numbers=[];this.particleData.forEach(p=>p.life=0);this.cameraTarget.set(0,0,0);this.area=-1;this.fields.setArea(0,{immediate:true});this.stageGate.update(null,0);this.orbit.forEach(o=>o.visible=false);this.heroes.forEach(h=>{h.visible=true;h.userData.rig.visible=true;h.userData.attackTime=0;h.userData.movement=0;});}
+  reset(){this.rescueDome.visible=false;this.terrain.update(null,0);for(const map of [this.entities,this.bullets,this.orbMeshes,this.hazardMeshes,this.ultimateMeshes])this.syncMap(map,[],()=>{},()=>{});for(const r of this.rings){r.mesh.removeFromParent();r.mesh.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}this.rings=[];this.numbers=[];this.particleData.forEach(p=>p.life=0);this.cameraTarget.set(0,0,0);this.area=-1;this.fields.setArea(0,{immediate:true});this.stageGate.update(null,0);this.orbit.forEach(o=>o.visible=false);this.heroes.forEach(h=>{h.visible=true;h.userData.rig.visible=true;h.userData.attackTime=0;h.userData.movement=0;});}
   stats(){return {calls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures};}
 }
 function materialsShared(mat){return mat instanceof THREE.MeshStandardMaterial;}

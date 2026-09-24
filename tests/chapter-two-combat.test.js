@@ -71,10 +71,10 @@ test('normal enemy special damage scales by exactly 30% in challenge mode',()=>{
 });
 test('all chapter-two bosses have stronger specials and enter a faster second phase once',()=>{
  for(let act=4;act<8;act++){
-  const {g,e}=cast('boss',{act});assert.ok(e.maxHp>=4200);assert.equal(e.damage,45);assert.equal(e.special,4.2);assert.ok(g.hazards[0].damage>=23*1.7);
-  e.hp=e.maxHp*.49;e.cast=null;e.recovery=0;e.special=0;g.tick(1/60);assert.equal(e.enraged,true);assert.equal(e.special,3.1);assert.equal(g.drainEvents().filter(e=>e.type==='bossPhase').length,1);g.tick(1/60);assert.equal(g.drainEvents().filter(e=>e.type==='bossPhase').length,0);
+  const {g,e}=cast('boss',{act});assert.ok(e.maxHp>=4200);assert.equal(e.damage,45);assert.equal(e.special,3.35);assert.ok(g.hazards[0].damage>=23*1.7);
+  e.hp=e.maxHp*.49;e.cast=null;e.recovery=0;e.special=0;g.tick(1/60);assert.equal(e.enraged,true);assert.equal(e.special,2.5);assert.equal(g.drainEvents().filter(e=>e.type==='bossPhase').length,1);g.tick(1/60);assert.equal(g.drainEvents().filter(e=>e.type==='bossPhase').length,0);
  }
- const {e}=cast('boss',{act:0});assert.equal(e.damage,22);assert.equal(e.special,5.1);
+ const {e}=cast('boss',{act:0});assert.equal(e.damage,22);assert.equal(e.special,4.1);
 });
 for(const difficulty of ['normal','hard'])for(let act=4;act<8;act++)test(`Lv.30 can clear act ${act-3} (${difficulty}) without tree bonuses or unique equipment`,()=>{
  const g=playRun(new Adventure({act,difficulty,hero:1,seed:1,progression:levelThirtyProfile()}));assert.equal(g.phase,'victory',`wave ${g.wave} / HP ${g.player.hp}`);assert.equal(g.kills,ACTS[act].counts.reduce((a,b)=>a+b));assert.ok(g.player.hp>0);
@@ -85,7 +85,7 @@ test('dense telegraphs use two meshes while retaining their dimensions and indep
   const h={shape,width:1.8,length:19,radius:3,x:2,z:-4,angle:.3,timer:1,total:1},m=createTelegraph(h),box=new Box3().setFromObject(m);
   assert.equal(m.children.length,2);assert.notEqual(m.children[0].material,m.children[1].material);
   assert.ok(Math.abs(box.max.x-box.min.x-(shape==='line'?1.885:6))<.01);assert.ok(Math.abs(box.max.z-box.min.z-(shape==='line'?19.085:6))<.01);
-  const outline=m.children[1].material.opacity;updateTelegraph(m,h);const start=m.children[0].material.opacity;h.timer=0;updateTelegraph(m,h);assert.ok(m.children[0].material.opacity>start);assert.equal(m.children[1].material.opacity,outline);
+  updateTelegraph(m,h);const outline=m.children[1].material.opacity,start=m.children[0].material.opacity;h.timer=0;updateTelegraph(m,h);assert.ok(m.children[0].material.opacity>start);assert.equal(m.children[1].material.opacity,outline);
   m.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});
  }
 });

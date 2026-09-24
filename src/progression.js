@@ -10,6 +10,8 @@ export {LEVEL_RULES} from './level-rules.js';
 export const PROGRESSION_KEY='lunaria-progression-v1';
 export const ENEMY_REWARDS=Object.freeze({...Object.fromEntries(Object.entries(ENEMY_TYPES).map(([id,s])=>[id,{xp:s.xp,crystals:s.crystals}])),boss:{xp:60,crystals:0}});
 const integer=(n,fallback=0,max=99999999)=>Number.isFinite(n)&&n>=0?Math.min(max,Math.floor(n)):fallback;
+// Half XP is exact in binary and survives saves, level-ups and level-cap banking.
+const xpValue=n=>Number.isFinite(n)&&n>=0?Math.floor(Math.min(99999999,n)*2)/2:0;
 const safeId=id=>typeof id==='string'&&/^[a-z0-9_-]{1,64}$/i.test(id)&&!['__proto__','constructor','prototype'].includes(id);
 export function levelCap(character){return Math.min(LEVEL_RULES.maxLevel,LEVEL_RULES.initialCap+character.breaks*LEVEL_RULES.capStep);}
 export function xpRequired(level){return 48+level*24+Math.max(0,level-20)**2;}
@@ -23,7 +25,7 @@ export function normalizeProgression(raw,roster=[],legacyRecord={}){
   result.tutorial={firstBattleCompleted:raw?.tutorial?.firstBattleCompleted===true};
   for(const id of new Set([...Object.keys(source),...roster.map(h=>h.id)])){
     if(!safeId(id))continue;const item=source[id],breaks=integer(item?.breaks,0,(LEVEL_RULES.maxLevel-LEVEL_RULES.initialCap)/LEVEL_RULES.capStep);
-    const character={level:Math.max(1,integer(item?.level,1)),xp:integer(item?.xp),breaks};character.level=Math.min(character.level,levelCap(character));
+    const character={level:Math.max(1,integer(item?.level,1)),xp:xpValue(item?.xp),breaks};character.level=Math.min(character.level,levelCap(character));
     applyBankedXp(character);character.tree=normalizeTalentTree(item?.tree,character.level);result.characters[id]=character;
   }
   result.blessingLoadouts=normalizeSkillLoadouts(raw?.blessingLoadouts,result);
@@ -39,9 +41,9 @@ function applyBankedXp(character){
 }
 export function awardCharacterXp(profile,id,amount){
   const character=characterProgress(profile,id);if(!character)return null;
-  const before=character.level,value=integer(amount);
+  const before=character.level,value=Math.min(xpValue(amount),99999999-character.xp);
   if(character.level>=LEVEL_RULES.maxLevel)return {heroId:id,amount:0,before,level:before};
-  character.xp=integer(character.xp+value);applyBankedXp(character);
+  character.xp=xpValue(character.xp+value);applyBankedXp(character);
   return {heroId:id,amount:value,before,level:character.level};
 }
 export function characterStats(hero,character){

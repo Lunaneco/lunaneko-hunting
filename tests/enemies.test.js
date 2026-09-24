@@ -9,10 +9,10 @@ import {createEnemy,animateEnemy} from '../src/characters.js';
 function quiet(act=0,party){const g=new Adventure({seed:4,act,party,progression:{story:{version:2,actClears:[true,true,true,true],tsukinekoUnlocked:true}}});g.enemies=[];g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.player.attack=g.partner.attack=999;g.player.invincible=0;g.drainEvents();return g;}
 const tick=(g,seconds)=>{for(let i=0;i<Math.ceil(seconds*60)&&g.phase==='playing';i++)g.tick(1/60);};
 test('nineteen regular enemy types have unique roles and complete XP, crystal and material rewards',()=>{
- assert.equal(Object.keys(ENEMY_TYPES).length,19);
- for(const [type,spec] of Object.entries(ENEMY_TYPES)){
+ assert.equal(Object.values(ENEMY_TYPES).filter(s=>!s.rare).length,19);
+ for(const [type,spec] of Object.entries(ENEMY_TYPES).filter(([,s])=>!s.rare)){
   assert.equal(ENEMY_REWARDS[type].xp,spec.xp);assert.equal(MATERIAL_DROPS[type].starBud,spec.buds);
-  const g=quiet(),e=g.spawnEnemy(type,10,10);g.materialRng=()=>0;g.hit(e,9999,0,0,false,false,'tsukineko');assert.equal(g.earnedXp.tsukineko,spec.xp);assert.equal(g.earnedXp.nyanluna,0);assert.equal(g.orbs[0].value,spec.crystals);assert.equal(g.earnedMaterials.starBud,spec.buds);
+  const g=quiet(),e=g.spawnEnemy(type,10,10);g.materialRng=()=>0;g.hit(e,9999,0,0,false,false,'tsukineko');assert.equal(g.earnedXp.tsukineko,spec.xp);assert.equal(g.earnedXp.nyanluna,spec.xp/2);assert.equal(g.orbs[0].value,spec.crystals);assert.equal(g.earnedMaterials.starBud,spec.buds);
  }
 });
 test('new enemy types appear in predictable introductory waves and every act has a different boss',()=>{
@@ -61,7 +61,7 @@ test('boss attacks differ: roots, clock beams, winged dives, and an eclipse phas
   const g=quiet(act),e=g.spawnEnemy('boss',0,-6);const attacks=[];
   for(let action=0;action<3;action++){
    e.special=0;e.cast=null;e.rush=null;e.recovery=0;g.hazards=[];g.projectiles=[];g.tick(1/60);attacks.push(g.drainEvents().find(event=>event.type==='bossAttack').label);
-   if(act===1&&action===1){assert.equal(g.hazards.filter(h=>h.shape==='line'&&h.damage>0).length,4);}
+   if(act===1&&action===1){assert.equal(g.hazards.filter(h=>h.shape==='line'&&h.damage>0).length,12);}
    if(e.cast?.kind==='charge')assert.ok(g.hazards[0].width>=e.radius*2,'charge warning covers the full body');
    if(act===2&&action===2){assert.equal(e.cast.kind,'charge');assert.equal(e.cast.speed,14);}
   }

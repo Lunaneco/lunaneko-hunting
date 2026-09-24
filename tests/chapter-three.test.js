@@ -23,8 +23,8 @@ const gate=g=>{g.phase='playing';g.wave=6;g.exitOpen=true;g.exitDelay=0;g.pendin
 test('chapter three opens after chapter two; existing extras, wallets and heroes survive migration',()=>{
  for(const n of [0,4,7])assert.equal(isActUnlocked(profile(n),8),false);
  const old=profile(8);old.story.extraClears=[true,false];old.inventory.starBud=456;const restored=normalizeProgression(JSON.parse(JSON.stringify(old)),HEROES);
- assert.ok(isActUnlocked(restored,8));assert.equal(isActUnlocked(restored,9),false);assert.deepEqual(restored.story.extraClears,[true,false]);assert.equal(restored.inventory.starBud,456);assert.equal(restored.characters.mochinyafe.level,1);
- for(const a of EXTRA_ACTS)assert.ok(isActUnlocked(restored,a.id));assert.equal(isHeroUnlocked(restored,'mochinyafe'),false);
+ assert.ok(isActUnlocked(restored,8));assert.equal(isActUnlocked(restored,9),false);assert.deepEqual(restored.story.extraClears,[true,false,false]);assert.equal(restored.inventory.starBud,456);assert.equal(restored.characters.mochinyafe.level,1);
+ for(const a of EXTRA_ACTS)assert.equal(isActUnlocked(restored,a.id),a.chapter<2);assert.equal(isHeroUnlocked(restored,'mochinyafe'),false);
 });
 test('only the last chapter-three gate recruits Mochinyafe once and saves it permanently',()=>{
  const g=quiet({act:11,progression:profile(11),party:['mochinyafe'],hero:3});assert.equal(g.party.includes('mochinyafe'),false);
@@ -59,9 +59,9 @@ test('bosses keep moving but attack and defense debuffs apply and expire without
  hp=e.hp;g.hit(e,70,0,0);assert.equal(hp-e.hp,70);
  mochiCryHit(g,e,{ultimate:true});assert.equal(e.mochiAttackDown,.4);g.time+=8;mochiCryHit(g,e);assert.equal(e.mochiAttackDown,.3);
 });
-test('assisted kills grow Mochi as well as the killer; repeating a dead hit never doubles experience',()=>{
+test('assisted kills give Mochi half XP without an additional assist award; repeating a dead hit never doubles experience',()=>{
  const g=quiet(),e=target(g);mochiCryHit(g,e);g.hit(e,1e8,0,0,false,false,'nyanluna');
- assert.equal(g.earnedXp.mochinyafe,22);assert.equal(g.earnedXp.nyanluna,22);g.hit(e,1e8,0,0);assert.equal(g.earnedXp.mochinyafe,22);
+ assert.equal(g.earnedXp.mochinyafe,11);assert.equal(g.earnedXp.nyanluna,22);g.hit(e,1e8,0,0);assert.equal(g.earnedXp.mochinyafe,11);
 });
 test('every supplied clip is used, normalized, and battle playback remains at half-volume policy',()=>{
  assert.equal(MOCHI_VOICE_CLIPS.length,4);assert.equal(new Set(Object.values(MOCHI_VOICE_MANIFEST).map(v=>v.file)).size,4);

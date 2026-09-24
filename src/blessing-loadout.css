@@ -26,3 +26,11 @@
 .blessing-loadout .blessing-loadout-note{font-size:11px;padding-top:16px;margin-bottom:0;border-top:1px solid #bdc8d32d;color:#b3c7db}
 .blessing-slots button:focus-visible,.blessing-options button:focus-visible,.skill-loadout-link:focus-visible{outline:2px solid #f6d8a0;outline-offset:3px}
 @media(max-width:760px){.blessing-loadout{padding:18px 14px}.blessing-options{grid-template-columns:1fr}.blessing-slots{gap:6px}.blessing-slots strong{font-size:11px}.tree-tiers button{padding:12px 5px}.tree-tiers strong{font-size:10px;letter-spacing:0}.tree-tiers small,.tree-tiers span{font-size:8px}.blessing-options button{padding:14px 10px;gap:9px}}
+
+.skill-upgrade-label{display:block;color:#f2dca0;font-size:11px;line-height:1.8;font-weight:600;overflow-wrap:anywhere}
+.blessing-options .skill-upgrade-label{font-size:10px;margin-bottom:4px}
+@media(max-width:760px){
+  .skill-card>.skill-upgrade-label{grid-column:2;grid-row:3;font-size:9px;line-height:1.6;margin:0 0 5px}
+  .skill-card:has(>.skill-upgrade-label)>p{grid-row:4}
+  .skill-card:has(>.skill-upgrade-label)>.blessing-source{grid-row:5;margin-top:5px}
+}

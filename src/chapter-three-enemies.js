@@ -10,10 +10,10 @@ export const MOCHI_ENEMIES=Object.freeze({
  mochiDragon:{name:'ドラゴン',hp:270,speed:1.4,damage:38,radius:.95,role:'七方向の炎',chapter:2,ranged:true,hint:'七方向へ高速の火球を放つ。橙の線の隙間か、竜の背後へ動こう。',xp:32,crystals:3,buds:4},
 });
 export const MOCHI_BOSSES=Object.freeze({
- darkmochi:{name:'ダークもちにゃふぇ・影爪',subtitle:'THE SHADOW PAW',role:'里を襲う黒い影',color:0xff81b2,speed:1.7,radius:1.9,attacks:['影爪の追い連撃','闇のふぇ〜','もちもち突進'],hint:'三本の爪痕の間に二本の追撃が来る。避けた後も予告を見よう。HP半分で弾幕と突進が加速。'},
- dreammochi:{name:'ダークもちにゃふぇ・夢喰',subtitle:'THE DREAM EATER',role:'眠りを奪う影',color:0xc99aff,speed:1.1,radius:2,attacks:['夢喰のまくら','まどろみの輪','ねむねむ落下'],hint:'六つの夢印が時間差で破裂。落下攻撃は二段階に広がる。HP半分で夢印と弾が増える。'},
- bellmochi:{name:'ダークもちにゃふぇ・黒鈴',subtitle:'THE HOLLOW BELL',role:'声を閉じる影',color:0xffc17b,speed:1.25,radius:2,attacks:['黒鈴の十字','こだまの散弾','沈黙の鐘'],hint:'十字と斜めの帯を交互にかわそう。HP半分では三連撃。鐘の衝撃も二度広がる。'},
- kingmochi:{name:'ダークもちにゃふぇ・闇の王',subtitle:'THE LAST ECLIPSE',role:'最後の声を奪う王',color:0xff719a,speed:1.35,radius:2.3,attacks:['最後の夜','王のふぇ〜','孤独の大突進'],hint:'六つの封印と高速の散弾をかわそう。HP半分で八つの封印へ増え、攻撃間隔も短縮。突進後に反撃。'},
+ darkmochi:{name:'ダークもちにゃふぇ・影爪',subtitle:'THE SHADOW PAW',role:'里を襲う黒い影',color:0xff81b2,speed:1.7,radius:1.9,attacks:["影爪・五連裂き","影縫いの挟撃","残像爪の突進"],hint:'三本の爪の間へ二本の追撃。挟撃は横・縦・斜めと順番に来る。突進をかわした後も、残像が同じ道と左右を切り裂く。'},
+ dreammochi:{name:'ダークもちにゃふぇ・夢喰',subtitle:'THE DREAM EATER',role:'眠りを奪う影',color:0xc99aff,speed:1.1,radius:2,attacks:["夢の牢獄","まどろみの反転","醒めない悪夢"],hint:'夢印の輪に囲まれた後、中央が破裂。輪状魔法では内側へ入り、次は外へ。足元・周囲・足元と繰り返す悪夢にも注意。'},
+ bellmochi:{name:'ダークもちにゃふぇ・黒鈴',subtitle:'THE HOLLOW BELL',role:'声を閉じる影',color:0xffc17b,speed:1.25,radius:2,attacks:["黒鈴の輪舞","往復するこだま","沈黙の花鐘"],hint:'十字が回転しながら三連撃。輪のこだまは外へ広がった後、内側へ戻る。花びら状の鐘印は一つおきに破裂し、最後に中央を攻撃。'},
+ kingmochi:{name:'ダークもちにゃふぇ・闇の王',subtitle:'THE LAST ECLIPSE',role:'最後の声を奪う王',color:0xff719a,speed:1.35,radius:2.3,attacks:["夜を閉ざす王冠","螺旋王冠のふぇ〜","王座砕きの大突進"],hint:'王冠の封印から中央爆発と外周の輪が続く。星弾は二連射、HP半分から三連射。突進後も左右の斬撃と王座の波紋に注意。'},
 });
 export function buildMochiEnemy(type,bossId,root,body,{part,ball,tube}){
  const boss=type==='boss',wings=[],rotors=[];let focus=null;
@@ -36,6 +36,14 @@ export function buildMochiEnemy(type,bossId,root,body,{part,ball,tube}){
   else if(bossId==='bellmochi'){part(body,new THREE.TorusGeometry(1.12,.09,6,28),0x85705e,0,.88,.05).rotation.x=Math.PI/2;focus=part(body,new THREE.SphereGeometry(.28,10,8),0xe8ba7b,0,.84,1.12,null,.5);}
   else if(bossId==='dreammochi'){part(body,new THREE.ConeGeometry(.48,1,8),0x866ca3,0,2.95,-.1).rotation.z=-.3;focus=part(body,new THREE.OctahedronGeometry(.13),accent,-.33,3.46,-.1,null,.5);}
   else for(const s of [-1,1])for(let i=0;i<3;i++)part(body,new THREE.ConeGeometry(.085,.42,5),0xf4b5d8,s*.91+(i-1)*.15,.22,1.02).rotation.x=Math.PI/2;
+ }else if(type==='goldenSlime'){
+  part(body,new THREE.SphereGeometry(1,20,16),0xffc329,0,.65,0,[.86,.69,.78],.23,.65);
+  part(body,new THREE.ConeGeometry(.34,.48,16),0xffd35d,0,1.19,0,null,.2,.6);
+  eyes(.76,.7,.24,0x573517);ball(body,0xfff9ce,-.3,1.04,.46,[.17,.09,.05]);
+  tube(body,[[-.12,.51,.76],[0,.46,.79],[.12,.51,.76]],.033,0x7b4611);
+  const halo=part(root,new THREE.TorusGeometry(1.05,.035,6,36),0xffe9a6,0,.1,0,null,.7,.3);halo.rotation.x=Math.PI/2;
+  focus=new THREE.Group();focus.position.y=1.15;body.add(focus);
+  for(let i=0;i<4;i++){const a=i*Math.PI/2;part(focus,new THREE.OctahedronGeometry(.1),0xfff4ba,Math.sin(a),.25+Math.sin(a)*.25,Math.cos(a),[.6,1.6,.6],.9);}
  }else if(type==='mochiSlime'){
   ball(body,0x68c8ed,0,.58,0,[.75,.62,.68]);part(body,new THREE.ConeGeometry(.32,.42,12),0x68c8ed,0,1.08,0);eyes(.66,.58);ball(body,0xbbf2ff,-.26,.94,.34,[.12,.07,.04]);
  }else if(type==='mochiGolem'){
@@ -56,6 +64,6 @@ export function buildMochiEnemy(type,bossId,root,body,{part,ball,tube}){
   if(wolf){ball(body,0xa4a4b2,0,1.58,.43,[.3,.23,.29]);ball(body,0x342735,0,1.65,.68,[.13,.1,.07]);tube(body,[[0,.63,-.4],[.4,.9,-.8],[.5,1.08,-1]],.15,skin);}
   else{part(body,new THREE.CylinderGeometry(orc?.73:.48,orc?.83:.56,.43,9),0x806049,0,.45,0);const club=rod(0x8b5a3c,-(orc?.98:.78),1.15,.25,.11,1.6);club.rotation.z=.25;if(orc){const blade=part(body,new THREE.BoxGeometry(.64,.6,.12),0x989cab,-.94,1.84,.25);blade.rotation.z=.2;}else ball(body,0x9e7246,-.97,1.84,.25,[.24,.44,.25]);}
  }
- if(focus)focus.userData.dynamic=true;
+ if(focus){focus.userData.dynamic=true;focus.traverse(o=>{o.userData.dynamic=true;});}
  return {focus,wings,rotors};
 }

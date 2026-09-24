@@ -19,15 +19,18 @@ export function createHostileProjectile(b){
 }
 export function updateHostileProjectile(m,b,time){m.position.set(b.x,.95,b.z);m.rotation.y=Math.atan2(b.vx,b.vz);if(!['enemyArrow','enemyMusket'].includes(b.kind))m.children[0].rotation.z=time*4;m.scale.setScalar(1+Math.sin(time*12)*.06);}
 export function createTelegraph(h){
- const g=new THREE.Group(),color=h.color??0xef638e,line=h.shape==='line',width=h.width??1,length=h.length??1;
+ const g=new THREE.Group(),color=h.color??0xef638e,line=h.shape==='line',annular=h.shape==='ring',width=h.width??1,length=h.length??1;
+ const arc=Math.PI*2-(h.gapWidth??0),start=h.gapAngle===undefined?0:h.gapAngle-Math.PI/2+(h.gapWidth??0)/2;
  const mat=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.22,side:THREE.DoubleSide,depthWrite:false});
- const fill=new THREE.Mesh(line?new THREE.PlaneGeometry(width,length):new THREE.CircleGeometry(h.radius,40),mat);fill.rotation.x=-Math.PI/2;fill.position.y=.13;g.add(fill);
+ const fill=new THREE.Mesh(line?new THREE.PlaneGeometry(width,length):annular?new THREE.RingGeometry(h.innerRadius,h.radius,64,1,start,arc):new THREE.CircleGeometry(h.radius,40),mat);fill.rotation.x=-Math.PI/2;fill.position.y=.13;g.add(fill);
  const outlineMat=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.95,side:THREE.DoubleSide,depthWrite:false});
  if(line){
   for(const x of [-width/2,width/2]){const rail=new THREE.Mesh(new THREE.PlaneGeometry(.085,length),outlineMat);rail.rotation.x=-Math.PI/2;rail.position.set(x,.145,0);g.add(rail);}
   for(const z of [-length/2,length/2]){const end=new THREE.Mesh(new THREE.PlaneGeometry(width,.085),outlineMat);end.rotation.x=-Math.PI/2;end.position.set(0,.145,z);g.add(end);}
   // Repeated chevrons indicate the locked firing/charge direction without text.
   for(let z=-length/2+1;z<length/2;z+=2){const shape=new THREE.Shape();shape.moveTo(-Math.min(.4,width*.4),-.35);shape.lineTo(0,.22);shape.lineTo(Math.min(.4,width*.4),-.35);shape.lineTo(0,-.12);shape.closePath();const arrow=new THREE.Mesh(new THREE.ShapeGeometry(shape),outlineMat);arrow.rotation.x=Math.PI/2;arrow.position.set(0,.16,z);g.add(arrow);}
+ }else if(annular){
+  for(const radius of [h.innerRadius,h.radius]){const ring=new THREE.Mesh(new THREE.RingGeometry(Math.max(0,radius-.075),radius,64,1,start,arc),outlineMat);ring.rotation.x=-Math.PI/2;ring.position.y=.145;g.add(ring);}
  }else{
   for(const radius of [h.radius,h.radius*.7]){const ring=new THREE.Mesh(new THREE.RingGeometry(Math.max(0,radius-.075),radius,40),outlineMat);ring.rotation.x=-Math.PI/2;ring.position.y=.145;g.add(ring);}
   const shape=new THREE.Shape();for(let i=0;i<8;i++){const a=i/8*Math.PI*2,r=i%2?h.radius*.2:h.radius*.5;if(i===0)shape.moveTo(Math.sin(a)*r,Math.cos(a)*r);else shape.lineTo(Math.sin(a)*r,Math.cos(a)*r);}shape.closePath();const star=new THREE.Mesh(new THREE.ShapeGeometry(shape),outlineMat);star.rotation.x=-Math.PI/2;star.position.y=.15;g.add(star);
@@ -36,4 +39,11 @@ export function createTelegraph(h){
  // one outline mesh, including when several fan attacks overlap on mobile.
  bakeGroup(g);g.userData.disposable=true;return g;
 }
-export function updateTelegraph(m,h){m.position.set(h.x,0,h.z);m.rotation.y=h.angle??0;m.children[0].material.opacity=.16+(1-Math.max(0,h.timer)/h.total)*.36;}
+export function updateTelegraph(m,h){
+ m.position.set(h.x,0,h.z);m.rotation.y=h.angle??0;
+ // Later steps remain as faint outlines, so overlapping sequences don't hide
+ // the safe centre of an imminent ring or the next opening in rotating beams.
+ const imminent=h.timer<=1.35,progress=1-Math.min(1,Math.max(0,h.timer)/Math.min(h.total,1.35));
+ m.children[0].material.opacity=imminent?.12+progress*.4:.025;
+ m.children[1].material.opacity=imminent?.8:.28;
+}

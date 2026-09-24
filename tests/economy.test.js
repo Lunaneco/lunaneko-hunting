@@ -26,7 +26,7 @@ test('level pacing doubles early requirements and increases the relative hurdle 
 
 test('every regular enemy has exactly 50% material odds; a missed drop still gives full XP and crystals',()=>{
   assert.equal(MATERIAL_DROP_CHANCE,.5);
-  for(const [type,spec] of Object.entries(ENEMY_TYPES)){
+  for(const [type,spec] of Object.entries(ENEMY_TYPES).filter(([,s])=>!s.rare)){
     let drops=0,buds=0;
     for(let i=0;i<100;i++){const rewards=enemyMaterials({type},0,'normal',()=>(i+.5)/100);if(rewards.starBud)drops++;buds+=rewards.starBud??0;}
     assert.equal(drops,50);assert.equal(buds,spec.buds*50);

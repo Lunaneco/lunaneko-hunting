@@ -37,6 +37,7 @@ export const ROUTE_PORTALS=Object.freeze([{id:'safe',x:-12,z:-13,radius:1.8,labe
 export const EXTRA_FIELD_LAYOUTS=Object.freeze([
  [single(variant(petal,'extra-moon-meadow','深月の草原'),'最高難度 · 六種の魔物が最初から出現'),floors(variant(courtyard,'extra-moon-lower','星影の回廊・下層'),variant(roof,'extra-moon-upper','星影の上層回廊')),single(variant(eclipse,'extra-moon-altar','月蝕の深淵壇'),'最終決戦 · 最初から月蝕深化')],
  [single(variant(garden,'extra-rice-road','黄金の修羅道','meadow',{country:'village',district:0,surface:'stone'}),'最高難度 · 連射と時間差攻撃'),floors(variant(courtyard,'extra-rice-lower','穂鐘の試練塔・下層','clock',{country:'town',district:1,surface:'stone'}),variant(roof,'extra-rice-upper','穂鐘の試練塔・上層','clock',{country:'town',district:1,surface:'stone'})),single(variant(eclipse,'extra-rice-arena','穂守りの極陣','eclipse',{country:'fortress',district:2,surface:'stone'}),'最終決戦 · 最初から巨神の猛攻')],
+ [single(variant(garden,'extra-mochi-street','夢蝕のもち街道','clock',{mochi:'mochi-dreamtown',district:0}),'全EX最難関 · 七種の魔物の総攻撃'),floors(variant(courtyard,'extra-mochi-lower','黒糖の螺旋回廊・下層','sky',{mochi:'mochi-teagarden',district:1}),variant(roof,'extra-mochi-upper','黒糖の螺旋回廊・上層','sky',{mochi:'mochi-teagarden',district:1})),single(variant(eclipse,'extra-mochi-throne','夢蝕の王座','eclipse',{mochi:'mochi-palace',district:2}),'最終決戦 · HP半分で夢蝕覚醒')],
 ]);
 export const fieldFor=(act,area)=>FIELD_LAYOUTS[act]?.[area]??EXTRA_FIELD_LAYOUTS[act-FIELD_LAYOUTS.length]?.[area]??FIELD_LAYOUTS[0][0];
 export function layoutFor(act,area,wave,route='safe'){

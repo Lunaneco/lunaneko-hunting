@@ -1,14 +1,15 @@
+import {GOLDEN_SLIME,goldenSlimeWave} from './golden-slime.js';
 import {MOCHI_SUPPORT,mochiCryHit,mochiFrozen,mochiIncomingDamage,mochiDefenseMultiplier} from './mochi-combat.js';
 import {fieldFor,layoutFor,walkingLayout,heightAt,contains,projectInside,moveWithin,navigation,clearPath,spawnPoint,ROUTE_PORTALS,ROUTE_REWARD} from './terrain.js';
 import {ENEMY_TYPES,BOSSES,ELITE_BOSS_MULTIPLIER,enemyForSpawn,distanceToHazard,isRangedEnemy} from './enemies.js';
 import {tickEnemyBehavior} from './enemy-combat.js';
 import {actFor,isActUnlocked,completeAct,clearTicketReward} from './acts.js';
-import {EXTRA_COMBAT} from './extra-stages.js';
+import {extraCombatFor} from './extra-stages.js';
 import {castUltimate,tickUltimates,enemySpeedScale} from './ultimate-combat.js';
 import {ultimateFor} from './abilities.js';
 import {bossWeaponTicket,grantWeaponTickets,weaponAttackProfile,equippedWeapon} from './weapons.js';
 import {advanceMissions,claimActMissions,missionsFor,trialStatus} from './missions.js';
-import {skillsForParty} from './blessings.js';
+import {skillsForParty,skillEffectRank} from './blessings.js';
 import {normalizeParty} from './party.js';
 import {availableHeroes,isHeroUnlocked} from './recruitment.js';
 import {FirstBattleTutorial} from './tutorial.js';
@@ -37,8 +38,8 @@ export class Adventure {
     this.tutorial=tutorial?new FirstBattleTutorial():null;if(tutorial){hero=0;party=['nyanluna'];act=0;}
     this.progression=normalizeProgression(progression,HEROES);this.guestHeroId=null;this.recruitedHeroId=null;this.act=isActUnlocked(this.progression,act)?act:0;this.actConfig=actFor(this.act);this.pendingTrials=new Set();this.rescue=null;
     this.party=Object.freeze(normalizeParty(party,availableHeroes(this.progression,HEROES)));this.partyHeroes=this.party.map(id=>HEROES.findIndex(h=>h.id===id));hero=this.partyHeroes.includes(hero)?hero:this.partyHeroes[0];this.skillPool=Object.freeze(skillsForParty(this.party,this.progression));
-    this.clearRewardTickets=0;this.earnedWeaponTickets=0;this.earnedMissions=[];this.earnedXp=Object.fromEntries(HEROES.map(h=>[h.id,0]));this.earnedMaterials=Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,0]));
-    this.rng=seededRandom(seed);this.lootRng=seededRandom(seed^0x57EA90C1);this.materialRng=seededRandom(seed^0x4D41544C);this.seed=seed;this.difficulty=this.actConfig.extra?'hard':difficulty;this.phase='playing';this.events=[];this.ids=1;
+    this.goldenSlimeKills=0;this.goldenSlimeLastWave=0;this.earnedRareStones=0;this.clearRewardTickets=0;this.earnedWeaponTickets=0;this.earnedMissions=[];this.earnedXp=Object.fromEntries(HEROES.map(h=>[h.id,0]));this.earnedMaterials=Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,0]));
+    this.rng=seededRandom(seed);this.lootRng=seededRandom(seed^0x57EA90C1);this.materialRng=seededRandom(seed^0x4D41544C);this.rareRng=seededRandom(seed^0x604D5A1E);this.goldenSlime=null;this.goldenSlimeWave=goldenSlimeWave(this.actConfig,this.rareRng);this.seed=seed;this.difficulty=this.actConfig.extra?'hard':difficulty;this.phase='playing';this.events=[];this.ids=1;
     this.heroHealth=Object.fromEntries(HEROES.map(h=>{const maxHp=combatStats(this.progression,h).maxHp;return [h.id,{hp:maxHp,maxHp}];}));
     this.player={x:0,z:3,hero,face:Math.PI,invincible:1,dash:0,dashCooldown:0,dx:0,dz:-1,attack:0,charge:0,switchCooldown:0};
     // HP follows the controlled character; switching never copies another character's damage.
@@ -106,7 +107,7 @@ export class Adventure {
   sourceFor(heroId){return this.heroId(this.player.hero)===heroId?this.player:this.partner;}
   skillDamage(heroId,base){const index=HEROES.findIndex(h=>h.id===heroId);if(index<0)return 0;const hero=HEROES[index];return base*(this.statsFor(index).attack/hero.damage)*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*hero.skillPower*(1+this.rank('arcanePower')*.18);}
   ultimateSpec(hero=this.player.hero){return ultimateFor(this.heroId(hero),this.progressFor(hero));}
-  gainUltimateCharge(heroId,amount){if(!this.party.includes(heroId)||!Number.isFinite(amount)||amount<=0)return;const hero=HEROES.find(h=>h.id===heroId),bonus=ultimateBonuses(this.progression.characters[heroId],heroId);this.ultimateCharges[heroId]=clamp(this.ultimateCharges[heroId]+amount*hero.chargeRate*(1+this.rank('focus')*.3)*(1+bonus.ultimateCharge),0,100);}
+  gainUltimateCharge(heroId,amount){if(!this.party.includes(heroId)||!Number.isFinite(amount)||amount<=0)return;const hero=HEROES.find(h=>h.id===heroId),bonus=ultimateBonuses(this.progression.characters[heroId],heroId);this.ultimateCharges[heroId]=clamp(this.ultimateCharges[heroId]+amount*hero.chargeRate*(1+this.effectRank('focus')*.3)*(1+bonus.ultimateCharge),0,100);}
   get hasPartner(){return this.party.length===2;}
   get partnerHero(){return this.partyHeroes.find(hero=>hero!==this.player.hero)??null;}
   isHeroAlive(hero){return this.partyHeroes.includes(hero)&&this.healthFor(hero).hp>0;}
@@ -119,6 +120,7 @@ export class Adventure {
     for(const hero of this.partyHeroes){const health=this.healthFor(hero),maxHp=this.statsFor(hero).maxHp+this.rank('vitality')*40;health.hp=health.hp>0?Math.min(maxHp,health.hp+Math.max(0,maxHp-health.maxHp)):0;health.maxHp=maxHp;}
   }
   rank(id){return this.skills[id]||0;}
+  effectRank(id){return skillEffectRank(this.skills,id);}
   collectMaterials(rewards,source){const amounts=grantMaterials(this.progression,rewards);for(const [id,value] of Object.entries(amounts))this.earnedMaterials[id]+=value;if(Object.keys(amounts).length)this.emit('materials',{amounts,source});}
   trackMission(metric,amount=1){
     const result=advanceMissions(this.progression.missions,this.area,metric,amount,this.act);if(!result.changed)return;
@@ -145,6 +147,7 @@ export class Adventure {
   startWave(){
     this.wave++;this.waveSpawned=0;this.waveGoal=this.actConfig.counts[this.wave-1];this.spawnTimer=.6;this.waveBreak=0;
     this.area=Math.min(2,Math.floor((this.wave-1)/2));
+    if(this.goldenSlime&&this.wave>=2&&this.wave<=5&&this.rareRng()<GOLDEN_SLIME.chance)this.goldenSlimeWave=this.wave;
     if(this.wave%2===1)this.route=null;
     if(this.route==='elite'&&this.wave%2===0&&this.wave!==6)this.waveGoal++;
     if(this.meetTsukineko())this.spawn();
@@ -181,21 +184,38 @@ export class Adventure {
     this.projectiles=[];this.hazards=[];this.enemies=[];this.startWave();Object.assign(this.player,projectInside(this.walkLayout,this.layout.entrance.x,this.layout.entrance.z));Object.assign(this.partner,projectInside(this.walkLayout,this.player.x-1.7,this.player.z+1.5));this.emit('stageEntered',{area:this.area});return true;
   }
   spawnEnemy(type,x,z,{elite=false}={}){
-    const boss=type==='boss';const hard=this.difficulty==='hard'?1.3:1,power=boss&&elite?ELITE_BOSS_MULTIPLIER:1;
+    const boss=type==='boss',rare=type===GOLDEN_SLIME.type,rng=rare?this.rareRng:this.rng;const hard=this.difficulty==='hard'?1.3:1,power=boss&&elite?ELITE_BOSS_MULTIPLIER:1;
     const spec=boss?BOSSES[this.actConfig.bossId]:ENEMY_TYPES[type];if(!spec)throw new Error(`Unknown enemy: ${type}`);
     const extra=this.actConfig.extra,hp=(boss?this.actConfig.bossHp:spec.hp)*(boss?1:(1+(this.wave-1)*.14)*(extra?this.actConfig.hpScale:1+(this.actConfig.chapter===2?this.act-8:this.act)*.08))*hard*power;
-    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:spec.name+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed*(extra?EXTRA_COMBAT.moveScale:1),damage:(boss?(this.actConfig.chapter===2?62:this.actConfig.chapter===1?45:22):spec.damage)*hard*power*(extra?this.actConfig.damageScale:1),radius:spec.radius*(elite?1.12:1),hit:0,attack:1+this.rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:this.actConfig.chapter===2?(boss?2.4:1.1+this.rng()*.7):boss?3:1.4+this.rng(),cast:null,rush:null,recovery:0,enraged:!!extra&&boss,navTimer:0};
+    const e={id:this.ids++,type,bossId:boss?this.actConfig.bossId:null,name:(boss?this.actConfig.boss:spec.name)+(elite?'・深淵':''),elite,x,z,hp,maxHp:hp,speed:spec.speed*(extra?extraCombatFor(this.actConfig).moveScale:1),damage:(boss?(this.actConfig.chapter===2?62:this.actConfig.chapter===1?45:22):spec.damage)*hard*power*(extra?this.actConfig.damageScale:1),radius:spec.radius*(elite?1.12:1),hit:0,attack:1+rng(),age:0,knockX:0,knockZ:0,face:0,action:0,special:this.actConfig.chapter===2?(boss?2.4:1.1+rng()*.7):boss?3:1.4+rng(),cast:null,rush:null,recovery:0,enraged:!!extra&&boss,navTimer:0};
+    if(rare){e.rare=true;e.expiresAt=this.time+GOLDEN_SLIME.lifetime;}
     this.enemies.push(e);this.emit('spawn',{id:e.id,x,z,boss});return e;
   }
   spawn(){
     const angle=this.rng()*Math.PI*2;let {x,z}=spawnPoint(this.walkLayout,this.player,angle);
     let type=enemyForSpawn(this.act,this.wave,this.waveSpawned,this.rng());
-    if(isRangedEnemy(type)&&this.enemies.filter(e=>e.hp>0&&isRangedEnemy(e.type)).length>=(this.actConfig.extra?EXTRA_COMBAT.rangedLimit:this.actConfig.chapter>=1?4:3))type=this.actConfig.chapter===2?'mochiGoblin':this.actConfig.chapter===1?'reaper':'bat';
+    if(isRangedEnemy(type)&&this.enemies.filter(e=>e.hp>0&&isRangedEnemy(e.type)).length>=(this.actConfig.extra?extraCombatFor(this.actConfig).rangedLimit:this.actConfig.chapter>=1?4:3))type=this.actConfig.chapter===2?'mochiGoblin':this.actConfig.chapter===1?'reaper':'bat';
     if(type!=='boss'&&!this.seenEnemyTypes.has(type)){this.seenEnemyTypes.add(type);if(ENEMY_TYPES[type]?.chapter>=1||['archer','mage','charger'].includes(type))this.emit('enemyIntro',{enemyType:type});}
     const elite=this.route==='elite'&&this.wave%2===0&&(this.wave===6||this.waveSpawned===this.waveGoal-1);
     if(elite)type='boss';
     if(type==='boss')({x,z}=projectInside(this.walkLayout,0,-11,2.3));
     this.spawnEnemy(type,x,z,{elite});this.waveSpawned++;
+    if(this.wave===this.goldenSlimeWave&&this.waveSpawned===3)this.spawnGoldenSlime();
+  }
+  spawnGoldenSlime(){
+    if(this.actConfig.chapter!==2||this.actConfig.extra||this.wave>=6||this.goldenSlime?.status==='active'||this.goldenSlimeLastWave===this.wave||this.phase!=='playing'||this.exitOpen||this.travelOpen)return null;
+    const angle=this.rareRng()*Math.PI*2,p=this.player;
+    let point=projectInside(this.walkLayout,p.x+Math.sin(angle)*8,p.z+Math.cos(angle)*8,.9);
+    if(Math.hypot(point.x-p.x,point.z-p.z)<5)point=spawnPoint(this.walkLayout,p,angle);
+    const enemy=this.spawnEnemy(GOLDEN_SLIME.type,point.x,point.z);
+    this.goldenSlimeLastWave=this.wave;this.goldenSlime={id:enemy.id,status:'active',expiresAt:enemy.expiresAt};
+    this.emit('rareSpawn',{id:enemy.id,x:enemy.x,z:enemy.z});return enemy;
+  }
+  expireGoldenSlime(e){
+    if(e.type!==GOLDEN_SLIME.type||e.hp<=0||this.time<e.expiresAt)return false;
+    e.hp=0;e.escaped=true;
+    if(this.goldenSlime?.id===e.id)Object.assign(this.goldenSlime,{status:'escaped',resolvedAt:this.time});
+    this.emit('rareEscape',{id:e.id,x:e.x,z:e.z});return true;
   }
   nearest(x,z,range){let best=null,dist=range;for(const e of this.enemies){if(e.hp<=0)continue;const d=Math.hypot(e.x-x,e.z-z);if(d-e.radius<dist){best=e;dist=d-e.radius;}}return best;}
   heal(amount){if(this.player.hp>0){const before=this.player.hp;this.player.hp=Math.min(this.player.maxHp,this.player.hp+amount*(1+this.rank('vowRecovery')*.15));if(this.player.hp>before)this.emit('heal',{hero:this.player.hero,heroId:this.heroId(this.player.hero),amount:this.player.hp-before});}}
@@ -213,13 +233,13 @@ export class Adventure {
   ultimate(options){return castUltimate(this,options);}
   attackFrom(source,hero,support=false){
     if(!this.isHeroAlive(hero)||(support&&!this.hasLivingPartner))return false;
-    const stats=this.attackProfile(hero);const range=hero===3&&support?stats.supportRange+this.rank('mochiReach')*2:stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
+    const stats=this.attackProfile(hero);const range=hero===3&&support?stats.supportRange+this.effectRank('mochiReach')*2:stats.range*(1+this.effectRank('reach')*.18)+(hero===2?this.effectRank('saberReach')*.35+this.rank('vowRecovery')*.15:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
     const angle=Math.atan2(enemy.x-source.x,enemy.z-source.z);source.face=angle;
     const heroId=HEROES[hero].id;let damage=this.statsFor(hero).attack*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*(support?.43*(1+this.rank('echo')*.35+this.rank('starBlade')*.2):1);
-    const crit=this.rng()<.05+this.rank('crit')*.15;if(crit)damage*=2+this.rank('preciseAim')*.25;
+    const crit=this.rng()<.05+this.effectRank('crit')*.15;if(crit)damage*=2+this.rank('preciseAim')*.25;
     this.emit('attack',{x:source.x,z:source.z,angle,hero,support,range,color:equippedWeapon(this.progression,heroId)?.weapon.effectColor});
     if(hero===3){
-      if(support){this.projectiles.push({id:this.ids++,owner:'player',heroId,kind:'mochiCry',x:source.x,z:source.z,vx:Math.sin(angle)*MOCHI_SUPPORT.speed,vz:Math.cos(angle)*MOCHI_SUPPORT.speed,life:(range+2)/MOCHI_SUPPORT.speed,damage,crit:false,radius:1.05,pierce:stats.supportPierce+this.rank('mochiReach'),hitIds:[]});if(this.rank('mochiMend'))this.heal(this.rank('mochiMend')*2);if(this.rank('mochiCharge'))this.gainUltimateCharge(heroId,this.rank('mochiCharge')*3);}
+      if(support){this.projectiles.push({id:this.ids++,owner:'player',heroId,kind:'mochiCry',x:source.x,z:source.z,vx:Math.sin(angle)*MOCHI_SUPPORT.speed,vz:Math.cos(angle)*MOCHI_SUPPORT.speed,life:(range+2)/MOCHI_SUPPORT.speed,damage,crit:false,radius:1.05,pierce:stats.supportPierce+this.effectRank('mochiReach'),hitIds:[]});if(this.effectRank('mochiMend'))this.heal(this.effectRank('mochiMend')*2+this.rank('mochiCharge')*2);if(this.rank('mochiCharge'))this.gainUltimateCharge(heroId,this.rank('mochiCharge')*3);}
       else this.projectiles.push({id:this.ids++,owner:'player',heroId,kind:'mochiNote',x:source.x,z:source.z,vx:Math.sin(angle)*12,vz:Math.cos(angle)*12,speed:12,life:(range+3)/12,damage:Math.max(1,damage*(1+this.rank('mochiBrave')*.3)),crit,target:enemy.id,radius:.42,color:equippedWeapon(this.progression,heroId)?.weapon.effectColor});
     }else if(hero===0){
       const id=this.ids++;this.projectiles.push({id,owner:'player',heroId,x:source.x,z:source.z,vx:Math.sin(angle)*15,vz:Math.cos(angle)*15,kind:'magic',speed:15,life:Math.max(1.5,(range+2)/15),damage,crit,target:enemy.id,radius:.28});
@@ -227,12 +247,12 @@ export class Adventure {
       const id=this.ids++;this.projectiles.push({id,owner:'player',kind:'gun',heroId,x:source.x,z:source.z,vx:Math.sin(angle)*28,vz:Math.cos(angle)*28,speed:28,life:(range+2)/28,damage,crit,radius:.23,pierce:stats.pierce,hitIds:[]});
     }else{
       const reach=range;
-      for(const target of [...this.enemies]){const dx=target.x-source.x,dz=target.z-source.z,d=Math.hypot(dx,dz);if(target.hp>0&&d-target.radius<=reach&&(d<.01||(dx*Math.sin(angle)+dz*Math.cos(angle))/d>=MELEE_MIN_DOT))this.hit(target,damage*(1+this.rank('saberPower')*.22),source.x,source.z,crit,false,heroId);}
+      for(const target of [...this.enemies]){const dx=target.x-source.x,dz=target.z-source.z,d=Math.hypot(dx,dz);if(target.hp>0&&d-target.radius<=reach&&(d<.01||(dx*Math.sin(angle)+dz*Math.cos(angle))/d>=MELEE_MIN_DOT))this.hit(target,damage*(1+this.effectRank('saberPower')*.22),source.x,source.z,crit,false,heroId);}
     }
     return true;
   }
   hit(e,damage,x,z,crit=false,chain=false,heroId=HEROES[this.player.hero].id,canCharge=true){
-    if(e.hp<=0||this.phase==='defeat'||this.phase==='victory')return;damage*=mochiDefenseMultiplier(this,e);e.hp-=damage;e.hit=.15;if(!e.training)this.damageDealt+=Math.min(damage,e.hp+damage);
+    if(e.hp<=0||this.phase==='defeat'||this.phase==='victory'||this.expireGoldenSlime(e))return;damage*=mochiDefenseMultiplier(this,e);e.hp-=damage;e.hit=.15;if(!e.training)this.damageDealt+=Math.min(damage,e.hp+damage);
     const dx=e.x-x,dz=e.z-z,d=Math.hypot(dx,dz)||1;const knock=e.type==='boss'?.5:3.5;e.knockX=dx/d*knock;e.knockZ=dz/d*knock;
     this.emit('hit',{id:e.id,x:e.x,z:e.z,damage:Math.round(damage),crit});
     if(e.training){if(e.hp<=0){this.emit('death',{id:e.id,x:e.x,z:e.z,enemyType:e.type,training:true});this.observeTutorial('defeat');}return;}
@@ -240,23 +260,25 @@ export class Adventure {
     if(e.hp<=0){
       if(e.type==='boss'&&this.act===7&&this.wave===6&&this.rescue?.active){this.rescue.active=false;this.rescue.saved=true;this.emit('rescueSaved');}
       this.kills++;this.trackMission('kills');this.combo++;this.comboTimer=4;this.maxCombo=Math.max(this.maxCombo,this.combo);
-      if(canCharge)this.gainUltimateCharge(heroId,4+this.rank('rapidCharge'));
-      const earned=awardCharacterXp(this.progression,heroId,ENEMY_REWARDS[e.type]?.xp??0);
-      if(earned){this.earnedXp[heroId]=(this.earnedXp[heroId]??0)+earned.amount;this.refreshStats();this.emit('characterXp',earned);}
-      if(heroId!=='mochinyafe'&&e.mochiAssistUntil>this.time&&this.party.includes('mochinyafe')&&this.isHeroAlive(3)){const assist=awardCharacterXp(this.progression,'mochinyafe',ENEMY_REWARDS[e.type]?.xp??0);this.earnedXp.mochinyafe+=assist.amount;this.refreshStats();this.emit('characterXp',assist);}
+      if(canCharge)this.gainUltimateCharge(heroId,4+this.rank('rapidCharge')*2);
+      const rare=e.type===GOLDEN_SLIME.type;
+      // Credit the projectile/skill owner even after swapping; only deployed characters share XP.
+      const recipients=this.party.includes(heroId)?this.party:[];
+      for(const id of recipients){const earned=awardCharacterXp(this.progression,id,(ENEMY_REWARDS[e.type]?.xp??0)*(id===heroId?1:.5));if(earned){this.earnedXp[id]=(this.earnedXp[id]??0)+earned.amount;this.refreshStats();this.emit('characterXp',earned);}}
       this.collectMaterials(enemyMaterials(e,this.act,this.difficulty,this.materialRng),'enemy');
-      const tickets=bossWeaponTicket(this.progression,e,this.lootRng);if(tickets){this.earnedWeaponTickets+=tickets;this.emit('weaponTicket',{count:tickets,total:this.progression.inventory.weaponTicket});}
+      const tickets=rare?grantWeaponTickets(this.progression,GOLDEN_SLIME.tickets):bossWeaponTicket(this.progression,e,this.lootRng);if(tickets){this.earnedWeaponTickets+=tickets;this.emit('weaponTicket',{count:tickets,total:this.progression.inventory.weaponTicket,...(rare?{source:'goldenSlime'}:{})});}
+      if(rare){this.goldenSlimeKills++;const before=this.progression.inventory.limitStone;grantLimitStone(this.progression,GOLDEN_SLIME.stones);this.earnedRareStones+=this.progression.inventory.limitStone-before;if(this.goldenSlime?.id===e.id)Object.assign(this.goldenSlime,{status:'defeated',resolvedAt:this.time});this.emit('rareDefeated',{id:e.id,x:e.x,z:e.z,tickets});}
       if(e.elite){this.collectMaterials(ROUTE_REWARD,'route');this.routeRewards.push(this.area);this.emit('routeReward',{rewards:ROUTE_REWARD});}
       this.emit('death',{id:e.id,x:e.x,z:e.z,enemyType:e.type,heroId});
       if(this.rank('leech')&&this.kills%6===0)this.heal(8*this.rank('leech'));
       const value=ENEMY_REWARDS[e.type]?.crystals??0;if(value)this.orbs.push({id:this.ids++,x:e.x,z:e.z,value,age:0});
-      if(this.rank('nova')&&!chain){this.emit('nova',{x:e.x,z:e.z});for(const n of [...this.enemies])if(n!==e&&n.hp>0&&Math.hypot(n.x-e.x,n.z-e.z)<3.8)this.hit(n,this.skillDamage(heroId,14*this.rank('nova')),e.x,e.z,false,true,heroId,canCharge);}
+      if(this.effectRank('nova')&&!chain){this.emit('nova',{x:e.x,z:e.z,radius:3.8+this.rank('arcanePower')*.6});for(const n of [...this.enemies])if(n!==e&&n.hp>0&&Math.hypot(n.x-e.x,n.z-e.z)<3.8+this.rank('arcanePower')*.6)this.hit(n,this.skillDamage(heroId,14*this.effectRank('nova')),e.x,e.z,false,true,heroId,canCharge);}
       // Carry the recovered light to the open gate to complete the chapter.
     }
   }
   hurt(amount,x,z){
     const p=this.player;if(p.invincible>0||this.phase!=='playing'||this.exitOpen||this.travelOpen||this.tutorial?.active)return false;
-    const damage=amount*Math.pow(.85,(this.rank('ward')+this.rank('saberGuard')))*100/(100+this.statsFor(p.hero).defense);p.hp=Math.max(0,p.hp-damage);p.invincible=.8+this.rank('counterGuard')*.1;this.combo=0;if(damage>0){this.stageTrial.hits++;this.runHits++;}
+    const damage=amount*Math.pow(.85,(this.rank('ward')+this.effectRank('saberGuard')))*100/(100+this.statsFor(p.hero).defense);p.hp=Math.max(0,p.hp-damage);p.invincible=.8+this.rank('counterGuard')*.2;this.combo=0;if(damage>0){this.stageTrial.hits++;this.runHits++;}
     this.emit('hurt',{damage:Math.round(damage),hero:p.hero,x,z});
     if(p.hp<=0){
       const heroId=this.heroId(p.hero);this.emit('heroDown',{hero:p.hero,heroId});
@@ -294,6 +316,7 @@ export class Adventure {
     if(this.phase!=='playing')return;const training=this.tutorial?.active;
     if(training&&!this.tutorial.practicing)return;
     dt=clamp(dt,0,.05);if(!training)this.time+=dt;
+    for(const e of this.enemies)this.expireGoldenSlime(e);
     if(this.rescue?.active){this.rescue.remaining=Math.max(0,this.rescue.remaining-dt);if(this.rescue.remaining<=0){this.phase='defeat';this.ultimateEffects=[];this.projectiles=[];this.hazards=[];this.emit('defeat',{reason:'rescueTimeout'});return;}}
     const p=this.player,fromX=p.x,fromZ=p.z;
     for(const prop of ['attack','dashCooldown','invincible','switchCooldown'])p[prop]=Math.max(0,p[prop]-dt);
@@ -315,15 +338,15 @@ export class Adventure {
       this.exitDelay=Math.max(0,this.exitDelay-dt);this.crossExit();return;
     }
     if(!training)tickUltimates(this,dt);
-    if(p.attack<=0&&this.attackFrom(p,p.hero))p.attack=this.attackProfile(p.hero).interval*Math.pow(.85,this.rank('haste'));
-    if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=this.partnerHero===3?this.attackProfile(3).supportInterval:this.attackProfile(this.partnerHero).interval*2.6*Math.pow(.85,this.rank('haste'));
-    if(!training){this.spawnTimer-=dt;if(this.waveSpawned<this.waveGoal&&this.spawnTimer<=0){this.spawn();this.spawnTimer=this.wave===6?100:Math.max(.43,1.15-this.wave*.10)*(this.actConfig.extra?EXTRA_COMBAT.spawnScale:1);}}
+    if(p.attack<=0&&this.attackFrom(p,p.hero))p.attack=this.attackProfile(p.hero).interval*Math.pow(.85,this.effectRank('haste'));
+    if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=this.partnerHero===3?this.attackProfile(3).supportInterval:this.attackProfile(this.partnerHero).interval*2.6*Math.pow(.85,this.effectRank('haste'));
+    if(!training){this.spawnTimer-=dt;if(this.waveSpawned<this.waveGoal&&this.spawnTimer<=0){this.spawn();this.spawnTimer=this.wave===6?100:Math.max(.43,1.15-this.wave*.10)*(this.actConfig.extra?extraCombatFor(this.actConfig).spawnScale:1);}}
     for(const e of this.enemies){
-      if(e.hp<=0)continue;e.mochiFrozen=mochiFrozen(this,e);if(e.mochiFrozen){e.hit=Math.max(0,e.hit-dt);continue;}if(e.mochiWeakenUntil<=this.time){e.mochiAttackDown=0;e.mochiDefenseDown=0;}const enemyFrom={x:e.x,z:e.z};e.navTimer-=dt;e.age+=dt;e.hit=Math.max(0,e.hit-dt);e.attack-=dt*(this.actConfig.extra?EXTRA_COMBAT.cooldownRate:1);
+      if(e.hp<=0)continue;e.mochiFrozen=mochiFrozen(this,e);if(e.mochiFrozen){e.hit=Math.max(0,e.hit-dt);continue;}if(e.mochiWeakenUntil<=this.time){e.mochiAttackDown=0;e.mochiDefenseDown=0;}const enemyFrom={x:e.x,z:e.z};e.navTimer-=dt;e.age+=dt;e.hit=Math.max(0,e.hit-dt);e.attack-=dt*(this.actConfig.extra?extraCombatFor(this.actConfig).cooldownRate:1);
       if(!e.training)tickEnemyBehavior(this,e,dt,enemySpeedScale(this,e));
       e.x+=e.knockX*dt;e.z+=e.knockZ*dt;e.knockX*=Math.max(0,1-dt*7);e.knockZ*=Math.max(0,1-dt*7);
       Object.assign(e,moveWithin(this.walkLayout,enemyFrom,e.x,e.z,Math.min(.8,e.radius)));
-      if(Math.hypot(p.x-e.x,p.z-e.z)<e.radius+.7&&e.attack<=0){this.hurt(mochiIncomingDamage(this,e.damage,e.id),e.x,e.z);e.attack=1.2;if(this.phase==='defeat')return;}
+      if(!e.rare&&Math.hypot(p.x-e.x,p.z-e.z)<e.radius+.7&&e.attack<=0){this.hurt(mochiIncomingDamage(this,e.damage,e.id),e.x,e.z);e.attack=1.2;if(this.phase==='defeat')return;}
     }
     for(let i=0;i<this.enemies.length;i++)for(let j=i+1;j<this.enemies.length;j++){
       const a=this.enemies[i],b=this.enemies[j];if(a.hp<=0||b.hp<=0||mochiFrozen(this,a)||mochiFrozen(this,b))continue;const x=b.x-a.x,z=b.z-a.z,d=Math.hypot(x,z)||.01,min=(a.radius+b.radius)*.82;
@@ -348,10 +371,10 @@ export class Adventure {
     }
     this.projectiles=this.projectiles.filter(b=>b.life>0);
     this.hazards=this.hazards.filter(h=>!h.sourceId||this.enemies.some(e=>e.id===h.sourceId&&e.hp>0));
-    for(const h of this.hazards){h.timer-=dt;if(h.timer<=0){if(h.damage)this.emit('hazard',{x:h.x,z:h.z,radius:h.radius,color:h.color,shape:h.shape,length:h.length,width:h.width,angle:h.angle});if(distanceToHazard(p.x,p.z,h)<.45&&h.damage){this.hurt(mochiIncomingDamage(this,h.damage,h.sourceId),h.x,h.z);if(this.phase==='defeat')return;}}}
+    for(const h of this.hazards){h.timer-=dt;if(h.timer<=0){if(h.damage)this.emit('hazard',{x:h.x,z:h.z,radius:h.radius,innerRadius:h.innerRadius,color:h.color,shape:h.shape,length:h.length,width:h.width,angle:h.angle});if(distanceToHazard(p.x,p.z,h)<.45&&h.damage){this.hurt(mochiIncomingDamage(this,h.damage,h.sourceId),h.x,h.z);if(this.phase==='defeat')return;}}}
     this.hazards=this.hazards.filter(h=>h.timer>0);
-    this.orbitTimer-=dt;if(this.rank('orbit')&&this.orbitTimer<=0){this.orbitTimer=.45;for(let i=0;i<this.rank('orbit');i++){const a=this.time*2.3+i/this.rank('orbit')*Math.PI*2,x=p.x+Math.cos(a)*2.5,z=p.z+Math.sin(a)*2.5;for(const e of this.enemies)if(e.hp>0&&Math.hypot(e.x-x,e.z-z)<e.radius+1)this.hit(e,this.skillDamage(this.heroId(p.hero),12),p.x,p.z,false,false,HEROES[p.hero].id);}}
-    for(const orb of this.orbs){orb.age+=dt;const x=p.x-orb.x,z=p.z-orb.z,d=Math.hypot(x,z)||.01;if(d<3.5+this.rank('reach')*1.5||orb.age>7){const k=Math.min(1,dt*(orb.age>7?5:9));orb.x+=x*k;orb.z+=z*k;}if(d<.8){this.addCrystals(orb.value);orb.value=0;this.emit('collect');}}
+    this.orbitTimer-=dt;if(this.effectRank('orbit')&&this.orbitTimer<=0){this.orbitTimer=.45;for(let i=0;i<this.effectRank('orbit');i++){const a=this.time*2.3+i/this.effectRank('orbit')*Math.PI*2,x=p.x+Math.cos(a)*2.5,z=p.z+Math.sin(a)*2.5;for(const e of this.enemies)if(e.hp>0&&Math.hypot(e.x-x,e.z-z)<e.radius+1)this.hit(e,this.skillDamage(this.heroId(p.hero),12+this.rank('starlightHeal')*4),p.x,p.z,false,false,HEROES[p.hero].id);}}
+    for(const orb of this.orbs){orb.age+=dt;const x=p.x-orb.x,z=p.z-orb.z,d=Math.hypot(x,z)||.01;if(d<3.5+this.effectRank('reach')*1.5||orb.age>7){const k=Math.min(1,dt*(orb.age>7?5:9));orb.x+=x*k;orb.z+=z*k;}if(d<.8){this.addCrystals(orb.value);orb.value=0;this.emit('collect');}}
     this.orbs=this.orbs.filter(o=>o.value>0);this.enemies=this.enemies.filter(e=>e.hp>0);
     this.comboTimer-=dt;if(this.comboTimer<=0)this.combo=0;
     if(this.phase!=='playing'||training)return;
@@ -361,5 +384,5 @@ export class Adventure {
     }
     if(this.pendingBlessings>0){this.offerSkills();return;}
   }
-  snapshot(){return {earnedWeaponTickets:this.earnedWeaponTickets,heroHealth:Object.fromEntries(this.party.map(id=>[id,{...this.heroHealth[id]}])),rescue:this.rescue?{...this.rescue}:null,layout:this.layout.id,travelOpen:this.travelOpen,travelTargets:this.travelTargets,route:this.route,routeRewards:[...this.routeRewards],act:this.act,actTitle:this.actConfig.title,phase:this.phase,ultimateCharges:{...this.ultimateCharges},ultimateEffects:this.ultimateEffects.map(e=>({...e})),tutorial:this.tutorial?{active:this.tutorial.active,step:this.tutorial.step.id,distance:this.tutorial.distance}:null,guestHeroId:this.guestHeroId,recruitedHeroId:this.recruitedHeroId,party:[...this.party],partnerHero:this.partnerHero,skillPool:this.skillPool.map(s=>s.id),exitOpen:this.exitOpen,stagesCleared:this.stagesCleared,wave:this.wave,area:this.area,kills:this.kills,time:this.time,characterLevels:Object.fromEntries(HEROES.map((h,i)=>[h.id,{...this.progressFor(i)}])),earnedXp:{...this.earnedXp},stageCrystals:this.stageCrystals,crystalGoal:this.crystalGoal,blessingTier:this.blessingTier,blessingsTaken:this.blessingsTaken,player:{...this.player},enemyCount:this.enemies.length,projectiles:this.projectiles.length,earnedMissions:[...this.earnedMissions],skills:{...this.skills},offers:this.offers.map(s=>s.id),boss:this.enemies.find(e=>e.type==='boss')?.hp||0};}
+  snapshot(){return {goldenSlimeKills:this.goldenSlimeKills,goldenSlime:this.goldenSlime?{...this.goldenSlime}:null,earnedRareStones:this.earnedRareStones,earnedWeaponTickets:this.earnedWeaponTickets,heroHealth:Object.fromEntries(this.party.map(id=>[id,{...this.heroHealth[id]}])),rescue:this.rescue?{...this.rescue}:null,layout:this.layout.id,travelOpen:this.travelOpen,travelTargets:this.travelTargets,route:this.route,routeRewards:[...this.routeRewards],act:this.act,actTitle:this.actConfig.title,phase:this.phase,ultimateCharges:{...this.ultimateCharges},ultimateEffects:this.ultimateEffects.map(e=>({...e})),tutorial:this.tutorial?{active:this.tutorial.active,step:this.tutorial.step.id,distance:this.tutorial.distance}:null,guestHeroId:this.guestHeroId,recruitedHeroId:this.recruitedHeroId,party:[...this.party],partnerHero:this.partnerHero,skillPool:this.skillPool.map(s=>s.id),exitOpen:this.exitOpen,stagesCleared:this.stagesCleared,wave:this.wave,area:this.area,kills:this.kills,time:this.time,characterLevels:Object.fromEntries(HEROES.map((h,i)=>[h.id,{...this.progressFor(i)}])),earnedXp:{...this.earnedXp},stageCrystals:this.stageCrystals,crystalGoal:this.crystalGoal,blessingTier:this.blessingTier,blessingsTaken:this.blessingsTaken,player:{...this.player},enemyCount:this.enemies.length,projectiles:this.projectiles.length,earnedMissions:[...this.earnedMissions],skills:{...this.skills},offers:this.offers.map(s=>s.id),boss:this.enemies.find(e=>e.type==='boss')?.hp||0};}
 }

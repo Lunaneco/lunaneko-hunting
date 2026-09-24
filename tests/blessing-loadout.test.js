@@ -35,7 +35,7 @@ test('invalid, locked, duplicate, foreign and pair candidates are repaired to th
  const forged=profile({characters:{nyanluna:{level:35,breaks:2,tree:['blessing1','blessing2','blessing3']}},blessingLoadouts:{nyanluna:['arcanePower','starlightHeal','moonFrost']}});
  assert.deepEqual(forged.characters.nyanluna.tree,[]);assert.deepEqual(equippedSkills(forged,'nyanluna'),defaultSkills('nyanluna'));
 });
-test('all nine skills unlock per hero at increasing levels and rarity costs, with no automatic equip or stat bonus',()=>{
+test('all twelve skills unlock per hero at increasing levels and rarity costs, with no automatic equip or stat bonus',()=>{
  for(const h of HEROES){
   const p=profile({characters:{[h.id]:{level:35,breaks:2,tree:[...first,'ascension']}}}),stats=characterStats(h,p.characters[h.id]),other=structuredClone(p.characters[HEROES.find(o=>o.id!==h.id).id]);
   for(const node of SKILL_TALENT_NODES){assert.equal(unlockTalent(p,h.id,node.id),true);const paid=structuredClone(p);assert.equal(unlockTalent(p,h.id,node.id),false);assert.deepEqual(p,paid);assert.ok(talentNode(node.id,h.id).skill.requires.includes(h.id));}
@@ -94,11 +94,11 @@ test('penetration hits one extra target with a normal gun round, without changin
 });
 test('aim raises only normal critical damage and reload charge cannot feed itself from an ultimate kill',()=>{
  const g=prepared('tsukineko');target(g);g.rng=()=>0;g.attackFrom(g.player,1);const before=g.projectiles[0].damage;g.projectiles=[];choose(g,'preciseAim');g.attackFrom(g.player,1);near(g.projectiles[0].damage,before*2.25/2);
- choose(g,'rapidCharge');const e=g.spawnEnemy('moss',10,10);g.player.charge=0;g.hit(e,999999,0,0,false,false,'tsukineko');near(g.player.charge,(.65+5)*HEROES[1].chargeRate);
+ choose(g,'rapidCharge');const e=g.spawnEnemy('moss',10,10);g.player.charge=0;g.hit(e,999999,0,0,false,false,'tsukineko');near(g.player.charge,(.65+6)*HEROES[1].chargeRate*1.3);
  const after=g.player.charge;g.hit(g.spawnEnemy('moss',10,10),999999,0,0,true,false,'tsukineko',false);near(g.player.charge,after);
 });
-test('blade tempo is Omsolo only; counter guard extends immunity without reducing damage or changing dash',()=>{
- const g=prepared('omsolo',['omsolo','nyanluna']),interval=g.attackProfile(2).interval,other=g.attackProfile(0);choose(g,'bladeTempo');near(g.attackProfile(2).interval,interval*.9);assert.deepEqual(g.attackProfile(0),other);choose(g,'counterGuard');g.player.invincible=0;const before=g.player.hp;g.hurt(20,0,0);near(g.player.hp,before-20*100/(100+g.statsFor(2).defense));near(g.player.invincible,.9);g.dash(1,0);near(g.player.invincible,.5);near(g.player.dashSpeed,48);
+test('blade tempo is Omsolo only; counter guard inherits damage reduction and extends immunity without changing dash',()=>{
+ const g=prepared('omsolo',['omsolo','nyanluna']),interval=g.attackProfile(2).interval,other=g.attackProfile(0);choose(g,'bladeTempo');near(g.attackProfile(2).interval,interval*.9);assert.deepEqual(g.attackProfile(0),other);choose(g,'counterGuard');g.player.invincible=0;const before=g.player.hp;g.hurt(20,0,0);near(g.player.hp,before-20*.85*100/(100+g.statsFor(2).defense));near(g.player.invincible,1);g.dash(1,0);near(g.player.invincible,.5);near(g.player.dashSpeed,48);
 });
 test('recovery amplifies heal effects once, clamps to maximum HP and never resurrects a dead hero',()=>{
  const g=prepared('omsolo');choose(g,'vowRecovery');g.player.hp=50;g.heal(20);near(g.player.hp,73);g.player.charge=100;g.ultimate();near(g.player.hp,73+g.ultimateSpec().heal*1.15);g.heal(99999);near(g.player.hp,g.player.maxHp);g.player.hp=0;g.heal(100);assert.equal(g.player.hp,0);
@@ -110,8 +110,6 @@ test('tree and party UI distinguish unlocks from active effects and list only eq
 });
 for(const party of [['nyanluna'],['tsukineko','omsolo'],['nyanluna','omsolo']])for(const difficulty of ['normal','hard'])test(`new candidate sets complete all six waves in chapter two: ${party.join('+')}, ${difficulty}`,()=>{
  const p=prepared(party[0],party).progression;
- // A solo mage pairs the new damage multiplier with her original damage spells.
- if(party.length===1){equipSkill(p,'nyanluna',1,'orbit');equipSkill(p,'nyanluna',2,'nova');}
  const g=new Adventure({progression:p,party,hero:HEROES.findIndex(h=>h.id===party[0]),act:4,difficulty,seed:42});
  for(let i=0;i<60*500;i++){while(g.phase==='upgrade')g.chooseSkill(g.offers.find(s=>s.unlockNode)?.id??g.offers[0].id);if(g.phase==='transition')g.advanceStage();if(g.phase!=='playing')break;g.tick(1/60,botInput(g));g.drainEvents();}
  assert.equal(g.phase,'victory');assert.equal(g.wave,6);assert.ok(g.blessingsTaken>0);assert.ok(Object.keys(g.skills).some(id=>SKILLS.find(s=>s.id===id)?.unlockNode));

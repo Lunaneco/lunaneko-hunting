@@ -68,19 +68,24 @@ test('slime and wolf warn before rushing and retain a stationary recovery window
   const end=e.z;tick(g,.2);assert.equal(e.z,end);
  }
 });
-test('boss rage adds firepower while radial volleys retain a dodge gap and all patterns have warnings',()=>{
+test('Mochi bosses use distinct claw, dream, chime and crown patterns with stronger second phases',()=>{
  for(let act=8;act<=11;act++){
-  const counts=[];
+  const attacks=[];
   for(const enraged of [false,true]){
    const {g,e}=battle('boss',act);e.action=1;if(enraged)e.hp=e.maxHp*.49;
-   tick(g,1/60);assert.ok(e.cast.total>=1);const count=e.cast.count;tick(g,1.15);
-   assert.equal(g.projectiles.length,count-2);counts.push(g.projectiles.length);
-   const angles=g.projectiles.map(p=>Math.atan2(p.vx,p.vz)).map(a=>(a+Math.PI*2)%(Math.PI*2)).sort((a,b)=>a-b);
-   const gaps=angles.map((a,i)=>(angles[(i+1)%angles.length]-a+Math.PI*2)%(Math.PI*2));
-   assert.ok(Math.max(...gaps)>Math.PI*2/count*2.9);
+   tick(g,1/60);assert.ok(e.cast.total>=1);assert.ok(g.hazards.every(h=>h.total>=1));
+   attacks.push(g.hazards.length);
+   if(act===8)assert.ok(g.hazards.some(h=>h.shape==='line'&&h.damage>0));
+   if(act===9)assert.ok(g.hazards.some(h=>h.shape==='ring')&&g.hazards.some(h=>!h.shape));
+   if(act===10)assert.ok(g.hazards.every(h=>h.shape==='ring'&&h.damage>0));
+   if(act===11){
+    const count=e.cast.count;tick(g,1.12);assert.equal(g.projectiles.length,count-2);assert.ok(e.salvo);assert.ok(e.salvo.pattern.waves>1);
+    const angles=g.projectiles.map(p=>Math.atan2(p.vx,p.vz)).map(a=>(a+Math.PI*2)%(Math.PI*2)).sort((a,b)=>a-b);
+    const gaps=angles.map((a,i)=>(angles[(i+1)%angles.length]-a+Math.PI*2)%(Math.PI*2));assert.ok(Math.max(...gaps)>Math.PI*2/count*2.9);
+   }
    assert.equal(g.drainEvents().filter(e=>e.type==='bossPhase').length,enraged?1:0);
   }
-  assert.ok(counts[1]>counts[0]);
+  assert.ok(attacks[1]>attacks[0]);
   for(const action of [0,2]){const {g,e}=battle('boss',act);e.action=action;tick(g,1/60);assert.ok(g.hazards.length>0);assert.ok(g.hazards.every(h=>h.total>=1));}
  }
 });

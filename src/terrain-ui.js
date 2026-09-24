@@ -8,28 +8,29 @@ let mapKey='';
 const enemyLayers=new WeakMap();
 function updateMapEnemies(layer,enemies){
  let markers=enemyLayers.get(layer);if(!markers){markers=new Map();enemyLayers.set(layer,markers);}
- const alive=new Set();let bosses=0;
+ const alive=new Set();let bosses=0,rare=0;
  for(const enemy of enemies){
   if(!(enemy.hp>0)||!Number.isFinite(enemy.x)||!Number.isFinite(enemy.z))continue;
-  alive.add(enemy.id);const boss=enemy.type==='boss';if(boss)bosses++;
+  alive.add(enemy.id);const boss=enemy.type==='boss';if(boss)bosses++;const gold=enemy.type==='goldenSlime';if(gold)rare++;
   let marker=markers.get(enemy.id);
-  if(!marker||marker.boss!==boss){
-   marker?.node.remove();const node=layer.ownerDocument.createElementNS('http://www.w3.org/2000/svg',boss?'path':'circle');
-   node.setAttribute('class',`map-enemy${boss?' boss':''}`);node.dataset.enemyId=enemy.id;
-   if(boss)node.setAttribute('d','M0 -2.1 2.1 0 0 2.1 -2.1 0Z');else node.setAttribute('r','1.15');
-   layer.append(node);marker={node,boss};markers.set(enemy.id,marker);
+  if(!marker||marker.boss!==boss||marker.gold!==gold){
+   marker?.node.remove();const node=layer.ownerDocument.createElementNS('http://www.w3.org/2000/svg',boss||gold?'path':'circle');
+   node.setAttribute('class',`map-enemy${boss?' boss':gold?' rare':''}`);node.dataset.enemyId=enemy.id;
+   if(gold)node.setAttribute('d','M0 -2.6 .7 -.9 2.5 -.8 1.1 .5 1.6 2.4 0 1.3 -1.6 2.4 -1.1 .5 -2.5 -.8 -.7 -.9Z');else if(boss)node.setAttribute('d','M0 -2.1 2.1 0 0 2.1 -2.1 0Z');else node.setAttribute('r','1.15');
+   layer.append(node);marker={node,boss,gold};markers.set(enemy.id,marker);
   }
   marker.node.setAttribute('transform',`translate(${enemy.x} ${enemy.z})`);
  }
  for(const [id,marker] of markers)if(!alive.has(id)){marker.node.remove();markers.delete(id);}
- return {enemies:alive.size-bosses,bosses};
+ return {enemies:alive.size-bosses-rare,bosses,rare};
 }
 export function updateTerrainUi(game){
  const map=document.querySelector('#field-map'),guide=document.querySelector('#passage-guide');if(!game)return;
  const l=game.layout,key=l.id+':'+game.travelOpen+':'+game.exitOpen;
- if(key!==mapKey||!map.querySelector('#map-enemies')){mapKey=key;map.innerHTML=`<small>${game.field.kind==='floors'?(game.wave%2?'1F / 2F':'2F / 2F'):game.route==='elite'?'DANGER ROUTE':game.field.kind==='branch'?'BRANCH ROUTE':'FIELD MAP'} <i>N ↑</i></small>${mapSvg(l,`<g id="map-enemies"></g><g id="map-targets"></g><circle id="map-player" r="1.25" fill="#fff7cc" stroke="#153240" stroke-width=".6"/>`)}<div class="map-legend"><span class="map-key-player">自分</span><span class="map-key-enemy">敵</span><span class="map-key-boss">ボス</span></div><span>${l.name}</span>`;}
+ if(key!==mapKey||!map.querySelector('#map-enemies')){mapKey=key;map.innerHTML=`<small>${game.field.kind==='floors'?(game.wave%2?'1F / 2F':'2F / 2F'):game.route==='elite'?'DANGER ROUTE':game.field.kind==='branch'?'BRANCH ROUTE':'FIELD MAP'} <i>N ↑</i></small>${mapSvg(l,`<g id="map-enemies"></g><g id="map-targets"></g><circle id="map-player" r="1.25" fill="#fff7cc" stroke="#153240" stroke-width=".6"/>`)}<div class="map-legend"><span class="map-key-player">自分</span><span class="map-key-enemy">敵</span><span class="map-key-boss">ボス</span><span class="map-key-rare hidden">レア</span></div><span>${l.name}</span>`;}
  const counts=updateMapEnemies(map.querySelector('#map-enemies'),game.enemies);
- const description=`${l.name}の地図：現在地、敵${counts.enemies}体、ボス${counts.bosses}体、開いている出口`;
+ map.querySelector('.map-key-rare').classList.toggle('hidden',!counts.rare);
+ const description=`${l.name}の地図：現在地、敵${counts.enemies}体、ボス${counts.bosses}体${counts.rare?`、金色のスライム${counts.rare}体`:''}、開いている出口`;
  if(map.getAttribute('aria-label')!==description)map.setAttribute('aria-label',description);
  const player=map.querySelector('#map-player');player.setAttribute('cx',game.player.x);player.setAttribute('cy',game.player.z);
  const targets=game.exitOpen?[{...game.exitPoint,color:0xffe6a0}]:game.travelTargets;
