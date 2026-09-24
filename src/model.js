@@ -22,7 +22,7 @@ export const HEROES = [
   { id: 'nyanluna', name: 'にゃんるな', title: '月光の魔法使い', color: '#d9baff', moveSpeed:5.6, dashSpeed:24, range:12, damage:20, baseHp:180, baseDefense:8, interval:.55, skillPower:1.5, chargeRate:1.5, role:'スキル特化', trait:'月光共鳴', traitText:'スキルダメージ +50%／必殺ゲージ獲得 +50%'  },
   { id: 'tsukineko', name: 'つきねこ', title: '星影の銃使い', color: '#82e5ff', moveSpeed:5.6, dashSpeed:24, range:11, damage:26, baseHp:210, baseDefense:14, interval:.46, skillPower:1, chargeRate:1, role:'基礎能力特化', trait:'星影の鍛錬', traitText:'高いHP・攻撃力・防御力と、速い通常射撃'  },
   {id:'omsolo',name:'オムソロ',title:'翠光の剣士',color:'#aaffba',moveSpeed:11.2,dashSpeed:48,range:3.2,damage:42,baseHp:250,baseDefense:21,interval:.60,skillPower:1.1,chargeRate:1.2,role:'近接・守護',trait:'守り手の剣',traitText:'通常移動速度・回避距離2倍／扇状の近接攻撃／高いHPと防御力／必殺ゲージ獲得 +20%。必殺技で周囲を斬り払い、自分を守る'},
-  {id:'mochinyafe',name:'もちにゃふぇ',title:'最後のもちもち守り手',color:'#ffb8d4',moveSpeed:4.2,dashSpeed:20,range:2.3,damage:5,baseHp:75,baseDefense:1,interval:1.4,skillPower:1,chargeRate:1.3,role:'援護特化・大器晩成',trait:'小さな声の大きな奇跡',traitText:'援護のふぇ〜で雑魚を1.8秒停止／ボスの攻撃・防御を5秒間30%低下。初期能力は最弱、Lv.50では全員を超える基礎能力。ツリーのHP・防御成長3倍、攻撃成長2.5倍'},
+  {id:'mochinyafe',name:'もちにゃふぇ',title:'最後のもちもち守り手',color:'#ffb8d4',moveSpeed:4.2,dashSpeed:20,range:6,damage:5,baseHp:75,baseDefense:1,interval:1.4,skillPower:1,chargeRate:1.3,role:'援護特化・大器晩成',trait:'小さな声の大きな奇跡',traitText:'操作中は弱い追尾音弾で攻撃。援護のふぇ〜で雑魚を1.8秒停止／ボスの攻撃・防御を5秒間30%低下。初期能力は最弱、Lv.50では全員を超える基礎能力。ツリーのHP・防御成長3倍、攻撃成長2.5倍'},
 ];
 export {SKILLS} from './blessings.js';
 export const AREAS = [
@@ -213,14 +213,14 @@ export class Adventure {
   ultimate(options){return castUltimate(this,options);}
   attackFrom(source,hero,support=false){
     if(!this.isHeroAlive(hero)||(support&&!this.hasLivingPartner))return false;
-    const stats=this.attackProfile(hero);const range=hero===3&&support?MOCHI_SUPPORT.range+this.rank('mochiReach')*2:stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
+    const stats=this.attackProfile(hero);const range=hero===3&&support?stats.supportRange+this.rank('mochiReach')*2:stats.range*(1+this.rank('reach')*.18)+(hero===2?this.rank('saberReach')*.35:0);const enemy=this.nearest(source.x,source.z,range);if(!enemy)return false;
     const angle=Math.atan2(enemy.x-source.x,enemy.z-source.z);source.face=angle;
     const heroId=HEROES[hero].id;let damage=this.statsFor(hero).attack*(1+this.rank('power')*.25+this.rank('moonGuard')*.18+this.rank('starBlade')*.18)*(support?.43*(1+this.rank('echo')*.35+this.rank('starBlade')*.2):1);
     const crit=this.rng()<.05+this.rank('crit')*.15;if(crit)damage*=2+this.rank('preciseAim')*.25;
     this.emit('attack',{x:source.x,z:source.z,angle,hero,support,range,color:equippedWeapon(this.progression,heroId)?.weapon.effectColor});
     if(hero===3){
-      if(support){this.projectiles.push({id:this.ids++,owner:'player',heroId,kind:'mochiCry',x:source.x,z:source.z,vx:Math.sin(angle)*MOCHI_SUPPORT.speed,vz:Math.cos(angle)*MOCHI_SUPPORT.speed,life:(range+2)/MOCHI_SUPPORT.speed,damage,crit:false,radius:1.05,pierce:MOCHI_SUPPORT.pierce+this.rank('mochiReach'),hitIds:[]});if(this.rank('mochiMend'))this.heal(this.rank('mochiMend')*2);if(this.rank('mochiCharge'))this.gainUltimateCharge(heroId,this.rank('mochiCharge')*3);}
-      else this.hit(enemy,damage*(1+this.rank('mochiBrave')*.3),source.x,source.z,crit,false,heroId);
+      if(support){this.projectiles.push({id:this.ids++,owner:'player',heroId,kind:'mochiCry',x:source.x,z:source.z,vx:Math.sin(angle)*MOCHI_SUPPORT.speed,vz:Math.cos(angle)*MOCHI_SUPPORT.speed,life:(range+2)/MOCHI_SUPPORT.speed,damage,crit:false,radius:1.05,pierce:stats.supportPierce+this.rank('mochiReach'),hitIds:[]});if(this.rank('mochiMend'))this.heal(this.rank('mochiMend')*2);if(this.rank('mochiCharge'))this.gainUltimateCharge(heroId,this.rank('mochiCharge')*3);}
+      else this.projectiles.push({id:this.ids++,owner:'player',heroId,kind:'mochiNote',x:source.x,z:source.z,vx:Math.sin(angle)*12,vz:Math.cos(angle)*12,speed:12,life:(range+3)/12,damage:Math.max(1,damage*(1+this.rank('mochiBrave')*.3)),crit,target:enemy.id,radius:.42,color:equippedWeapon(this.progression,heroId)?.weapon.effectColor});
     }else if(hero===0){
       const id=this.ids++;this.projectiles.push({id,owner:'player',heroId,x:source.x,z:source.z,vx:Math.sin(angle)*15,vz:Math.cos(angle)*15,kind:'magic',speed:15,life:Math.max(1.5,(range+2)/15),damage,crit,target:enemy.id,radius:.28});
     }else if(hero===1){
@@ -316,7 +316,7 @@ export class Adventure {
     }
     if(!training)tickUltimates(this,dt);
     if(p.attack<=0&&this.attackFrom(p,p.hero))p.attack=this.attackProfile(p.hero).interval*Math.pow(.85,this.rank('haste'));
-    if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=this.partnerHero===3?MOCHI_SUPPORT.interval:this.attackProfile(this.partnerHero).interval*2.6*Math.pow(.85,this.rank('haste'));
+    if(this.hasLivingPartner&&partner.attack<=0&&this.attackFrom(partner,this.partnerHero,true))partner.attack=this.partnerHero===3?this.attackProfile(3).supportInterval:this.attackProfile(this.partnerHero).interval*2.6*Math.pow(.85,this.rank('haste'));
     if(!training){this.spawnTimer-=dt;if(this.waveSpawned<this.waveGoal&&this.spawnTimer<=0){this.spawn();this.spawnTimer=this.wave===6?100:Math.max(.43,1.15-this.wave*.10)*(this.actConfig.extra?EXTRA_COMBAT.spawnScale:1);}}
     for(const e of this.enemies){
       if(e.hp<=0)continue;e.mochiFrozen=mochiFrozen(this,e);if(e.mochiFrozen){e.hit=Math.max(0,e.hit-dt);continue;}if(e.mochiWeakenUntil<=this.time){e.mochiAttackDown=0;e.mochiDefenseDown=0;}const enemyFrom={x:e.x,z:e.z};e.navTimer-=dt;e.age+=dt;e.hit=Math.max(0,e.hit-dt);e.attack-=dt*(this.actConfig.extra?EXTRA_COMBAT.cooldownRate:1);
@@ -331,8 +331,8 @@ export class Adventure {
     }
     for(const bullet of this.projectiles){
       if(bullet.life<=0)continue;
-      bullet.life-=dt;if(bullet.owner==='player'&&bullet.kind==='magic'){
-        const target=this.enemies.find(e=>e.id===bullet.target&&e.hp>0);if(target){const x=target.x-bullet.x,z=target.z-bullet.z,d=Math.hypot(x,z)||1;bullet.vx=x/d*15;bullet.vz=z/d*15;}
+      bullet.life-=dt;if(bullet.owner==='player'&&(bullet.kind==='magic'||bullet.kind==='mochiNote')){
+        const target=this.enemies.find(e=>e.id===bullet.target&&e.hp>0);if(target){const x=target.x-bullet.x,z=target.z-bullet.z,d=Math.hypot(x,z)||1;bullet.vx=x/d*bullet.speed;bullet.vz=z/d*bullet.speed;}
       }
       const fromX=bullet.x,fromZ=bullet.z;bullet.x+=bullet.vx*dt;bullet.z+=bullet.vz*dt;
       if(bullet.owner==='player'){

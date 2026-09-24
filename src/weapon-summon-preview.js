@@ -41,7 +41,7 @@ const ROUTES=Object.fromEntries([2,3,4].map(rank=>{
 }));
 const ROUTE_COUNT=ITEMS.reduce((n,item)=>n+ROUTES[item.rarity.rank].length,0);
 const MODES=[['auto','本番と同じ確率'],['direct','直行（青・紫・金）'],['promote','昇格（青→紫・青→金）'],['omen','流れ星の前兆（★4のみ）']];
-const SEED={inventory:{weaponTicket:9,starBud:10},story:{version:2,actClears:Array(8).fill(true)},tutorial:{firstBattleCompleted:true}};
+const SEED={inventory:{weaponTicket:9,starBud:10},story:{version:2,actClears:Array(12).fill(true)},tutorial:{firstBattleCompleted:true}};
 const BATCH_PRESETS=[{label:'青の十星',ranks:Array(10).fill(2)},{label:'紫の月蝕',ranks:[2,3,2,2,3,2,2,2,3,2]},{label:'伝説の顕現',ranks:[2,2,3,2,4,2,2,3,2,2]},{label:'三つの伝説',ranks:[2,4,2,3,2,4,2,3,4,2]}];
 const FLAGS=['duplicate','locked','motion','video','sound'];
 const options={route:'auto',duplicate:false,locked:false,motion:true,video:true,quality:'high',sound:true};
@@ -89,7 +89,7 @@ $('#preview').innerHTML=`<header class="preview-head"><span class="eyebrow">DEV 
 <section class="preview-options" aria-label="再生の設定">
 <fieldset><legend>演出ルート</legend>${radios('route',MODES)}</fieldset>
 <fieldset><legend>結果</legend>${radios('duplicate',[['false','新しい武器'],['true','重複（星の芽に変換）']])}</fieldset>
-<fieldset><legend>つきねこ・オムソロ</legend>${radios('locked',[['false','加入済み'],['true','未加入（保管のみ）']])}</fieldset>
+<fieldset><legend>つきねこ・オムソロ・もちにゃふぇ</legend>${radios('locked',[['false','加入済み'],['true','未加入（保管のみ）']])}</fieldset>
 <fieldset><legend>演出の動き</legend>${radios('motion',[['true','通常'],['false','動きを減らす（約1.5秒）']])}</fieldset>
 <fieldset><legend>召喚動画</legend>${radios('video',[['true','使う'],['false','使わない（読み込めない環境）']])}</fieldset>
 <fieldset><legend>画質</legend>${radios('quality',[['high','高'],['low','低']])}</fieldset>
@@ -97,7 +97,7 @@ $('#preview').innerHTML=`<header class="preview-head"><span class="eyebrow">DEV 
 </section>
 <section class="preview-run"><button type="button" class="primary" data-run="catalog">${ITEMS.length}本を順番に再生</button><button type="button" class="secondary" data-run="routes">全ルート${ROUTE_COUNT}通りを順番に再生</button><p>結果が出て${AUTO_NEXT}秒後に次へ進みます。画面タップ・Space でスキップ、Esc で自動送りを止め、もう一度押すと一覧へ。<br>演出中は ← → で前後の武器、R でもう一度。</p></section>
 <section id="batch-preview" class="preview-run"><h2>10連 · 十星の月蝕召喚</h2>${BATCH_PRESETS.map((p,i)=>`<button type="button" class="secondary" data-batch-preview="${i}">${p.label}</button>`).join('')}<p>10本の星が集まり、月蝕が砕け、実際の結果を順番に表示。★4は1本ずつキャラと武器が登場します。</p></section>
-<section class="preview-catalog">${HEROES.filter(hero=>hero.id!=='mochinyafe').map(hero=>`<section class="preview-hero" aria-label="${hero.name}の専用武器"><h2><span class="portrait ${hero.id}"></span>${hero.name}</h2>${FAMILIES.filter(weapon=>weapon.heroId===hero.id).map(weapon=>{const items=ITEMS.filter(item=>item.weapon===weapon);return `<article class="preview-weapon"><img src="${weaponImage(items[0])}" alt="" width="64" height="64" decoding="async"><h3>${weapon.name}</h3><small>${weapon.style}</small><div class="preview-ranks">${items.map(item=>`<button type="button" data-play="${item.id}" style="--rarity-color:${item.rarity.color}" aria-label="${weapon.name} ★${item.rarity.rank}の演出を再生">★${item.rarity.rank}<small>${item.rarity.name}</small></button>`).join('')}</div></article>`;}).join('')}</section>`).join('')}</section>`;
+<section class="preview-catalog">${HEROES.map(hero=>`<section class="preview-hero" aria-label="${hero.name}の専用武器"><h2><span class="portrait ${hero.id}"></span>${hero.name}</h2>${FAMILIES.filter(weapon=>weapon.heroId===hero.id).map(weapon=>{const items=ITEMS.filter(item=>item.weapon===weapon);return `<article class="preview-weapon"><img src="${weaponImage(items[0])}" alt="" width="64" height="64" decoding="async"><h3>${weapon.name}</h3><small>${weapon.style}</small><div class="preview-ranks">${items.map(item=>`<button type="button" data-play="${item.id}" style="--rarity-color:${item.rarity.color}" aria-label="${weapon.name} ★${item.rarity.rank}の演出を再生">★${item.rarity.rank}<small>${item.rarity.name}</small></button>`).join('')}</div></article>`;}).join('')}</section>`).join('')}</section>`;
 
 $('#preview').addEventListener('change',e=>{
   const {name,value}=e.target;if(!(name in options))return;

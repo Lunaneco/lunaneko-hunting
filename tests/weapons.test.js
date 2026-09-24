@@ -9,7 +9,7 @@ const fresh=()=>normalizeProgression({},HEROES);
 const roll=(profile,hero,rarity,type=0)=>{const values=[hero,rarity,type];return drawWeapon(profile,()=>values.shift());};
 const quiet=(options={})=>{const g=new Adventure({seed:27,...options});g.enemies=[];g.waveSpawned=g.waveGoal;g.waveBreak=-1000;g.drainEvents();return g;};
 
-test('legacy saves retain all progress, relics and base stats with three starter weapons plus the natural voice and zero tickets',()=>{
+test('legacy saves retain all progress, relics and base stats with four starter weapons and zero tickets',()=>{
  const old={story:{version:2,actClears:[true,true]},characters:{nyanluna:{level:9,xp:17,tree:['origin']},future:{level:2}},inventory:{starBud:71,moonDew:5,limitStone:2},equipment:{owned:['meadow-charm'],loadout:{nyanluna:'meadow-charm'}}};
  const p=normalizeProgression(old,HEROES);assert.equal(p.inventory.weaponTicket,0);assert.equal(p.inventory.starBud,71);assert.deepEqual(p.equipment,old.equipment);assert.equal(p.characters.nyanluna.level,9);assert.equal(p.characters.nyanluna.xp,17);assert.equal(p.characters.future.level,2);assert.equal(p.weapons.owned.length,4);
  for(const hero of HEROES)assert.equal(equippedWeapon(p,hero.id).rarity.rank,1);assert.deepEqual(normalizeProgression(JSON.parse(JSON.stringify(p)),HEROES),p);
@@ -19,13 +19,13 @@ test('weapon IDs, tickets and saved draw results are normalized without acceptin
  const p=normalizeProgression({inventory:{weaponTicket:4.9},weapons:{owned:['nox-rifle-r4','nox-rifle-r4','luna-staff-r99','__proto__'],draws:-2,lastDraw:{weaponId:'<script>',duplicate:true}}},HEROES);
  assert.equal(p.inventory.weaponTicket,4);assert.equal(p.weapons.owned.length,5);assert.equal(p.weapons.draws,0);assert.equal(p.weapons.lastDraw,null);assert.deepEqual(normalizeWeapons(null),normalizeWeapons({}));
 });
-for(const [heroIndex,heroRoll] of [[0,0],[1,1/3],[2,2/3]])for(const [rank,rarityRoll] of [[2,0],[3,.75],[4,.95]])test(`gacha boundary selects hero ${heroIndex}, rarity ${rank}, independently of recruitment`,()=>{
+for(const [heroIndex,heroRoll] of [[0,0],[1,.25],[2,.5],[3,.75]])for(const [rank,rarityRoll] of [[2,0],[3,.75],[4,.95]])test(`gacha boundary selects hero ${heroIndex}, rarity ${rank}, independently of recruitment`,()=>{
  const p=fresh();p.inventory.weaponTicket=1;const before=structuredClone(p),r=roll(p,heroRoll,rarityRoll);assert.equal(r.item.heroId,WEAPON_HERO_IDS[heroIndex]);assert.equal(r.item.rarity.rank,rank);assert.equal(r.duplicate,false);assert.equal(p.inventory.weaponTicket,0);assert.equal(p.weapons.draws,1);assert.equal(equippedWeapon(p,r.item.heroId).rarity.rank,1);assert.deepEqual(p.characters,before.characters);assert.deepEqual(p.story,before.story);assert.deepEqual(p.equipment,before.equipment);assert.deepEqual(normalizeProgression(JSON.parse(JSON.stringify(p)),HEROES),p);
 });
 test('the published 75/20/5 rates and equal character odds cover a uniform grid exactly',()=>{
- const p=fresh();p.inventory.weaponTicket=900;const totals={};
- for(let hero=0;hero<3;hero++)for(let rarity=0;rarity<100;rarity++)for(let type=0;type<3;type++){const result=roll(p,(hero+.5)/3,(rarity+.5)/100,(type+.5)/3),id=`${result.item.heroId}-${result.item.rarity.rank}`;totals[id]=(totals[id]??0)+1;}
- for(const id of WEAPON_HERO_IDS){assert.equal(totals[`${id}-2`],225);assert.equal(totals[`${id}-3`],60);assert.equal(totals[`${id}-4`],15);}assert.equal(p.weapons.owned.length,31);assert.equal(p.inventory.weaponTicket,0);
+ const p=fresh();p.inventory.weaponTicket=1200;const totals={};
+ for(let hero=0;hero<4;hero++)for(let rarity=0;rarity<100;rarity++)for(let type=0;type<3;type++){const result=roll(p,(hero+.5)/4,(rarity+.5)/100,(type+.5)/3),id=`${result.item.heroId}-${result.item.rarity.rank}`;totals[id]=(totals[id]??0)+1;}
+ for(const id of WEAPON_HERO_IDS){assert.equal(totals[`${id}-2`],225);assert.equal(totals[`${id}-3`],60);assert.equal(totals[`${id}-4`],15);}assert.equal(p.weapons.owned.length,40);assert.equal(p.inventory.weaponTicket,0);
 });
 test('a draw with no ticket, or an invalid RNG, changes nothing',()=>{
  const p=fresh(),before=structuredClone(p);assert.equal(drawWeapon(p,()=>{throw Error('must not roll');}),null);assert.deepEqual(p,before);
@@ -57,16 +57,16 @@ test('actual boss kills award once, attribute to the run, persist through defeat
  g.player.invincible=0;g.hurt(99999,0,0);assert.equal(g.phase,'defeat');const saved=normalizeProgression(JSON.parse(JSON.stringify(g.progression)),HEROES);assert.equal(saved.inventory.weaponTicket,1);const late=g.spawnEnemy('boss',8,8);g.hit(late,99999,0,0);assert.equal(g.progression.inventory.weaponTicket,1);
 });
 test('every chapter boss and strong-route boss can grant a ticket without needing the final gate',()=>{
- for(let act=0;act<8;act++)for(const elite of [false,true]){const g=quiet({act,progression:{story:{version:2,actClears:Array(8).fill(true)}}});g.lootRng=()=>0;const e=g.spawnEnemy('boss',10,10,{elite});g.hit(e,99999,0,0);assert.equal(g.progression.inventory.weaponTicket,1);assert.notEqual(g.phase,'victory');assert.equal(new Adventure({progression:g.progression}).progression.inventory.weaponTicket,1);}
+ for(let act=0;act<8;act++)for(const elite of [false,true]){const g=quiet({act,progression:{story:{version:2,actClears:Array(12).fill(true)}}});g.lootRng=()=>0;const e=g.spawnEnemy('boss',10,10,{elite});g.hit(e,99999,0,0);assert.equal(g.progression.inventory.weaponTicket,1);assert.notEqual(g.phase,'victory');assert.equal(new Adventure({progression:g.progression}).progression.inventory.weaponTicket,1);}
 });
 test('gacha descriptions expose exact odds, locked-character storage and duplicate values and exact-name duplicate rules',()=>{
- const p=fresh(),html=weaponGachaView(p);assert.match(html,/5%で1枚/);assert.match(html,/75%/);assert.match(html,/20%/);assert.match(html,/約0.5556%/);assert.match(html,/同じ武器・同じレア度/);assert.match(html,/data-draw-weapon disabled/);for(const id of WEAPON_HERO_IDS)assert.ok(html.includes(`data-weapon-hero="${id}"`));
- p.inventory.weaponTicket=1;const r=roll(p,.8,.99),result=weaponDrawResult(r,p,true);assert.match(result,/加入後に使えるよう保管/);assert.match(result,/★4/);assert.match(result,/結果を保存/);assert.equal(WEAPON_CATALOG.length,31);
+ const p=fresh(),html=weaponGachaView(p);assert.match(html,/5%で1枚/);assert.match(html,/75%/);assert.match(html,/20%/);assert.match(html,/約0.4167%/);assert.match(html,/同じ武器・同じレア度/);assert.match(html,/data-draw-weapon disabled/);for(const id of WEAPON_HERO_IDS)assert.ok(html.includes(`data-weapon-hero="${id}"`));
+ p.inventory.weaponTicket=1;const r=roll(p,.8,.99),result=weaponDrawResult(r,p,true);assert.match(result,/加入後に使えるよう保管/);assert.match(result,/★4/);assert.match(result,/結果を保存/);assert.equal(WEAPON_CATALOG.length,40);
 });
 
-const allWeapons=()=>normalizeProgression({story:{version:2,actClears:Array(8).fill(true)},weapons:{version:2,owned:WEAPON_CATALOG.map(w=>w.id)},tutorial:{firstBattleCompleted:true}},HEROES);
+const allWeapons=()=>normalizeProgression({story:{version:2,actClears:Array(12).fill(true)},weapons:{version:2,owned:WEAPON_CATALOG.map(w=>w.id)},tutorial:{firstBattleCompleted:true}},HEROES);
 test('each gacha hero has three distinct combat profiles at every gacha rarity and one starter',()=>{
- assert.equal(new Set(WEAPON_CATALOG.map(w=>w.id)).size,31);
+ assert.equal(new Set(WEAPON_CATALOG.map(w=>w.id)).size,40);
  for(const hero of HEROES.filter(h=>WEAPON_HERO_IDS.includes(h.id)))for(const rank of [1,2,3,4]){
   const items=WEAPON_CATALOG.filter(w=>w.heroId===hero.id&&w.rarity.rank===rank);assert.equal(items.length,rank===1?1:3);
   const stats=new Set();for(const item of items){const p=allWeapons();assert.ok(equipWeapon(p,hero.id,item.id));stats.add(JSON.stringify({...combatStats(p,hero),...weaponAttackProfile(p,hero)}));assert.ok(weaponImage(item).startsWith('/assets/equipment/'));}assert.equal(stats.size,items.length);

@@ -46,8 +46,8 @@ test('support cry must hit: it stops regular targets and interrupts pending spel
  const pos={x:e.x,z:e.z};advance(g,1);assert.equal(e.x,pos.x);assert.equal(e.z,pos.z);
  advance(g,1.1);assert.ok(Math.hypot(e.x-pos.x,e.z-pos.z)>0);
 });
-test('main-controlled Mochi uses a weak short-range tackle without the support stop',()=>{
- const g=quiet({party:['mochinyafe'],hero:3}),near=target(g,'mochiGoblin',2),far=target(g,'mochiGoblin',10);g.attackFrom(g.player,3);
+test('main-controlled Mochi uses a weak homing note without the support stop',()=>{
+ const g=quiet({party:['mochinyafe'],hero:3}),near=target(g,'mochiGoblin',2),far=target(g,'mochiGoblin',10);g.attackFrom(g.player,3);assert.equal(g.projectiles[0].kind,'mochiNote');advance(g,.4);
  assert.equal(near.maxHp-near.hp,5);assert.equal(far.hp,far.maxHp);assert.equal(near.mochiStopUntil,undefined);assert.equal(g.projectiles.length,0);
 });
 test('bosses keep moving but attack and defense debuffs apply and expire without stacking',()=>{
@@ -76,7 +76,7 @@ test('Mochi starts weakest, grows progressively faster, and beats every fully eq
  assert.equal(talentNode('origin','mochinyafe').bonus.hp,36);assert.equal(talentNode('guard3','mochinyafe').bonus.defense,54);assert.ok(Math.abs(talentNode('attack3','mochinyafe').bonus.attack-.45)<1e-9);
  const p=profile();awardCharacterXp(p,'mochinyafe',100000000);assert.equal(p.characters.mochinyafe.level,50);
 });
-test('natural voice remains fixed and never changes the established three-hero gacha odds',()=>{
+test('starter chime survives migration and Mochi joins the four-hero weapon gacha',()=>{
  const p=profile();assert.equal(equippedWeapon(p,'mochinyafe').id,'mochi-voice-r1');p.inventory.weaponTicket=30;
  for(let i=0;i<30;i++){const rolls=[i/30,.96,.5];assert.ok(WEAPON_HERO_IDS.includes(drawWeapon(p,()=>rolls.shift()).item.heroId));}
  const g=quiet({progression:profile(12,50),hero:3,party:['mochinyafe']});assert.ok(Math.abs(g.attackProfile(3).interval-.35)<1e-9);

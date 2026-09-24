@@ -73,11 +73,11 @@ function createWeapon(hero) {
 }
 
 export function setHeroWeapon(root,item){
-  if(root.userData.hero===3)return;
   const d=root.userData;if(!item||d.weapon.userData.family===item.weapon.id)return;
   d.weaponCache??=new Map([[d.weapon.userData.family,d.weapon]]);
   let next=d.weaponCache.get(item.weapon.id);
-  if(!next){next=item.weapon.style==='均衡型'?createWeapon(d.hero):createWeaponVariant(item);d.weaponCache.set(item.weapon.id,next);}
+  if(!next){next=d.hero!==3&&item.weapon.style==='均衡型'?createWeapon(d.hero):createWeaponVariant(item);d.weaponCache.set(item.weapon.id,next);}
+  if(d.hero===3){next.position.set(.75,.95,.2);next.scale.setScalar(.75);}
   d.rig.remove(d.weapon);d.rig.add(next);d.weapon=next;
 }
 
@@ -158,7 +158,7 @@ function pose(data, name, x = 0, y = 0, z = 0) {
 
 export function animateHero(root, state, time, dt, active) {
   const d = root.userData;
-  if(d.hero===3){root.position.set(state.x,0,state.z);root.rotation.y+=Math.atan2(Math.sin(state.face-root.rotation.y),Math.cos(state.face-root.rotation.y))*Math.min(1,dt*14);d.attackTime=Math.max(0,d.attackTime-dt);const bounce=state.moving?Math.abs(Math.sin(time*10))*.16:Math.sin(time*2)*.015,cry=d.attackTime>0?Math.sin(d.attackTime/ATTACK_DURATION*Math.PI):0;d.rig.position.y=.04+bounce;d.rig.scale.set(1+cry*.16,1-cry*.12,1+cry*.16);d.rig.rotation.z=state.moving?Math.sin(time*10)*.06:0;d.rig.visible=!(active&&state.invincible>.05&&state.invincible<.8&&Math.floor(time*22)%3===0);d.ring.position.y=.025;d.ring.material.opacity=active?.6:.22;return;}
+  if(d.hero===3){d.weapon.rotation.z=Math.sin(time*3)*.16;root.position.set(state.x,0,state.z);root.rotation.y+=Math.atan2(Math.sin(state.face-root.rotation.y),Math.cos(state.face-root.rotation.y))*Math.min(1,dt*14);d.attackTime=Math.max(0,d.attackTime-dt);const bounce=state.moving?Math.abs(Math.sin(time*10))*.16:Math.sin(time*2)*.015,cry=d.attackTime>0?Math.sin(d.attackTime/ATTACK_DURATION*Math.PI):0;d.rig.position.y=.04+bounce;d.rig.scale.set(1+cry*.16,1-cry*.12,1+cry*.16);d.rig.rotation.z=state.moving?Math.sin(time*10)*.06:0;d.rig.visible=!(active&&state.invincible>.05&&state.invincible<.8&&Math.floor(time*22)%3===0);d.ring.position.y=.025;d.ring.material.opacity=active?.6:.22;return;}
   d.rig.rotation.set(0,0,0);d.rig.position.x=0;d.weapon.visible=true;
   root.position.set(state.x, 0, state.z);
   const turn = Math.atan2(Math.sin(state.face - root.rotation.y), Math.cos(state.face - root.rotation.y));

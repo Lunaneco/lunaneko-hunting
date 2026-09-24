@@ -4,7 +4,23 @@ import {part,bakeGroup} from './characters.js';
 // Every model keeps the grip at (0, 0, 0), matching the existing hand attachment.
 export function createWeaponVariant(item){
  const id=item.weapon.id,weapon=new THREE.Group(),gold=0xe0bd78,silver=0xd6e8ed;
- if(item.heroId==='nyanluna'){
+ if(item.heroId==='mochinyafe'){
+  const lull=id==='mochi-lull-chime',echo=id==='mochi-echo-bell',color=lull?0xcab3ff:echo?0xffd5aa:0xffb4d0;
+  part(weapon,new THREE.TorusGeometry(.16,.035,6,20),gold,0,.36,0);
+  if(echo){
+   part(weapon,new THREE.CylinderGeometry(.19,.39,.43,16,1,true),0xffeada,0,.02,0,null,.1,.35);
+   part(weapon,new THREE.TorusGeometry(.39,.045,6,24),gold,0,-.2,0).rotation.x=Math.PI/2;
+   part(weapon,new THREE.SphereGeometry(.13,12,8),color,0,-.08,0,null,1.1);
+  }else{
+   for(const x of (lull?[-.18,.18]:[0])){
+    const scale=lull?.68:1;
+    part(weapon,new THREE.SphereGeometry(.29*scale,16,12),color,x,0,0,null,.12,.4);
+    for(const side of [-1,1])part(weapon,new THREE.ConeGeometry(.085*scale,.17*scale,5),color,x+side*.16*scale,.24*scale,0);
+    part(weapon,new THREE.TorusGeometry(.21*scale,.028,6,20),gold,x,-.16*scale,0).rotation.x=Math.PI/2;
+    part(weapon,new THREE.BoxGeometry(.17*scale,.025,.025),0x825064,x,-.08*scale,.265*scale);
+   }
+  }
+ }else if(item.heroId==='nyanluna'){
   const far=id==='selene-staff';
   part(weapon,new THREE.CylinderGeometry(.035,.04,1.64,10),far?0x333c7d:0xe6e7f6,0,.40,0);
   for(const y of [-.37,.20,.90])part(weapon,new THREE.TorusGeometry(.043,.013,6,12),far?silver:gold,0,y,0).rotation.x=Math.PI/2;

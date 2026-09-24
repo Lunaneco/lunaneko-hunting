@@ -1,10 +1,11 @@
 import {WEAPONS,equipmentImage} from './equipment.js';
 import {publicUrl} from './public-url.js';
 import {isHeroUnlocked} from './recruitment.js';
+import {MOCHI_SUPPORT} from './mochi-combat.js';
 
 export const WEAPON_TICKET_DROP_RATE=.05;
 export const WEAPON_MULTI_DRAW_COUNT=10;
-export const WEAPON_HERO_IDS=Object.freeze(['nyanluna','tsukineko','omsolo']);
+export const WEAPON_HERO_IDS=Object.freeze(['nyanluna','tsukineko','omsolo','mochinyafe']);
 export const WEAPON_RARITIES=Object.freeze([
   Object.freeze({rank:1,name:'通常',color:'#b7cbc7',attack:0,chance:0,duplicateBuds:0}),
   Object.freeze({rank:2,name:'希少',color:'#86d5ff',attack:.10,chance:.75,duplicateBuds:5}),
@@ -22,14 +23,17 @@ export const WEAPON_FAMILIES=Object.freeze([
   base('omsolo'),
   {id:'hayate-saber',heroId:'omsolo',name:'流星剣・ハヤテ',kind:'saber',style:'速斬型',attackOffset:-.08,interval:.72,range:.85,effectColor:0x85eeff,note:'短く軽い蒼い光刃で連続斬撃。接近が必要だが、攻撃間隔に優れる。'},
   {id:'aegis-saber',heroId:'omsolo',name:'護光剣・イージス',kind:'saber',style:'守護型',attackOffset:-.05,interval:1.18,range:1.10,defense:[0,0,8,12,18],effectColor:0xaaff9a,note:'盾形の鍔で身を守る光剣。攻撃は少し遅いが、広めの斬撃と防御力を備える。'},
+  base('mochinyafe'),
+  {id:'mochi-lull-chime',heroId:'mochinyafe',name:'子守鈴・ゆめね',kind:'chime',style:'速唱型',attackOffset:-.08,interval:.75,range:.9,supportInterval:.8,supportRange:.9,effectColor:0xd7baff,note:'小さな二つの鈴で声をすばやく重ねる。通常攻撃は速い代わりに威力・射程が控えめ。援護は3.2秒間隔・射程11.7・4体貫通。'},
+  {id:'mochi-echo-bell',heroId:'mochinyafe',name:'響声鈴・とおね',kind:'chime',style:'遠響型',attackOffset:.14,interval:1.25,range:1.35,supportInterval:1.2,supportRange:1.3,supportPierce:2,effectColor:0xffd4a3,note:'大きく開いた鈴で声を遠くへ届ける。通常攻撃は強く遠くへ届くが間隔は長い。援護は4.8秒間隔・射程16.9・6体貫通。'},
 ].map(weapon=>Object.freeze(weapon)));
-export const WEAPON_CATALOG=Object.freeze([{id:'mochi-voice-r1',heroId:'mochinyafe',weapon:{...base('mochinyafe'),style:'天性の声'},rarity:WEAPON_RARITIES[0],bonus:{attack:0,defense:0}},...WEAPON_FAMILIES.flatMap(weapon=>WEAPON_RARITIES.filter(r=>weapon.style==='均衡型'||r.rank>1).map(rarity=>Object.freeze({id:`${weapon.id}-r${rarity.rank}`,heroId:weapon.heroId,weapon,rarity,bonus:Object.freeze({attack:Number((rarity.attack+weapon.attackOffset).toFixed(2)),defense:weapon.defense?.[rarity.rank]??0})})))]);
-const EQUIPMENT_HERO_IDS=[...WEAPON_HERO_IDS,'mochinyafe'];
+export const WEAPON_CATALOG=Object.freeze(WEAPON_FAMILIES.flatMap(weapon=>WEAPON_RARITIES.filter(r=>weapon.style==='均衡型'||r.rank>1).map(rarity=>Object.freeze({id:`${weapon.id}-r${rarity.rank}`,heroId:weapon.heroId,weapon,rarity,bonus:Object.freeze({attack:Number((rarity.attack+weapon.attackOffset).toFixed(2)),defense:weapon.defense?.[rarity.rank]??0})}))));
+const EQUIPMENT_HERO_IDS=WEAPON_HERO_IDS;
 const MAX_COUNT=99999999;
 const count=value=>Number.isFinite(value)&&value>=0?Math.min(MAX_COUNT,Math.floor(value)):0;
 export const weaponVariant=id=>WEAPON_CATALOG.find(item=>item.id===id);
 export const rarityLabel=rarity=>`★${rarity.rank} ${rarity.name}`;
-export const weaponImage=item=>item.heroId==='mochinyafe'?publicUrl('assets/story/mochinyafe.png'):item.weapon.style==='均衡型'?equipmentImage(item.weapon.id):publicUrl(`assets/equipment/weapons/${item.weapon.id}-v1.png`);
+export const weaponImage=item=>item.heroId==='mochinyafe'?publicUrl(`assets/equipment/weapons/${item.weapon.id}-v1.png`):item.weapon.style==='均衡型'?equipmentImage(item.weapon.id):publicUrl(`assets/equipment/weapons/${item.weapon.id}-v1.png`);
 export function normalizeWeapons(raw){
   const owned=WEAPON_CATALOG.filter(item=>item.rarity.rank===1||Array.isArray(raw?.owned)&&raw.owned.includes(item.id)).map(item=>item.id);
   const loadout={};
@@ -62,7 +66,7 @@ export function weaponAttackBonus(profile,heroId){return equippedWeapon(profile,
 export function weaponDefenseBonus(profile,heroId){return equippedWeapon(profile,heroId)?.bonus.defense??0;}
 export function weaponAttackProfile(profile,hero){
   const weapon=equippedWeapon(profile,hero.id)?.weapon;
-  return {range:hero.range*(weapon?.range??1),interval:hero.interval*(weapon?.interval??1)*(hero.id==='mochinyafe'?1-.75*((profile?.characters?.mochinyafe?.level??1)-1)**3/49**3:1),pierce:weapon?.pierce??0};
+  return {range:hero.range*(weapon?.range??1),interval:hero.interval*(weapon?.interval??1)*(hero.id==='mochinyafe'?1-.75*((profile?.characters?.mochinyafe?.level??1)-1)**3/49**3:1),pierce:weapon?.pierce??0,...(hero.id==='mochinyafe'?{supportInterval:MOCHI_SUPPORT.interval*(weapon?.supportInterval??1),supportRange:MOCHI_SUPPORT.range*(weapon?.supportRange??1),supportPierce:MOCHI_SUPPORT.pierce+(weapon?.supportPierce??0)}:{})};
 }
 export function grantWeaponTickets(profile,amount=1){
   const before=count(profile.inventory.weaponTicket);profile.inventory.weaponTicket=count(before+count(amount));return profile.inventory.weaponTicket-before;

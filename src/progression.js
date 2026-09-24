@@ -3,7 +3,7 @@ import {MATERIALS,talentNode,isTalentUnlocked,normalizeTalentTree,talentBonuses}
 import {LEVEL_RULES,LEVEL_AWAKENING_COSTS} from './level-rules.js';
 import {normalizeEquipment,equipmentBonuses} from './equipment.js';
 import {normalizeWeapons,weaponAttackBonus,weaponDefenseBonus} from './weapons.js';
-import {normalizeMissions} from './missions.js';
+import {normalizeMissions,STAGE_MISSIONS} from './missions.js';
 import {normalizeStory} from './acts.js';
 import {normalizeSkillLoadouts} from './blessings.js';
 export {LEVEL_RULES} from './level-rules.js';
@@ -15,6 +15,10 @@ export function levelCap(character){return Math.min(LEVEL_RULES.maxLevel,LEVEL_R
 export function xpRequired(level){return 48+level*24+Math.max(0,level-20)**2;}
 export function normalizeProgression(raw,roster=[],legacyRecord={}){
   const result={version:1,story:normalizeStory(raw?.story,legacyRecord),characters:{},inventory:{limitStone:integer(raw?.inventory?.limitStone),weaponTicket:integer(raw?.inventory?.weaponTicket),...Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,integer(raw?.inventory?.[id])]))},equipment:normalizeEquipment(raw?.equipment),weapons:normalizeWeapons(raw?.weapons),missions:normalizeMissions(raw?.missions)};
+  // These trials previously paid only materials. Valid claimed trials also earn
+  // their newly added relic, without paying the material reward a second time.
+  const recovered=STAGE_MISSIONS.filter(m=>m.act>=8&&m.equipment&&result.missions.claimed.includes(m.id)).map(m=>m.equipment);
+  if(recovered.length)result.equipment=normalizeEquipment({...result.equipment,owned:[...result.equipment.owned,...recovered]});
   const source=raw?.characters&&typeof raw.characters==='object'&&!Array.isArray(raw.characters)?raw.characters:{};
   result.tutorial={firstBattleCompleted:raw?.tutorial?.firstBattleCompleted===true};
   for(const id of new Set([...Object.keys(source),...roster.map(h=>h.id)])){

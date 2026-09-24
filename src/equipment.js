@@ -1,6 +1,6 @@
 import {publicUrl} from './public-url.js';
 export const WEAPONS=Object.freeze({
-  mochinyafe:{id:'mochi-voice',name:'もちもちの声',kind:'voice',icon:'heart',note:'もちにゃふぇの生まれ持った声。操作時は小さな体当たり、援護時は敵を止める「ふぇ〜」。固定装備。'},
+  mochinyafe:{id:'mochi-voice',name:'ふぇ鈴・もちの音',kind:'chime',icon:'heart',effectColor:0xffb8d4,note:'もちにゃふぇ専用の桜色の鈴。小さな声を追尾する音の弾に変え、弱い攻撃でも命中時に最低1ダメージ。援護は4秒間隔・射程13・4体貫通。'},
   omsolo:{id:'light-saber',name:'ライトセーバー・翠守',kind:'saber',icon:'sword',note:'オムソロ専用。近距離の敵を扇状にまとめて斬り払う緑の光刃。'},
   nyanluna:{id:'luna-staff',name:'月詠の杖・ルナリア',kind:'staff',icon:'moon',note:'にゃんるな専用。敵を追いかける月光弾を放つ。'},
   tsukineko:{id:'nox-rifle',name:'星穿銃・ノクス',kind:'gun',icon:'gun',note:'つきねこ専用。直進する星弾が敵を2体まで貫通する。'},
@@ -16,9 +16,12 @@ export const UNIQUE_EQUIPMENT=Object.freeze([
   {id:'jade-guard',name:'翡翠の腕輪',act:5,area:2,icon:'shield',color:'#85e6c0',bonus:{attack:.10,defense:9},note:'緑の光を映す腕輪。攻撃力 +10%／防御力 +9。'},
   {id:'bell-fragment',name:'静かな星鐘',act:6,area:2,icon:'star',color:'#dcb8ff',bonus:{hp:30,attack:.12},note:'救うために鳴らした鐘。最大HP +30／攻撃力 +12%。'},
   {id:'guardian-knot',name:'守り手の結び',act:7,area:2,icon:'link',color:'#afffcc',bonus:{hp:35,attack:.10,defense:8},note:'小さな願いに応えた証。最大HP +35／攻撃力 +10%／防御力 +8。'},
-
+  {id:'mochi-sakura-brooch',name:'桜もちの花結び',act:8,area:2,icon:'heart',color:'#ffbfd5',bonus:{hp:60,defense:12},note:'返事のない里で守り抜いた、桜色の花飾り。最大HP +60／防御力 +12。'},
+  {id:'mochi-dream-hourglass',name:'夢砂糖の砂時計',act:9,area:2,icon:'spark',color:'#d3bbff',bonus:{attack:.18,defense:10},note:'奪われた眠りを取り戻す、小さな砂時計。攻撃力 +18%／防御力 +10。'},
+  {id:'mochi-echo-bell-relic',name:'こだまの祈り鈴',act:10,area:2,icon:'star',color:'#ffd49d',bonus:{hp:45,attack:.16,defense:10},note:'闇に閉じられた声を、もう一度届ける祈りの鈴。最大HP +45／攻撃力 +16%／防御力 +10。'},
+  {id:'mochi-promise-crown',name:'ふぇ〜の約束冠',act:11,area:2,icon:'link',color:'#ffb8df',bonus:{hp:60,attack:.20,defense:16},note:'ひとりぼっちにしない約束を結んだ、小さな冠。最大HP +60／攻撃力 +20%／防御力 +16。'},
 ]);
-export const equipmentImage=id=>publicUrl(`assets/equipment/${id}.${['light-saber','woodland-token','jade-guard','bell-fragment','guardian-knot'].includes(id)?'png':'webp'}`);
+export const equipmentImage=id=>publicUrl(`assets/equipment/${id}.${(id.startsWith('mochi-')||['light-saber','woodland-token','jade-guard','bell-fragment','guardian-knot'].includes(id))?'png':'webp'}`);
 export const uniqueEquipment=id=>UNIQUE_EQUIPMENT.find(item=>item.id===id);
 const safeId=id=>typeof id==='string'&&/^[a-z0-9_-]{1,64}$/i.test(id)&&!['__proto__','constructor','prototype'].includes(id);
 export function normalizeEquipment(raw){
