@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import {VoicePlayer} from '../src/voice-player.js';
 import {Soundscape} from '../src/audio.js';
 import {dialogueVoiceId,BATTLE_VOICES} from '../src/voice-catalog.js';
-import {battleVoiceCues} from '../src/voice-policy.js';
+import {battleVoiceCues,voicePlaybackGain} from '../src/voice-policy.js';
 import {ACT_SCENES} from '../src/chapter.js';
 import {TUTORIAL_STEPS} from '../src/tutorial.js';
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function harness(){
  const sources=[],captions=[],duck=[],requests=[],buffers=new Map();let time=10;
- const ctx={state:'running',currentTime:0,destination:{},createGain:()=>({gain:{setValueAtTime(){},setTargetAtTime(){}},connect(){}}),decodeAudioData:async()=>({duration:10}),createBufferSource:()=>{const source={connect(){},disconnect(){},start(when,offset){this.offset=offset;this.started=true;},stop(){this.stopped=true;},onended:null};sources.push(source);return source;}};
+ const ctx={state:'running',currentTime:0,destination:{},createGain:()=>({gain:{value:1,setValueAtTime(v){this.value=v;},setTargetAtTime(v){this.value=v;}},connect(node){this.destination=node;}}),decodeAudioData:async()=>({duration:10}),createBufferSource:()=>{const source={connect(node){this.destination=node;},disconnect(){},start(when,offset){this.offset=offset;this.started=true;},stop(){this.stopped=true;},onended:null};sources.push(source);return source;}};
  const sound={ctx,enabled:true,init(){},setDucking:v=>duck.push(v)};
  const lines=Object.values(BATTLE_VOICES).flatMap(events=>Object.values(events).flat()),manifest=Object.fromEntries(lines.map(line=>[line.id,{...line,file:`assets/voices/${line.id}.mp3`}]));
  for(const who of ['nyanluna','tsukineko'])for(const text of ['一行目。','次の台詞。']){const id=dialogueVoiceId(who,text);manifest[id]={who,text,file:`assets/voices/${id}.mp3`};}
@@ -21,6 +21,23 @@ test('every story line and tutorial has a stable, distinct dialogue key',()=>{
 });
 test('all playable heroes have attack, damage, dash, ultimate, growth, defeat and other battle voice coverage',()=>{
  for(const [who,events] of Object.entries(BATTLE_VOICES))for(const key of ['attack','hurt','dash','ultimate','levelup','switch','support','lowhp','down','victory','defeat','start','wave','boss','exit','blessing','treasure','recruit','heal','equip']){assert.ok(events[key]?.length,`${who}/${key}`);for(const line of events[key])assert.equal(line.who,who);}
+});
+test('Tsukineko damage cues never rotate back to the removed grunt',async()=>{
+ const h=harness();h.voice.setMode('battle');assert.deepEqual(BATTLE_VOICES.tsukineko.hurt.map(line=>line.text),['これくらい！']);
+ for(let i=0;i<4;i++){h.voice.handle([{type:'hurt'}],{player:{hero:1,hp:100,maxHp:100}});await flush();assert.equal(h.captions.at(-1).text,'これくらい！');h.sources.at(-1).onended();h.advance(1);}
+});
+test('battle voices match loudness then halve amplitude without changing dialogue gain',()=>{
+ for(const normalizationDb of [-4.5,0,1.5]){const gain=voicePlaybackGain({kind:'battle',normalizationDb});assert.ok(Math.abs(gain/(10**(normalizationDb/20))-.5)<1e-10);}
+ assert.equal(voicePlaybackGain({kind:'battle',normalizationDb:0}),.5);
+ for(const kind of ['story','tutorial'])assert.equal(voicePlaybackGain({kind,normalizationDb:-4.5}),1);
+});
+test('normalized battle gain survives volume changes, queued speech and ultimate pause without compounding',async()=>{
+ const h=harness();h.voice.manifest['tsukineko-ultimate-1'].normalizationDb=0;h.voice.setMode('ultimate');await h.voice.play('tsukineko-ultimate-1');
+ assert.equal(h.sources.at(-1).destination,h.voice.clipGain);assert.equal(h.voice.clipGain.destination,h.voice.gain);assert.equal(h.voice.gain.destination,h.ctx.destination);assert.equal(h.voice.clipGain.gain.value,.5);assert.equal(h.voice.gain.gain.value,.85);
+ h.voice.configure(true,.44);assert.equal(h.voice.gain.gain.value,.44);assert.equal(h.voice.clipGain.gain.value,.5);
+ h.advance(2);h.voice.suspend();h.voice.resume();await flush();assert.equal(h.sources.at(-1).offset,2);assert.equal(h.voice.clipGain.gain.value,.5);
+ h.voice.setMode('battle');h.voice.cue('tsukineko','hurt');await flush();h.voice.manifest['nyanluna-levelup-1'].normalizationDb=1.5;h.voice.cue('nyanluna','levelup');h.sources.at(-1).onended();await flush();assert.equal(h.voice.current.id,'nyanluna-levelup-1');assert.equal(h.voice.clipGain.gain.value,voicePlaybackGain(h.voice.manifest['nyanluna-levelup-1']));
+ await h.voice.dialogue('nyanluna','一行目。');assert.equal(h.voice.clipGain.gain.value,1);assert.equal(h.voice.gain.gain.value,.44);
 });
 test('only actual character level increases trigger levelup voices; support attacks keep their speaker',()=>{
  const game={player:{hero:0,hp:100,maxHp:180}};const cues=battleVoiceCues([{type:'characterXp',heroId:'tsukineko',before:3,level:4},{type:'characterXp',heroId:'nyanluna',before:2,level:2},{type:'attack',hero:1,support:true}],game);

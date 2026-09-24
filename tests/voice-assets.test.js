@@ -6,6 +6,14 @@ import {VOICE_MANIFEST} from '../src/voice-manifest.js';
 import {ACT_SCENES} from '../src/chapter.js';
 import {TUTORIAL_STEPS} from '../src/tutorial.js';
 import {BATTLE_VOICES,dialogueVoiceId} from '../src/voice-catalog.js';
+import {voicePlaybackGain} from '../src/voice-policy.js';
+
+test('all remaining battle clips have measured levels and the unwanted grunt is not shipped',()=>{
+ const battle=Object.values(VOICE_MANIFEST).filter(v=>v.kind==='battle');assert.equal(battle.length,80);
+ for(const item of battle){assert.ok(Number.isFinite(item.normalizationDb),item.file);assert.ok(item.normalizationDb>-12&&item.normalizationDb<6,item.file);assert.ok(voicePlaybackGain(item)>0&&voicePlaybackGain(item)<1,item.file);}
+ assert.ok(!Object.values(VOICE_MANIFEST).some(v=>v.file.endsWith('tsukineko-hurt-1-a7437c6a58d1.mp3')));
+ assert.equal(VOICE_MANIFEST['tsukineko-hurt-1'].text,'これくらい！');assert.equal(VOICE_MANIFEST['tsukineko-hurt-2'],undefined);
+});
 
 test('only selected story lines, tutorials and character actions ship voice assets',async()=>{
  const story=ACT_SCENES.flatMap(s=>Object.values(s).flatMap(scene=>scene.lines));

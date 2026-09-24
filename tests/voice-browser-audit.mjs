@@ -1,4 +1,5 @@
 import {chromium} from '@playwright/test';
+import {VOICE_MANIFEST} from '../src/voice-manifest.js';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 const OUTPUT=process.env.VOICE_AUDIT_DIR||'audit/voices-v127';
@@ -32,7 +33,7 @@ try{
   await page.waitForFunction(prefix=>window.__LUNARIA_TEST__.voice.current?.source&&window.__LUNARIA_TEST__.voice.current.id.startsWith(prefix),prefix);pass(`Real ${event} event plays the active character's voice`);
  }
  await page.evaluate(()=>{const t=window.__LUNARIA_TEST__;t.voice.stop();t.voice.cooldowns.clear();t.voice.handle([{type:'ultimate',hero:0},{type:'characterXp',heroId:'tsukineko',before:2,level:3}],t.game);});await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source?.buffer);assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.voice.queue[0]?.id),'tsukineko-levelup-1');pass('An ally level-up waits for the ultimate instead of being lost');
- const decoded=await page.evaluate(async()=>{const v=window.__LUNARIA_TEST__.voice;v.stop();let count=0,maxCache=0;for(const id of Object.keys(v.manifest)){const b=await v.load(id);if(!b||!Number.isFinite(b.duration)||b.duration<=0)throw Error(`Undecodable: ${id} ${v.lastError}`);count++;maxCache=Math.max(maxCache,[...v.cache.values()].reduce((n,b)=>n+b.length*b.numberOfChannels*4,0));}return {count,maxCache};});assert.equal(decoded.count,133);assert.ok(decoded.maxCache<=16*1024*1024);pass('All 133 MP3 files decode in the browser with bounded audio memory');
+ const decoded=await page.evaluate(async()=>{const v=window.__LUNARIA_TEST__.voice;v.stop();let count=0,maxCache=0;for(const id of Object.keys(v.manifest)){const b=await v.load(id);if(!b||!Number.isFinite(b.duration)||b.duration<=0)throw Error(`Undecodable: ${id} ${v.lastError}`);count++;maxCache=Math.max(maxCache,[...v.cache.values()].reduce((n,b)=>n+b.length*b.numberOfChannels*4,0));}return {count,maxCache};});assert.equal(decoded.count,Object.keys(VOICE_MANIFEST).length);assert.ok(decoded.maxCache<=16*1024*1024);pass(`All ${decoded.count} MP3 files decode in the browser with bounded audio memory`);
  await page.evaluate(()=>{const t=window.__LUNARIA_TEST__;t.voice.setMode('battle');t.voice.cooldowns.clear();t.voice.cue('omsolo','ultimate');});await page.waitForFunction(()=>window.__LUNARIA_TEST__.voice.current?.source);await page.evaluate(()=>window.__LUNARIA_TEST__.voice.configure(false,.44));assert.equal(await page.evaluate(()=>window.__LUNARIA_TEST__.voice.current),null);assert.deepEqual(errors,[]);pass('Muting stops speech immediately; no browser or asset errors');
  await writeFile(`${OUTPUT}/browser-report.json`,JSON.stringify({date:new Date().toISOString(),checks,decoded,errors},null,2));await context.close();
 }finally{await browser.close();}

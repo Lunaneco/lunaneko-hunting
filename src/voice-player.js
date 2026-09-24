@@ -1,14 +1,14 @@
 import {publicUrl} from './public-url.js';
 import {VOICE_MANIFEST} from './voice-manifest.js';
 import {dialogueVoiceId,BATTLE_VOICES} from './voice-catalog.js';
-import {battleVoiceCues,VOICE_PRIORITIES,VOICE_COOLDOWNS} from './voice-policy.js';
+import {battleVoiceCues,VOICE_PRIORITIES,VOICE_COOLDOWNS,voicePlaybackGain} from './voice-policy.js';
 
 export class VoicePlayer{
  constructor(sound,{enabled=true,volume=.85,manifest=VOICE_MANIFEST,fetcher=(...args)=>globalThis.fetch(...args),clock=()=>performance.now()/1000,onCaption=()=>{}}={}){
   this.sound=sound;this.enabled=enabled;this.volume=volume;this.manifest=manifest;this.fetcher=fetcher;this.clock=clock;this.onCaption=onCaption;this.mode='menu';this.cache=new Map();this.loading=new Map();this.counters=new Map();this.cooldowns=new Map();this.serial=0;this.current=null;this.suspended=false;this.queue=[];this.gain=null;this.lastError=null;
  }
  get audible(){return this.enabled&&this.volume>0&&this.sound.enabled&&!this.suspended;}
- init(){this.sound.init();const ctx=this.sound.ctx;if(!ctx)return false;if(!this.gain){this.gain=ctx.createGain();this.gain.connect(ctx.destination);}this.gain.gain.setValueAtTime(this.audible?this.volume:0,ctx.currentTime);return true;}
+ init(){this.sound.init();const ctx=this.sound.ctx;if(!ctx)return false;if(!this.gain){this.gain=ctx.createGain();this.gain.connect(ctx.destination);this.clipGain=ctx.createGain();this.clipGain.connect(this.gain);}this.gain.gain.setValueAtTime(this.audible?this.volume:0,ctx.currentTime);return true;}
  configure(enabled,volume=this.volume){this.enabled=enabled;this.volume=Math.max(0,Math.min(1,Number(volume)||0));if(!this.audible)this.stop();if(this.gain)this.gain.gain.setTargetAtTime(this.audible?this.volume:0,this.sound.ctx.currentTime,.03);}
  setMode(mode){if(this.mode!==mode){this.stop();this.resumeLine=null;this.mode=mode;}}
  stop({keepQueue=false,preserveCompletion=false}={}){
@@ -31,7 +31,7 @@ export class VoicePlayer{
   this.stop({keepQueue:true});const token=this.serial,item=this.manifest[id];this.current={id,priority,offset,onStart,onFinish};
   const buffer=await this.load(id);if(token!==this.serial||!this.audible)return false;
   if(!buffer||offset>=buffer.duration){this.current=null;onFinish?.(buffer?'ended':'unavailable');this.drain();return false;}
-  const source=this.sound.ctx.createBufferSource();source.buffer=buffer;source.connect(this.gain);this.current={id,priority,source,offset,started:this.sound.ctx.currentTime,onStart,onFinish};this.sound.setDucking?.(true);this.onCaption(item);
+  const source=this.sound.ctx.createBufferSource();source.buffer=buffer;this.clipGain.gain.setValueAtTime(voicePlaybackGain(item),this.sound.ctx.currentTime);source.connect(this.clipGain);this.current={id,priority,source,offset,started:this.sound.ctx.currentTime,onStart,onFinish};this.sound.setDucking?.(true);this.onCaption(item);
   source.onended=()=>{if(token!==this.serial)return;source.disconnect();this.current=null;this.sound.setDucking?.(false);this.onCaption(null);onFinish?.('ended');this.drain();};
   try{source.start(0,offset);onStart?.(buffer.duration-offset);return true;}catch(error){this.lastError=String(error);this.stop();return false;}
  }
