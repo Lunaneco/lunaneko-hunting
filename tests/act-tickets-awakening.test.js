@@ -50,5 +50,5 @@ test('every stone and material is required atomically for each character and cap
 test('awakening UI names the actual missing rare material and preserves previously unlocked caps',()=>{
   const p=normalizeProgression({story,characters:{nyanluna:{level:30,breaks:1}},inventory:{...LEVEL_AWAKENING_COSTS[1],astralCore:5}},HEROES),before=structuredClone(p);
   assert.equal(talentStatus(p,'nyanluna','limit30').owned,true);assert.equal(unlockTalent(p,'nyanluna','limit30'),false);
-  const html=talentView(p,'nyanluna','limit40');assert.match(html,/★2 深星の核が1個不足/);assert.doesNotMatch(html,/覚醒の石が1個不足/);assert.match(html,/覚醒の石・素材が足りません/);assert.deepEqual(p,before);
+  const html=talentView(p,'nyanluna','limit40');assert.match(html,/★2 深星の宝珠が1個不足/);assert.doesNotMatch(html,/覚醒の輝石が1個不足/);assert.match(html,/覚醒の輝石・素材が足りません/);assert.deepEqual(p,before);
 });
