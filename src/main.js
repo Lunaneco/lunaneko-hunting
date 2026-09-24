@@ -92,10 +92,10 @@ const minutes=t=>`${Math.floor(t/60).toString().padStart(2,'0')}:${Math.floor(t%
 $('#app').innerHTML=`
   <section id="home" class="home" aria-label="タイトル画面">
     <div class="key-art"></div><div class="home-shade"></div><div class="dust dust-one"></div><div class="dust dust-two"></div>
-    <header class="home-header"><a class="brand" href="#" aria-label="ルナネコの不思議な冒険 タイトル">${icon('moon')}<span>LUNANEKO<small>ADVENTURE</small></span></a>
+    <header class="home-header"><a class="brand" href="#" aria-label="ルナネコの不思議な冒険 タイトル">${icon('moon')}<span>LUNANECO<small>ADVENTURE</small></span></a>
       <nav aria-label="メニュー"><span class="currency" title="覚醒の輝石" aria-label="覚醒の輝石">${materialArt('limitStone')}<b id="currency">${progression.inventory.limitStone.toLocaleString()}</b></span><button class="icon-button" data-open="guide" aria-label="遊び方">${icon('book')}</button><button class="icon-button" data-open="records" aria-label="冒険の記録">${icon('trophy')}</button><button class="icon-button" data-open="settings" aria-label="設定">${icon('settings')}</button></nav>
     </header>
-    <div class="home-content"><div class="eyebrow"><span></span> DUO ACTION ROGUELITE</div><h1 class="game-title"><span>ルナネコの</span><span>不思議な冒険</span></h1><div class="title-sub"><i></i>LUNANEKO ADVENTURE<i></i></div>
+    <div class="home-content"><div class="eyebrow"><span></span> DUO ACTION ROGUELITE</div><h1 class="game-title"><span>ルナネコの</span><span>不思議な冒険</span></h1><div class="title-sub"><i></i>LUNANECO ADVENTURE<i></i></div>
       <p class="tagline">月明かりが、<br>ふたりを導く。</p><p class="home-description">月の魔法と、星の銃。<br>重なる力で、まだ見ぬ空の向こうへ。</p>
       <div class="party-label"><span>YOUR PARTY</span><span>先頭の仲間を選択</span></div>
       <div class="party-picker" role="group" aria-label="先頭の仲間">
@@ -106,7 +106,7 @@ $('#app').innerHTML=`
       <div class="start-meta"><button id="difficulty" aria-label="難易度を変更">${icon('shield')} <span>冒険モード</span> ${icon('chevron')}</button><span>1人プレイ <i>·</i> オート攻撃 <i>·</i> 記録を保存</span></div>
     </div>
     <div class="chapter-card"><span class="chapter-index">01</span><div><small>CHAPTER ONE</small><h2>迷子の月と、ふたりの約束</h2><p>親友を探して月の世界を巡る、全4幕。</p></div>${icon('compass')}</div>
-    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANEKO ADVENTURE / 1.54.0</span></footer>
+    <footer class="home-footer"><span>NYANLUNA <i>×</i> TSUKINEKO</span><button id="chapter-menu-open">メニュー・育成</button><button data-open="guide">操作ガイド ${icon('arrow')}</button><span class="version">LUNANECO ADVENTURE / 1.54.1</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu hidden" tabindex="-1" aria-label="冒険メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">

@@ -1,5 +1,7 @@
 # ルナネコの不思議な冒険
 
+正式な英字表記は **LUNANECO ADVENTURE** です。
+
 にゃんるな・つきねこ・オムソロ・もちにゃふぇが冒険する、スマホとPC向けの3Dブラウザアクションゲームです。Three.jsで描画し、物語・キャラ育成・装備・編成をブラウザ内に保存します。
 
 **[ブラウザで遊ぶ](https://lunaneco.github.io/lunaneko-hunting/)** — スマホ・PC対応、インストール不要。
@@ -63,7 +65,7 @@ v1.50.0ではもちにゃふぇの専用武器をガチャに追加。初期装�
 
 提供モデルから法線・向き・接地を整えたGLBと透過立ち絵を制作。元のBlendファイルは変更していません。ゲーム用モデルは12,960三角形・4描画プリミティブ、glTFの上方向は+Y、正面は+Z。ゲーム内身長1.55単位、体の弾み・揺れ・声を出す動作はランタイムで付けます。実機性能の最終保証前のengine candidateです。背景4種は組み込みImageGenで生成し、モデルと音声は提供資料から制作しています。
 
-検証：`npm test`、`node tests/chapter-three-browser-audit.mjs`。WebKitは`PLAYWRIGHT_BROWSERS_PATH=/tmp/lunaneko-playwright LUNARIA_BROWSER=webkit node tests/chapter-three-browser-audit.mjs`。ブラウザ監査は開発サーバー5185番ポートを使用します。
+検証：`npm test`、`node tests/chapter-three-browser-audit.mjs`。WebKitは`PLAYWRIGHT_BROWSERS_PATH=/tmp/lunaneco-playwright LUNARIA_BROWSER=webkit node tests/chapter-three-browser-audit.mjs`。ブラウザ監査は開発サーバー5185番ポートを使用します。
 
 ## ボス固有の連続攻撃（v1.54）
 
@@ -320,7 +322,7 @@ npm run audit:pages-build
 npm run preview:pages -- --port 4176
 ```
 
-Pages用の配布物は `dist-pages/`。画像・3Dモデル・PWA・オフラインキャッシュを `/lunaneko-hunting/` に対応させています。ローカル確認は `http://127.0.0.1:4176/lunaneko-hunting/` で行います。
+公開URLのパスは既存リンク・ホーム画面アイコンとの互換性のため維持しています。Pages用の配布物は `dist-pages/`。画像・3Dモデル・PWA・オフラインキャッシュを `/lunaneko-hunting/` に対応させています。ローカル確認は `http://127.0.0.1:4176/lunaneko-hunting/` で行います。
 
 ## 操作
 

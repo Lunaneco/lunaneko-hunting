@@ -8,7 +8,7 @@ export const STORY_CAST=Object.freeze({
   nyanluna:Object.freeze({name:'にゃんるな',role:'月光の魔法使い',image:publicUrl('assets/story/nyanluna.webp'),alt:'にゃんるな — 月の杖を持つ、薄紫の髪の猫耳の魔法使い',color:'#dac5ff'}),
   tsukineko:Object.freeze({name:'つきねこ',role:'星影の銃使い',image:publicUrl('assets/story/tsukineko.webp'),alt:'つきねこ — 星穿銃を持つ、白と紺の髪の猫耳の銃使い',color:'#a2eaff'}),
   guardian:Object.freeze({name:'月の守護者',role:'古い約束の声',image:publicUrl('assets/story/guardian.webp'),alt:'月の守護者 — 金色の角と青い月の結晶を持つ石の守り手',color:'#f1d8a2'}),
-  narrator:Object.freeze({name:'ものがたり',role:'LUNANEKO ADVENTURE',image:publicUrl('assets/story/moonlight.webp'),alt:'迷子の月灯り — 旅を導く、小さな月の光',color:'#f5dfb5'}),
+  narrator:Object.freeze({name:'ものがたり',role:'LUNANECO ADVENTURE',image:publicUrl('assets/story/moonlight.webp'),alt:'迷子の月灯り — 旅を導く、小さな月の光',color:'#f5dfb5'}),
 });
 
 export function storySpeaker(id){return STORY_CAST[id]??STORY_CAST.narrator;}
