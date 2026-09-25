@@ -18,7 +18,7 @@
 #equipment-panel .equipment-inventory .weapon-comparison dd{color:#2f3c51}
 #equipment-panel .equipment-inventory .weapon-comparison .better{color:#216749;font-weight:700;background:#e0ece2;padding:2px 5px;border-radius:3px}
 #equipment-panel .equipment-inventory .weapon-comparison .worse{color:#973d3a;font-weight:700;background:#f4e3de;padding:2px 5px;border-radius:3px}
-#equipment-panel .equipment-inventory .weapon-comparison .same{color:#6a7180}
+#equipment-panel .equipment-inventory .weapon-comparison .same{color:#526174}
 /* The global badge keeps its reveal colors outside the paper menu. */
 .menu-light :is(#equipment-panel,#weapons-panel,#growth-panel) .weapon-rarity[data-rank]{--rarity-ink:#394b59;background:#e1e7e8;border:1px solid #bcc9ce;border-radius:3px;font-weight:700;font-size:10px!important}
 .menu-light :is(#equipment-panel,#weapons-panel,#growth-panel) .weapon-rarity[data-rank="2"]{--rarity-ink:#215779;background:#dcecf6;border-color:#a9c9df}

@@ -1,8 +1,9 @@
 import {chromium,webkit} from '@playwright/test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 
 const kind=process.env.TITLE_BROWSER??'chromium',base=process.env.TITLE_URL??'http://127.0.0.1:4185/';
+const {version}=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
 const out=`audit/title-video/${kind}-${new URL(base).pathname==='/'?'root':'pages'}`;await mkdir(out,{recursive:true});
 let previewServer;
 async function startPreview(){
@@ -33,7 +34,7 @@ const playing=p=>p.waitForFunction(()=>{const v=document.querySelector('#title-v
 const poster=p=>p.evaluate(()=>{const i=document.querySelector('.title-film img'),v=document.querySelector('#title-video');return i.complete&&i.naturalWidth===576&&getComputedStyle(v).opacity==='0';});
 try{
  page=await open();await playing(page);
- assert.match(await page.locator('.version').innerText(),/1\.56\.0/);
+ assert.equal(await page.locator('.version').innerText(),`Ver. ${version}`);
  assert.deepEqual(await page.locator('#title-video').evaluate(v=>({w:v.videoWidth,h:v.videoHeight,muted:v.muted,inline:v.playsInline,loop:v.loop,controls:v.controls})),{w:576,h:1024,muted:true,inline:true,loop:true,controls:false});
  pass('Optimized 576×1024 movie autoplays muted, inline and looping in production');
  for(const size of [{width:320,height:568},{width:390,height:844},{width:768,height:1024},{width:844,height:390},{width:1440,height:900}]){
