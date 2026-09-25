@@ -1,5 +1,7 @@
 /* Existing type sizes retain their hierarchy, with a shared readable floor. */
 :root{--ui-min-font:12px}
+/* Combat chrome stays on the v1.56 scale. Menus keep the readable floor. */
+body.playing :is(#hud,#wave-banner,#ultimate-banner,#toast,#voice-caption,#joystick){--ui-min-font:0px}
 .menu-light,.modal,.story-dialog,.tutorial-panel,.weapon-summon-dialog{--ui-min-font:14px}
 #chapter-menu p,#modal p{line-height:1.85}
 #chapter-menu :is(button,summary),#modal :is(button,summary){line-height:1.6;min-height:44px}
