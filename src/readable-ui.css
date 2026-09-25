@@ -51,19 +51,6 @@
 #story-dialog .story-header button{flex-shrink:0}
 #battle-tutorial .tutorial-speech{font-size:16px}
 #battle-tutorial h2{font-size:20px}
-#hud .health-track{height:20px}
-#hud .health-track>span{line-height:18px;font-size:12px}
-#hud .hero-heading{flex-wrap:wrap;gap:3px 8px;letter-spacing:0}
-#hud .hero-heading strong{font-size:15px}
-#hud .hero-exp,#hud .partner-label{font-size:12px;line-height:1.5}
-#hud .hero-exp{white-space:normal}
-#hud .objective{flex-wrap:wrap;max-width:calc(100vw - 40px)}
-#hud .stage-crystal-hud span{line-height:1.5}
-#hud .field-map{width:140px}
-#hud .map-legend{flex-wrap:wrap;gap:4px 8px}
-#hud .field-map>span{font-size:12px}
-#hud .switch-target{font-size:12px;max-width:150px;white-space:normal;line-height:1.5}
-#hud .action-button>span{font-size:14px}
 @media(max-width:760px){
  #chapter-menu .chapter-shell{padding-inline:16px}
  #chapter-menu .menu-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 10px;overflow:visible}
@@ -107,26 +94,6 @@
  #modal .party-blessing-list{grid-template-columns:1fr}
  #modal .brief-body{padding-inline:20px}
  #modal .brief-actions{padding-inline:20px}
- #hud .health-panel{width:175px}
- #hud .top-actions{width:44px;max-width:44px;gap:6px;justify-content:center}
- #hud .top-actions>.icon-button{width:44px;height:44px}
- #hud .top-actions time{order:2;white-space:nowrap;text-align:center}
- #hud .top-actions .kills{order:3;font-size:14px}
- #hud .party-hud{left:12px;gap:8px;max-width:calc(100vw - 72px)}
- #hud .stage-hud{top:155px;left:16px;max-width:calc(100vw - 32px)}
- #hud .stage-hud>span{letter-spacing:.5px}
- #hud .stage-hud>strong{font-size:19px;letter-spacing:1px}
- #hud .objective{top:245px;left:16px;letter-spacing:0;gap:5px}
- #hud .stage-crystal-hud{top:300px;left:16px}
- #hud .stage-crystal-hud>div{width:170px}
- #hud .stage-crystal-hud span small{margin-left:0}
- #hud:has(.boss-hud:not(.hidden)) .objective{top:195px}
- #hud:has(.boss-hud:not(.hidden)) .stage-crystal-hud{top:250px}
- #hud .boss-hud{top:150px;left:16px;right:16px;width:auto;transform:none}
- #hud .touch-hint{left:16px;font-size:12px;letter-spacing:0}
- #hud .field-map{width:124px;bottom:145px;left:12px}
- #hud .controls{right:16px;gap:14px}
- #hud .exit-guide{max-width:calc(100vw - 32px);white-space:normal;top:240px}
  #story-dialog .story-body{overflow-y:auto;min-height:0}
  #story-dialog .story-cast{flex:0 0 150px}
  #story-dialog .story-header{margin-inline:14px;gap:10px}
@@ -154,17 +121,6 @@
  .home .title-entry{bottom:13%}
 }
 @media(max-height:680px) and (orientation:portrait){
- #hud .stage-hud{top:150px}
- #hud .stage-hud>strong{font-size:17px;margin-block:4px}
- #hud .objective{top:230px}
- #hud .stage-crystal-hud{top:280px;padding:6px 8px}
- #hud .stage-crystal-hud>div{width:128px}
- #hud .stage-crystal-hud span small,#hud .stage-crystal-hud>div>small{display:none}
- #hud .field-map{width:114px;bottom:100px}
- #hud .field-map svg{height:64px}
- #hud .field-map small{display:none}
- #hud .controls{bottom:42px;gap:10px}
- #hud .touch-hint{bottom:75px}
  #story-dialog .story-cast{flex-basis:110px}
 }
 @media(max-height:500px) and (orientation:landscape){
@@ -173,19 +129,6 @@
  .home .title-entry{bottom:14%;width:310px}
  .home .title-start{font-size:16px;min-height:48px}
  .home .title-footer{bottom:10px}
- #hud .health-panel{width:195px}
- #hud .stage-hud{top:18px;left:50%;max-width:240px;transform:translateX(-50%);text-align:center}
- #hud .stage-hud>strong{font-size:18px}
- #hud .objective,#hud:has(.boss-hud:not(.hidden)) .objective{top:140px;max-width:310px}
- #hud .stage-crystal-hud,#hud:has(.boss-hud:not(.hidden)) .stage-crystal-hud{top:190px;left:16px}
- #hud .stage-crystal-hud>div{width:150px}
- #hud .stage-crystal-hud span small,#hud .stage-crystal-hud>div>small{display:none}
- #hud .field-map{left:16px;bottom:15px;width:120px}
- #hud .field-map svg{height:50px}
- #hud .field-map small{display:none}
- #hud .controls{bottom:28px}
- #hud .boss-hud{top:90px;left:50%;width:300px;transform:translateX(-50%)}
- #hud .exit-guide{top:160px;width:310px}
  #story-dialog .story-body{overflow-y:auto;display:grid;grid-template-columns:30% minmax(0,1fr)}
  #story-dialog .story-dialogue{min-height:min-content}
  #story-dialog .story-cast{min-height:200px}
