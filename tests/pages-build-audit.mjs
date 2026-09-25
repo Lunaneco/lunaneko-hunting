@@ -34,6 +34,8 @@ for(const [directory,base] of [['dist','/'],['dist-pages','/lunaneko-hunting/']]
   handlers.install({waitUntil:promise=>{pending=promise;}});await pending;
   assert.ok(installed.includes(base+'index.html'));
   assert.ok(installed.includes(base+'assets/models/omsolo.glb'));
+  assert.ok(installed.includes(base+'assets/title/adventure-loop.mp4'));
+  assert.ok(installed.includes(base+'assets/title/adventure-poster.jpg'));
   for(const track of Object.values(MUSIC_TRACKS))assert.ok(installed.includes(base+track.file));
   for(const path of installed){
     assert.ok(path.startsWith(base),`Offline URL outside ${base}: ${path}`);
