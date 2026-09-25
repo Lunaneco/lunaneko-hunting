@@ -11,9 +11,9 @@
  .home .home-shade{background:linear-gradient(180deg,#09172e18,transparent 38%,#0c1a32c4 69%,#0b1733f0)}
  .title-lockup{left:0;right:0;top:auto;bottom:26%;text-align:center;max-width:none;padding:0 22px}
  .title-orbit{display:none}
- .title-kicker{font-size:8px;letter-spacing:4px;margin-bottom:14px}
+ .title-kicker{font-size:max(8px,var(--ui-min-font,0px));letter-spacing:4px;margin-bottom:14px}
  .title-lockup h1.game-title{font-size:clamp(33px,9.5vw,47px);line-height:1.3;letter-spacing:3px}
  .title-lockup .game-title span:last-child{font-size:.78em;letter-spacing:3px}
- .title-caption{font-size:10px;letter-spacing:2px;margin-top:20px}
+ .title-caption{font-size:max(10px,var(--ui-min-font,0px));letter-spacing:2px;margin-top:20px}
  .title-entry{left:10%;bottom:12%;width:80%}
 }

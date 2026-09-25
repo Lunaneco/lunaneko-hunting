@@ -61,9 +61,9 @@
 .summon-cutin-band:before{top:0}.summon-cutin-band:after{bottom:0}
 .summon-cutin-band img{position:absolute;left:8%;top:-15%;width:min(64%,580px);height:130%;object-fit:cover;object-position:50% 22%;rotate:7deg;-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent);mask-image:linear-gradient(90deg,#000 55%,transparent)}
 .summon-cutin-copy{position:absolute;right:12%;top:50%;translate:0 -50%;rotate:7deg;text-align:right;text-shadow:0 2px 12px #000c}
-.summon-cutin-copy small{display:block;font:800 10px/1.4 system-ui,sans-serif;letter-spacing:.42em;color:#ffe3a0}
+.summon-cutin-copy small{display:block;font:800 max(10px,var(--ui-min-font,0px))/1.4 system-ui,sans-serif;letter-spacing:.42em;color:#ffe3a0}
 .summon-cutin-copy strong{display:block;margin:4px 0;font:italic 900 clamp(30px,9vw,58px)/1.15 "Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#fff;-webkit-text-stroke:1.5px #150f2c;paint-order:stroke fill;text-shadow:3px 3px 0 #0a0f25,6px 6px 0 var(--cutin-color)}
-.summon-cutin-copy span{font-size:12px;letter-spacing:.25em;color:#f5edd8}
+.summon-cutin-copy span{font-size:max(12px,var(--ui-min-font,0px));letter-spacing:.25em;color:#f5edd8}
 
 .summon-result{position:absolute;left:0;right:0;top:var(--result-top,62%);bottom:0;display:flex;align-items:flex-start;justify-content:center;padding:0 14px max(12px,env(safe-area-inset-bottom));pointer-events:none;transition:top .7s cubic-bezier(.2,.8,.2,1)}
 .summon-result .weapon-draw-result{display:flex;flex-direction:column;gap:10px;width:min(440px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;text-align:center;pointer-events:auto}
@@ -76,21 +76,21 @@
 .summon-root[data-rank="4"] .draw-stars i{background:linear-gradient(125deg,#fff8d8 18%,#ffd36b 42%,#ffb3d9 58%,#b3e8ff 72%,#ffe7a3 88%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 6px #ffc85a) drop-shadow(0 0 16px #ff9ad566)}
 .summon-result .draw-title{padding:4px 0 2px;background:radial-gradient(62% 58% at 50% 62%,#02050fc4,#02050f70 55%,transparent 78%)}
 .summon-result .draw-name{margin-top:6px}
-.summon-result .draw-badge{display:inline-block;padding:3px 12px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:.32em;color:#221606;background:linear-gradient(90deg,#fff0bf,#ffc861);box-shadow:0 0 16px #ffc86188}
+.summon-result .draw-badge{display:inline-block;padding:3px 12px;border-radius:999px;font-size:max(9px,var(--ui-min-font,0px));font-weight:700;letter-spacing:.32em;color:#221606;background:linear-gradient(90deg,#fff0bf,#ffc861);box-shadow:0 0 16px #ffc86188}
 .summon-result .draw-badge.is-duplicate{color:#dbe7f5;background:#ffffff1a;border:1px solid #ffffff33;box-shadow:none}
 .summon-result .draw-name h2{margin:8px 0 6px;font:500 clamp(21px,6vw,30px)/1.35 "Hiragino Mincho ProN","Yu Mincho",serif;letter-spacing:.1em;color:#fff7e3;text-shadow:0 0 2px #000,0 2px 6px #000d,0 0 18px color-mix(in srgb,var(--rarity-color) 85%,transparent)}
-.summon-result .draw-hero{display:flex;align-items:center;justify-content:center;gap:8px;margin:0;font-size:12px;font-weight:600;color:#f4efe2;text-shadow:0 1px 2px #000,0 0 8px #000}
+.summon-result .draw-hero{display:flex;align-items:center;justify-content:center;gap:8px;margin:0;font-size:max(12px,var(--ui-min-font,0px));font-weight:600;color:#f4efe2;text-shadow:0 1px 2px #000,0 0 8px #000}
 .summon-result .draw-hero .portrait{width:30px;height:30px}
 .summon-result .draw-sheet{padding:14px 16px;border:1px solid color-mix(in srgb,var(--rarity-color) 42%,transparent);border-radius:14px;background:linear-gradient(165deg,#141d36e6,#080c1ceb);box-shadow:0 18px 42px #000a,inset 0 1px 0 #ffffff1c;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);text-align:left}
-.summon-result .draw-headline{margin:0 0 6px;font-size:12px;letter-spacing:.14em;color:var(--rarity-color)}
-.summon-result .draw-bonus{margin:0;font-size:12px;line-height:1.75;color:#d2dbe6}
+.summon-result .draw-headline{margin:0 0 6px;font-size:max(12px,var(--ui-min-font,0px));letter-spacing:.14em;color:var(--rarity-color)}
+.summon-result .draw-bonus{margin:0;font-size:max(12px,var(--ui-min-font,0px));line-height:1.75;color:#d2dbe6}
 .summon-result .draw-note{display:block}
-.summon-result .draw-outcome{margin:10px 0 6px;padding:9px 12px;border:1px solid #ffffff21;border-radius:8px;background:#ffffff0c;font-size:12px;line-height:1.7;color:#f1e3bd}
+.summon-result .draw-outcome{margin:10px 0 6px;padding:9px 12px;border:1px solid #ffffff21;border-radius:8px;background:#ffffff0c;font-size:max(12px,var(--ui-min-font,0px));line-height:1.7;color:#f1e3bd}
 .summon-result .draw-outcome b{color:#ffe29a}
-.summon-result .draw-saved{margin:0;font-size:10px;color:#9eb0c4}
+.summon-result .draw-saved{margin:0;font-size:max(10px,var(--ui-min-font,0px));color:#9eb0c4}
 .summon-result .draw-actions{display:flex;gap:8px;margin-top:12px}
 .summon-result .draw-actions>*{flex:1 1 auto;min-height:46px;margin:0;padding:10px 12px;white-space:nowrap}
-.summon-skip{position:absolute;left:50%;bottom:max(16px,calc(env(safe-area-inset-bottom) + 8px));translate:-50% 0;display:flex;align-items:center;gap:6px;min-height:44px;padding:8px 20px;border:1px solid #ffffff38;border-radius:999px;background:#060a18a8;color:#ece4cf;font-size:12px;letter-spacing:.14em;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.summon-skip{position:absolute;left:50%;bottom:max(16px,calc(env(safe-area-inset-bottom) + 8px));translate:-50% 0;display:flex;align-items:center;gap:6px;min-height:44px;padding:8px 20px;border:1px solid #ffffff38;border-radius:999px;background:#060a18a8;color:#ece4cf;font-size:max(12px,var(--ui-min-font,0px));letter-spacing:.14em;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .summon-skip .icon{width:14px;height:14px}
 .show-title .summon-skip{visibility:hidden}
 
@@ -164,7 +164,7 @@
  .summon-result .draw-name h2{font-size:21px;margin:6px 0 4px}
  .summon-result .weapon-draw-result{gap:8px}
  .summon-result .draw-sheet{padding:11px 13px}
- .summon-result .draw-bonus,.summon-result .draw-outcome{font-size:11px;line-height:1.6}
+ .summon-result .draw-bonus,.summon-result .draw-outcome{font-size:max(11px,var(--ui-min-font,0px));line-height:1.6}
  .summon-result .draw-outcome{margin:8px 0 4px;padding:7px 10px}
  .summon-result .draw-actions{margin-top:9px}
 }
@@ -178,7 +178,7 @@
  .summon-result .draw-actions{margin-top:8px}
  .summon-result .draw-actions>*{min-height:44px;padding:8px 10px}
 }
-@media(max-width:360px){.summon-result .draw-actions>*{padding-inline:6px;font-size:12px;letter-spacing:0}}
+@media(max-width:360px){.summon-result .draw-actions>*{padding-inline:6px;font-size:max(12px,var(--ui-min-font,0px));letter-spacing:0}}
 /* Wide screens: the altar slides left and the result sits beside it. */
 @media(min-aspect-ratio:1/1){
  .summon-root{--stage-w:calc(100dvh*941/1672);--panel-w:clamp(260px,calc(100vw - var(--stage-w) - 72px),400px);--shift:calc((var(--panel-w) + 32px)/2)}
@@ -191,8 +191,8 @@
  .summon-result .draw-stars i{font-size:24px}
  .summon-result .draw-name h2{font-size:20px;margin:5px 0 4px}
  .summon-result .draw-sheet{padding:10px 12px}
- .summon-result .draw-headline{margin-bottom:4px;font-size:11px}
- .summon-result .draw-bonus,.summon-result .draw-outcome{font-size:10.5px;line-height:1.55}
+ .summon-result .draw-headline{margin-bottom:4px;font-size:max(11px,var(--ui-min-font,0px))}
+ .summon-result .draw-bonus,.summon-result .draw-outcome{font-size:max(10.5px,var(--ui-min-font,0px));line-height:1.55}
  .summon-result .draw-outcome{margin:6px 0 4px;padding:6px 9px}
  .summon-result .draw-actions{margin-top:7px}
  .summon-result .draw-actions>*{min-height:44px;padding:8px}
