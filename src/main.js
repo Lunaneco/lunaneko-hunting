@@ -56,6 +56,8 @@ import {preloadUltimateArt} from './ultimate-art.js';
 import { icon } from './icons.js';
 import {stageSelectionView,stageBriefingView} from './stage-selection-ui.js';
 import './navigation.css';
+import './constellation.css';
+import './equipment-contrast.css';
 import {extraCombatHint} from './extra-stages.js';
 import {ACT_SCENES,ChapterStory} from './chapter.js';
 const story=new ChapterStory();
@@ -273,7 +275,7 @@ function chooseTreeNode(id){
 }
 function applyTalent(heroId,nodeId){
   if(game||heroId!==treeHero||!isHeroUnlocked(progression,heroId)||!unlockTalent(progression,heroId,nodeId))return;
-  persistProgression();updateGrowthLabels();renderTalent();$('#growth-cards').innerHTML=growthCards(progression);audio.play('upgrade');
+  persistProgression();updateGrowthLabels();renderTalent();$(`[data-tree-node="${nodeId}"]`)?.classList.add('just-unlocked');$('#growth-cards').innerHTML=growthCards(progression);audio.play('upgrade');
   const node=talentNode(nodeId,heroId),hero=HEROES.find(h=>h.id===heroId);
   $('#tree-feedback').textContent=`${hero.name}の「${node.name}」を解放。${nodeEffectText(node)}。${storageAvailable?'保存しました。':'この環境では保存できません。'}`;
   $(`[data-tree-node="${nodeId}"]`).focus({preventScroll:true});announce(`${hero.name}の${node.name}を解放しました。`);

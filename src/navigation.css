@@ -176,16 +176,6 @@
 .menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) :is(.mission-row,.growth-stats,.growth-stats>div,.growth-card footer,.talent-preview>div,.equipment-slot,.equipment-statline,.equipment-details,.material-stock){border-color:#d9d4c8}
 .menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .mission-stage>header{background:linear-gradient(0deg,#273650dc,#22384b10),var(--reward-scene) center 45%/cover}
 .menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .mission-stage>header :is(h3,small,span){color:#fff5de}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-map-wrap{background:radial-gradient(ellipse at 50% 60%,#e0dcec88,transparent 65%),#f2f0ea;border-color:#cbc7be}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .limit-branch{background:#e7e4dc;border-color:#d3c7b0}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-node{background:none;border:0}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-node>strong,.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-node>small{background:#f2f0eae6}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-orb{background:#ece8df;border-color:#aea6ba;color:#5d5774;box-shadow:0 2px 8px #b6aec033}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-orb i{background:#cfc7d9;color:#5a526b}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-node.selected .talent-orb{background:#d8d0e5;border-color:#8c7d9d;outline:2px solid #b3a2c1}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-node.unlocked .talent-orb{background:#ddd5eb;border-color:#9585aa}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-links path{stroke:#b8b1c2}
-.menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .talent-links path.lit{stroke:#9580b1}
 .menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .growth-card.unrecruited{opacity:.6}
 .menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .growth-stats dd{font-size:25px;color:#5b6475}
 .menu-light :is(#growth-panel,#talent-panel,#missions-panel,#equipment-panel,#weapons-panel) .summon-emblem{color:#a1854a;filter:none}

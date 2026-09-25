@@ -6,7 +6,7 @@ import {icon} from './icons.js';
 
 const fmt=n=>Number(n.toFixed(2));
 export const weaponBonusText=item=>`${item.weapon.style} · 攻撃力 +${Math.round(item.bonus.attack*100)}%${item.bonus.defense?` · 防御力 +${item.bonus.defense}`:''}`;
-export const weaponRarityBadge=rarity=>`<span class="weapon-rarity" style="--rarity-color:${rarity.color}">${rarityLabel(rarity)}</span>`;
+export const weaponRarityBadge=rarity=>`<span class="weapon-rarity" data-rank="${rarity.rank}" style="--rarity-color:${rarity.color}">${rarityLabel(rarity)}</span>`;
 const heroName=id=>HEROES.find(h=>h.id===id).name;
 export function weaponLoadoutView(profile,hero){
  const equipped=equippedWeapon(profile,hero.id),current={...combatStats(profile,hero),...weaponAttackProfile(profile,hero)};
