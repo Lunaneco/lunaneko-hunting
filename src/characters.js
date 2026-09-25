@@ -4,6 +4,7 @@ import {buildChapterTwoBoss} from './chapter-two-bosses.js';
 import {buildCountryEnemy} from './chapter-two-enemies.js';
 import {CHAPTER_TWO_ENEMIES,ENEMY_TYPES} from './enemies.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {mochiSlimePose} from './mochi-motion.js';
 const materials=new Map();
 export function material(color,emissive=0,metal=0){const key=`${color}-${emissive}-${metal}`;if(!materials.has(key))materials.set(key,new THREE.MeshStandardMaterial({color,roughness:metal?.38:.88,metalness:metal,emissive:color,emissiveIntensity:emissive}));return materials.get(key);}
 export function part(parent,geometry,color,x=0,y=0,z=0,scale=null,emissive=0,metal=0){const m=new THREE.Mesh(geometry,material(color,emissive,metal));m.position.set(x,y,z);if(scale)m.scale.set(...scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
@@ -147,5 +148,8 @@ export function animateEnemy(root,e,time){
   d.rotors.forEach(r=>{if(e.type==='ramcart')r.rotation.x=-time*(e.rush?18:e.cast?0:3);else r.rotation.z=-time*(e.cast?2:.5);});
   if(d.focus){d.focus.rotation.y=time*2;const pulse=e.cast?1.25+Math.sin(time*15)*.18:1;d.focus.scale.copy(d.focus.userData.baseScale).multiplyScalar(pulse);}
   if(e.enraged&&d.focus)d.focus.scale.multiplyScalar(1.2+Math.sin(time*9)*.1);
-  const scale=e.hit>0?1+e.hit*.45:1;d.body.scale.set(scale,2-scale,scale);
+  if(e.type==='boss'&&MOCHI_BOSSES[e.bossId]){
+    const pose=mochiSlimePose(time+e.id,{movement:e.cast||e.salvo||e.recovery>0?0:1,cry:e.cast?.kind==='chant'?.6:0,dash:e.rush?1:0,hit:Math.min(1,e.hit*5)});
+    d.body.position.y=.015+pose.hop;d.body.rotation.set(0,pose.sway,0);d.body.scale.set(pose.x,pose.y,pose.z);
+  }else{const scale=e.hit>0?1+e.hit*.45:1;d.body.scale.set(scale,2-scale,scale);}
 }

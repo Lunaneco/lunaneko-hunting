@@ -62,7 +62,7 @@ for (const name of ['nyanluna', 'tsukineko', 'omsolo']) {
   });
 }
 
-test('mochinyafe: supplied static model has portable pink materials, finite geometry and a mobile budget',()=>{
+test('mochinyafe: limbless model has portable pink materials, finite geometry and a mobile budget',()=>{
  const {doc,read,bytes}=glb('mochinyafe');assert.equal(doc.meshes.length,1);assert.equal(doc.materials.length,4);assert.equal(doc.skins?.length??0,0);assert.equal(doc.images?.length??0,0);assert.ok(bytes<1048576);
  let triangles=0,minY=Infinity,maxY=-Infinity;
  for(const primitive of doc.meshes[0].primitives){
@@ -70,7 +70,12 @@ test('mochinyafe: supplied static model has portable pink materials, finite geom
   for(const p of positions){assert.ok(p.every(Number.isFinite));minY=Math.min(minY,p[1]);maxY=Math.max(maxY,p[1]);}
   for(const n of normals)assert.ok(n.every(Number.isFinite));for(const [index] of indices)assert.ok(index>=0&&index<positions.length);
  }
- assert.equal(triangles,12960);assert.ok(maxY-minY>.2&&maxY-minY<.4);
+ const report=JSON.parse(readFileSync(new URL('./fixtures/mochinyafe-export.json',import.meta.url)));
+ assert.equal(triangles,10848);assert.equal(triangles,report.triangles);assert.equal(report.limbCount,0);assert.equal(report.removedParts.length,4);
+ assert.ok(maxY-minY>.2&&maxY-minY<.4);assert.ok(Math.abs(minY)<1e-7,'The belly, rather than a paw, is the ground pivot');
+ assert.ok(doc.materials.every(m=>!m.name.includes('Paw')));assert.ok(doc.nodes.some(n=>n.name==='Mochinyafe_SLIME_BODY'));
+ const tail=doc.materials.findIndex(m=>m.name.includes('Tail_Pink'));
+ assert.equal(read(doc.meshes[0].primitives.find(p=>p.material===tail).indices).length/3,528,'Only the round tail remains, not the four former paws');
  const pink=doc.materials.find(m=>m.name.includes('Mochi_Pink')).pbrMetallicRoughness.baseColorFactor;
  assert.ok(pink[0]>pink[2]&&pink[2]>pink[1]);assert.ok(pink[1]<.7,'Pink albedo must survive GLB export instead of becoming white');
 });

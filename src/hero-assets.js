@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { part, bakeGroup } from './characters.js';
 import { ATTACK_DURATION } from './model.js';
 import {createWeaponVariant} from './weapon-models.js';
+import {mochiSlimePose} from './mochi-motion.js';
 
 const files = ['nyanluna', 'tsukineko', 'omsolo', 'mochinyafe'];
 const axisX = new THREE.Vector3(1, 0, 0);
@@ -96,7 +97,8 @@ function createHero(asset, hero) {
   model.scale.multiplyScalar(scale);
   model.position.set(-(bounds.min.x + bounds.max.x) * .5 * scale, -bounds.min.y * scale,
     -(bounds.min.z + bounds.max.z) * .5 * scale);
-  rig.add(model);
+  const slimeBody=hero===3?new THREE.Group():null;
+  if(slimeBody){slimeBody.name='mochinyafe_slime_deformation';slimeBody.add(model);rig.add(slimeBody);}else rig.add(model);
   const bones = new Map();
   const metrics = { triangles: 0, meshes: 0, skinnedMeshes: 0, vertices: 0 };
   root.updateMatrixWorld(true);
@@ -138,7 +140,7 @@ function createHero(asset, hero) {
       transparent: true, opacity: .65, side: THREE.DoubleSide, depthWrite: false }));
   ring.rotation.x = -Math.PI / 2;
   root.add(ring);
-  root.userData = { rig, model, bones, weapon, ring, hero, attackTime: 0,
+  root.userData = { rig, model, slimeBody, bones, weapon, ring, hero, attackTime: 0,
     metrics, source: publicUrl(`assets/models/${files[hero]}.glb`), movement: 0 };
   animateHero(root, { x: 0, z: 0, face: 0, moving: false, invincible: 0 }, 0, 0, hero === 0);
   return root;
@@ -158,7 +160,19 @@ function pose(data, name, x = 0, y = 0, z = 0) {
 
 export function animateHero(root, state, time, dt, active) {
   const d = root.userData;
-  if(d.hero===3){d.weapon.rotation.z=Math.sin(time*3)*.16;root.position.set(state.x,0,state.z);root.rotation.y+=Math.atan2(Math.sin(state.face-root.rotation.y),Math.cos(state.face-root.rotation.y))*Math.min(1,dt*14);d.attackTime=Math.max(0,d.attackTime-dt);const bounce=state.moving?Math.abs(Math.sin(time*10))*.16:Math.sin(time*2)*.015,cry=d.attackTime>0?Math.sin(d.attackTime/ATTACK_DURATION*Math.PI):0;d.rig.position.y=.04+bounce;d.rig.scale.set(1+cry*.16,1-cry*.12,1+cry*.16);d.rig.rotation.z=state.moving?Math.sin(time*10)*.06:0;d.rig.visible=!(active&&state.invincible>.05&&state.invincible<.8&&Math.floor(time*22)%3===0);d.ring.position.y=.025;d.ring.material.opacity=active?.6:.22;return;}
+  if(d.hero===3){
+    root.position.set(state.x,0,state.z);
+    root.rotation.y+=Math.atan2(Math.sin(state.face-root.rotation.y),Math.cos(state.face-root.rotation.y))*Math.min(1,dt*14);
+    d.movement=THREE.MathUtils.damp(d.movement,state.moving?1:0,13,dt);
+    d.attackTime=Math.max(0,d.attackTime-dt);
+    const cry=d.attackTime>0?Math.sin(d.attackTime/ATTACK_DURATION*Math.PI):0;
+    const pose=mochiSlimePose(time,{movement:d.movement,cry,dash:state.dash>0?1:0});
+    d.rig.position.set(0,.015,0);d.rig.rotation.set(0,0,0);d.rig.scale.setScalar(1);
+    d.slimeBody.position.y=pose.hop;d.slimeBody.scale.set(pose.x,pose.y,pose.z);d.slimeBody.rotation.y=pose.sway;
+    d.weapon.position.y=.95+pose.hop*.8;d.weapon.rotation.z=Math.sin(time*3)*.16+cry*.15;
+    d.rig.visible=!(active&&state.invincible>.05&&state.invincible<.8&&Math.floor(time*22)%3===0);
+    d.ring.position.y=.025;d.ring.material.opacity=active?.6:.22;d.ring.scale.setScalar(active?1:.8);return;
+  }
   d.rig.rotation.set(0,0,0);d.rig.position.x=0;d.weapon.visible=true;
   root.position.set(state.x, 0, state.z);
   const turn = Math.atan2(Math.sin(state.face - root.rotation.y), Math.cos(state.face - root.rotation.y));

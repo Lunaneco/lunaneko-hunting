@@ -28,14 +28,15 @@ export function buildMochiEnemy(type,bossId,root,body,{part,ball,tube}){
    const inner=part(body,new THREE.ConeGeometry(.28,.7,5),0xc174a9,s*1.0,2.82,.21);inner.rotation.z=-s*.2;
    ball(body,accent,s*.53,1.6,1.105,[.23,.29,.085]);ball(body,0xffe7ef,s*.57,1.69,1.18,[.055,.07,.018]);
    ball(body,0xc3669c,s*.98,1.23,.94,[.24,.14,.06]);
-   for(const z of [-.55,.65])ball(body,fur,s*.91,.24,z,[.4,.27,.39]);
   }
   ball(body,0xd68eb4,0,1.28,1.205,[.1,.075,.07]);
   for(const s of [-1,1])tube(body,[[0,1.26,1.22],[s*.14,1.13,1.23],[s*.32,1.23,1.2]],.043,0xd68eb4);
   if(bossId==='kingmochi'){part(body,new THREE.CylinderGeometry(.56,.48,.24,8),0xd3b875,0,2.8,0);for(let i=0;i<5;i++)part(body,new THREE.ConeGeometry(.12,.55,5),0xe2bd70,Math.sin(i*1.26)*.48,3.1,Math.cos(i*1.26)*.48);focus=part(body,new THREE.OctahedronGeometry(.2),accent,0,2.94,.55,null,.8);}
   else if(bossId==='bellmochi'){part(body,new THREE.TorusGeometry(1.12,.09,6,28),0x85705e,0,.88,.05).rotation.x=Math.PI/2;focus=part(body,new THREE.SphereGeometry(.28,10,8),0xe8ba7b,0,.84,1.12,null,.5);}
   else if(bossId==='dreammochi'){part(body,new THREE.ConeGeometry(.48,1,8),0x866ca3,0,2.95,-.1).rotation.z=-.3;focus=part(body,new THREE.OctahedronGeometry(.13),accent,-.33,3.46,-.1,null,.5);}
-  else for(const s of [-1,1])for(let i=0;i<3;i++)part(body,new THREE.ConeGeometry(.085,.42,5),0xf4b5d8,s*.91+(i-1)*.15,.22,1.02).rotation.x=Math.PI/2;
+  // The Mochinyafe family has a single limbless body. Shadow claws are spells,
+  // not physical hands. Bring the belly down to the floor after removing paws.
+  for(const child of body.children)child.position.y-=.13;
  }else if(type==='goldenSlime'){
   part(body,new THREE.SphereGeometry(1,20,16),0xffc329,0,.65,0,[.86,.69,.78],.23,.65);
   part(body,new THREE.ConeGeometry(.34,.48,16),0xffd35d,0,1.19,0,null,.2,.6);
