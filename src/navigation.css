@@ -128,6 +128,9 @@
 .menu-light .stone-wallet span,.menu-light .stone-wallet b{color:#7c6a46}
 .menu-light .chapter-reward{background:#f9f5e9;color:#454e58;border-color:#cfc3a8}
 .menu-light .chapter-reward :is(span,small){color:#787260}
+.menu-light .mission-run-rewards{color:#24364b;background:#edf2f6;border-color:#b9c8d5}
+.menu-light #missions-panel .mission-row.claimed .mission-progress-label,.menu-light #missions-panel .mission-row.claimed .mission-status .icon{color:#27634f}
+.menu-light #missions-panel .mission-row.claimed .mission-progress i{background:#427d65}
 
 @media(min-width:1450px){.menu-light .chapter-shell{padding-top:48px}.journey-act{min-height:330px}.journey-act-art{height:205px}.journey-act:not(:disabled) .journey-act-art::after{height:205px}.journey-extra{min-height:86px}}
 @media(max-width:900px){.menu-light .chapter-shell{padding:26px 28px 16px}.menu-light .menu-tabs{gap:19px}.journey-acts{gap:12px}.journey-act-art{height:140px}.journey-act:not(:disabled) .journey-act-art::after{height:140px}.journey-act-copy{padding:16px 13px}.journey-act-copy>strong{font-size:14px}}
