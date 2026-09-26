@@ -2,6 +2,43 @@
 :root{--ui-min-font:12px}
 /* Combat chrome stays on the v1.56 scale. Menus keep the readable floor. */
 body.playing :is(#hud,#wave-banner,#ultimate-banner,#toast,#voice-caption,#joystick){--ui-min-font:0px}
+/* CHAPTER and the stage name stay in the DOM, but they are out of the combat stack. */
+#hud :is(#area-sub,#area-name){position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0}
+#hud .objective{top:120px}
+#hud #stage-crystal-hud{top:145px;left:31px;box-sizing:border-box;align-items:center;gap:9px;padding:10px 25px 10px 0;background:linear-gradient(90deg,#173c428a,#183f4300);border:0;border-radius:0;overflow:hidden;color:#f1f2df;text-shadow:0 2px 8px #173e35aa}
+#hud #stage-crystal-hud>.icon{width:18px;height:18px;flex:none;color:#e6d3a6}
+#hud #stage-crystal-hud>div{display:flex;align-items:center;gap:9px;width:auto;min-width:0;flex:1}
+#hud #stage-crystal-hud :is(span small,div>small){display:none}
+#hud #stage-crystal-hud span{display:inline;font-size:max(10px,var(--ui-min-font,0px));line-height:1;color:#f1f2df;white-space:nowrap}
+#hud #stage-crystal-hud strong{font:max(10px,var(--ui-min-font,0px)) system-ui;line-height:1;letter-spacing:1px;margin-left:auto;color:#e7d9b4;white-space:nowrap}
+#hud #stage-crystal-hud .crystal-track{flex:1;height:4px;min-width:16px;margin:0}
+#hud .touch-hint,#hud #mission-tracker{display:none}
+#hud .field-map{bottom:40px}
+#hud .acquired{left:176px;bottom:40px;max-width:calc(100vw - 460px)}
+@media(max-width:760px){
+ /* Phone boss fights used to hide the whole stage row, including WAVE. Keep WAVE under the HP. */
+ #hud .stage-hud,#hud:has(.boss-hud:not(.hidden)) .stage-hud,#hud:has(#exit-guide:not(.hidden)) .stage-hud{display:block;top:calc(max(18px,env(safe-area-inset-top,0px)) + 78px);left:16px;right:auto;transform:none;text-align:left;z-index:4}
+ #hud .wave-row{font-size:12px;color:#f7f3e4}
+ #hud .objective{top:calc(max(18px,env(safe-area-inset-top,0px)) + 108px)}
+ #hud:has(.boss-hud:not(.hidden)) .boss-hud{top:calc(max(18px,env(safe-area-inset-top,0px)) + 112px)}
+ #hud:has(.boss-hud:not(.hidden)) .objective{top:calc(max(18px,env(safe-area-inset-top,0px)) + 156px)}
+ #hud #stage-crystal-hud{top:calc(max(18px,env(safe-area-inset-top,0px)) + 140px);left:19px;gap:6px;padding:7px 10px 7px 0}
+ #hud #stage-crystal-hud>.icon{width:14px;height:14px}
+ #hud #stage-crystal-hud>div{gap:6px}
+ #hud #stage-crystal-hud span{font-size:max(8px,var(--ui-min-font,0px))}
+ #hud #stage-crystal-hud strong{font-size:max(9px,var(--ui-min-font,0px));margin-left:4px}
+ #hud:has(.boss-hud:not(.hidden)) #stage-crystal-hud{top:calc(max(18px,env(safe-area-inset-top,0px)) + 188px)}
+ #hud .field-map,#hud .acquired{bottom:max(45px,calc(env(safe-area-inset-bottom) + 25px))}
+ #hud .acquired{left:124px;max-width:calc(100vw - 310px)}
+}
+@media(max-height:500px) and (orientation:landscape){
+ #hud .stage-hud,#hud:has(.boss-hud:not(.hidden)) .stage-hud{display:block;top:18px;left:50%;right:auto;transform:translateX(-50%);text-align:center}
+ #hud .objective,#hud:has(.boss-hud:not(.hidden)) .objective{top:85px}
+ #hud #stage-crystal-hud,#hud:has(.boss-hud:not(.hidden)) #stage-crystal-hud{top:121px}
+ #hud:has(.boss-hud:not(.hidden)) .boss-hud{top:90px}
+ #hud .field-map,#hud .acquired{bottom:26px}
+ #hud .acquired{left:124px}
+}
 .menu-light,.modal,.story-dialog,.tutorial-panel,.weapon-summon-dialog{--ui-min-font:14px}
 #chapter-menu p,#modal p{line-height:1.85}
 #chapter-menu :is(button,summary),#modal :is(button,summary){line-height:1.6;min-height:44px}
