@@ -9,9 +9,10 @@ export const GOLDEN_SLIME=Object.freeze({
 });
 
 // A separate RNG keeps rare encounters from changing regular waves or drop rolls.
-export function goldenSlimeWave(act,rng){
+// Chapter 3 rolls once per wave, including the boss wave. Other chapters never spawn one.
+export function goldenSlimeWave(act,rng,wave){
   if(act.chapter!==2||act.extra||rng()>=GOLDEN_SLIME.chance)return null;
-  return 2+Math.floor(rng()*4);
+  return wave;
 }
 
 export function fleeGoldenSlime(game,e,dt,slow=1){

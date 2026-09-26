@@ -39,7 +39,7 @@ export class Adventure {
     this.progression=normalizeProgression(progression,HEROES);this.guestHeroId=null;this.recruitedHeroId=null;this.act=isActUnlocked(this.progression,act)?act:0;this.actConfig=actFor(this.act);this.pendingTrials=new Set();this.rescue=null;
     this.party=Object.freeze(normalizeParty(party,availableHeroes(this.progression,HEROES)));this.partyHeroes=this.party.map(id=>HEROES.findIndex(h=>h.id===id));hero=this.partyHeroes.includes(hero)?hero:this.partyHeroes[0];this.skillPool=Object.freeze(skillsForParty(this.party,this.progression));
     this.goldenSlimeKills=0;this.goldenSlimeLastWave=0;this.earnedRareStones=0;this.clearRewardTickets=0;this.earnedWeaponTickets=0;this.earnedMissions=[];this.earnedXp=Object.fromEntries(HEROES.map(h=>[h.id,0]));this.earnedMaterials=Object.fromEntries(Object.keys(MATERIALS).map(id=>[id,0]));
-    this.rng=seededRandom(seed);this.lootRng=seededRandom(seed^0x57EA90C1);this.materialRng=seededRandom(seed^0x4D41544C);this.rareRng=seededRandom(seed^0x604D5A1E);this.goldenSlime=null;this.goldenSlimeWave=goldenSlimeWave(this.actConfig,this.rareRng);this.seed=seed;this.difficulty=this.actConfig.extra?'hard':difficulty;this.phase='playing';this.events=[];this.ids=1;
+    this.rng=seededRandom(seed);this.lootRng=seededRandom(seed^0x57EA90C1);this.materialRng=seededRandom(seed^0x4D41544C);this.rareRng=seededRandom(seed^0x604D5A1E);this.goldenSlime=null;this.goldenSlimeWave=null;this.seed=seed;this.difficulty=this.actConfig.extra?'hard':difficulty;this.phase='playing';this.events=[];this.ids=1;
     this.heroHealth=Object.fromEntries(HEROES.map(h=>{const maxHp=combatStats(this.progression,h).maxHp;return [h.id,{hp:maxHp,maxHp}];}));
     this.player={x:0,z:3,hero,face:Math.PI,invincible:1,dash:0,dashCooldown:0,dx:0,dz:-1,attack:0,charge:0,switchCooldown:0};
     // HP follows the controlled character; switching never copies another character's damage.
@@ -147,7 +147,7 @@ export class Adventure {
   startWave(){
     this.wave++;this.waveSpawned=0;this.waveGoal=this.actConfig.counts[this.wave-1];this.spawnTimer=.6;this.waveBreak=0;
     this.area=Math.min(2,Math.floor((this.wave-1)/2));
-    if(this.goldenSlime&&this.wave>=2&&this.wave<=5&&this.rareRng()<GOLDEN_SLIME.chance)this.goldenSlimeWave=this.wave;
+    const scheduledRare=goldenSlimeWave(this.actConfig,this.rareRng,this.wave);if(scheduledRare)this.goldenSlimeWave=scheduledRare;
     if(this.wave%2===1)this.route=null;
     if(this.route==='elite'&&this.wave%2===0&&this.wave!==6)this.waveGoal++;
     if(this.meetTsukineko())this.spawn();
@@ -203,7 +203,7 @@ export class Adventure {
     if(this.wave===this.goldenSlimeWave&&this.waveSpawned===3)this.spawnGoldenSlime();
   }
   spawnGoldenSlime(){
-    if(this.actConfig.chapter!==2||this.actConfig.extra||this.wave>=6||this.goldenSlime?.status==='active'||this.goldenSlimeLastWave===this.wave||this.phase!=='playing'||this.exitOpen||this.travelOpen)return null;
+    if(this.actConfig.chapter!==2||this.actConfig.extra||this.goldenSlime?.status==='active'||this.goldenSlimeLastWave===this.wave||this.phase!=='playing'||this.exitOpen||this.travelOpen)return null;
     const angle=this.rareRng()*Math.PI*2,p=this.player;
     let point=projectInside(this.walkLayout,p.x+Math.sin(angle)*8,p.z+Math.cos(angle)*8,.9);
     if(Math.hypot(point.x-p.x,point.z-p.z)<5)point=spawnPoint(this.walkLayout,p,angle);
