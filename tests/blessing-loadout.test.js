@@ -41,9 +41,10 @@ test('all twelve skills unlock per hero at increasing levels and rarity costs, w
   for(const node of SKILL_TALENT_NODES){assert.equal(unlockTalent(p,h.id,node.id),true);const paid=structuredClone(p);assert.equal(unlockTalent(p,h.id,node.id),false);assert.deepEqual(p,paid);assert.ok(talentNode(node.id,h.id).skill.requires.includes(h.id));}
   assert.deepEqual(p.inventory,{starBud:710,moonDew:89,wardenCore:8,moonPrism:88,astralCore:6,weaponTicket:0,limitStone:0});assert.deepEqual(characterStats(h,p.characters[h.id]),stats);assert.deepEqual(equippedSkills(p,h.id),defaultSkills(h.id));assert.deepEqual(p.characters[HEROES.find(o=>o.id!==h.id).id],other);
  }
- for(const [level,node,prior] of [[4,'blessing1',['origin']],[14,'blessing2',['origin','blessing1']],[34,'blessing3',tree.slice(0,-1)],[35,'blessing3',['origin','blessing1','blessing2']]]){
+ for(const [level,node,prior] of [[4,'blessing1',['origin']],[14,'blessing2',['origin','blessing1']],[34,'blessing3',tree.slice(0,-1)]]){
   const p=profile({characters:{nyanluna:{level,breaks:2,tree:prior}}}),before=structuredClone(p);assert.equal(unlockTalent(p,'nyanluna',node),false);assert.deepEqual(p,before);
  }
+ const ready=profile({characters:{nyanluna:{level:35,breaks:2,tree:['origin','blessing1','blessing2']}}});assert.equal(talentStatus(ready,'nyanluna','blessing3').parents.length,0);assert.equal(unlockTalent(ready,'nyanluna','blessing3'),true);assert.ok(ready.characters.nyanluna.tree.includes('blessing3'));assert.equal(equipSkill(ready,'nyanluna',2,'moonFrost'),true);
  const p=profile({characters:{nyanluna:{level:35,breaks:2,tree:tree.slice(0,-1)}}});p.inventory.astralCore=3;const before=structuredClone(p);assert.equal(unlockTalent(p,'nyanluna','blessing3'),false);assert.deepEqual(p,before);assert.deepEqual(talentStatus(p,'nyanluna','blessing3').missing,[{id:'astralCore',needed:4,owned:3}]);
 });
 test('free swapping keeps three distinct slots, saves the chosen order and rejects unavailable heroes or slots',()=>{
