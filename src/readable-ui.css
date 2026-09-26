@@ -13,6 +13,8 @@ body.playing :is(#hud,#wave-banner,#ultimate-banner,#toast,#voice-caption,#joyst
 #hud #stage-crystal-hud strong{font:max(10px,var(--ui-min-font,0px)) system-ui;line-height:1;letter-spacing:1px;margin-left:auto;color:#e7d9b4;white-space:nowrap}
 #hud #stage-crystal-hud .crystal-track{flex:1;height:4px;min-width:16px;margin:0}
 #hud .touch-hint,#hud #mission-tracker{display:none}
+#hud .switch-action{right:11px}
+#hud .switch-action kbd{left:auto;right:calc(100% + 9px)}
 #hud .field-map{bottom:40px}
 #hud .acquired{left:176px;bottom:40px;max-width:calc(100vw - 460px)}
 @media(max-width:760px){
@@ -28,6 +30,7 @@ body.playing :is(#hud,#wave-banner,#ultimate-banner,#toast,#voice-caption,#joyst
  #hud #stage-crystal-hud span{font-size:max(8px,var(--ui-min-font,0px))}
  #hud #stage-crystal-hud strong{font-size:max(9px,var(--ui-min-font,0px));margin-left:4px}
  #hud:has(.boss-hud:not(.hidden)) #stage-crystal-hud{top:calc(max(18px,env(safe-area-inset-top,0px)) + 188px)}
+ #hud .switch-action{right:6px}
  #hud .field-map,#hud .acquired{bottom:max(45px,calc(env(safe-area-inset-bottom) + 25px))}
  #hud .acquired{left:124px;max-width:calc(100vw - 310px)}
 }
@@ -36,6 +39,7 @@ body.playing :is(#hud,#wave-banner,#ultimate-banner,#toast,#voice-caption,#joyst
  #hud .objective,#hud:has(.boss-hud:not(.hidden)) .objective{top:85px}
  #hud #stage-crystal-hud,#hud:has(.boss-hud:not(.hidden)) #stage-crystal-hud{top:121px}
  #hud:has(.boss-hud:not(.hidden)) .boss-hud{top:90px}
+ #hud .switch-action{position:relative;right:auto;bottom:auto;order:3;margin-left:5px;margin-right:0}
  #hud .field-map,#hud .acquired{bottom:26px}
  #hud .acquired{left:124px}
 }
