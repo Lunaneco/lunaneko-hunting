@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Box3} from 'three';
 import {Adventure,HEROES,seededRandom} from '../src/model.js';
 import {ACTS,EXTRA_ACTS} from '../src/acts.js';
-import {GOLDEN_SLIME,goldenSlimeWave,goldenSlimeHud} from '../src/golden-slime.js';
+import {GOLDEN_SLIME,goldenSlimeWave,guaranteedExtraRareWave,goldenSlimeHud} from '../src/golden-slime.js';
 import {normalizeProgression} from '../src/progression.js';
 import {mochiCryHit} from '../src/mochi-combat.js';
 import {contains,projectInside} from '../src/terrain.js';
@@ -25,6 +25,16 @@ test('rare chance is 20% on every chapter-three wave, and other chapters never r
   assert.equal(goldenSlimeWave(act,()=>.2,wave),null);
  }
  const outcomes=Array.from({length:5000},(_,i)=>goldenSlimeWave(ACTS[8],seededRandom(i),1));assert.ok(outcomes.filter(Boolean).length>900&&outcomes.filter(Boolean).length<1100);
+ for(const act of [...ACTS,...EXTRA_ACTS])assert.equal(guaranteedExtraRareWave(act),act.chapter===2&&act.extra?1:null);
+});
+test('chapter three extra guarantees exactly one rare slime, on the first wave',()=>{
+ for(let seed=1;seed<=12;seed++){
+  const g=new Adventure({act:14,seed,party:['nyanluna','mochinyafe'],progression:profile()});
+  assert.equal(g.goldenSlimeWave,1);let rares=0;
+  for(let wave=1;wave<=6;wave++){g.wave=wave;g.waveSpawned=2;g.enemies=[];if(g.goldenSlime?.status==='active')g.goldenSlime.status='escaped';g.spawn();rares+=g.enemies.filter(e=>e.rare).length;}
+  assert.equal(rares,1);
+ }
+ for(const act of [12,13]){const g=new Adventure({act,seed:4,party:['nyanluna','mochinyafe'],progression:profile()});assert.equal(g.goldenSlimeWave,null);assert.equal(g.spawnGoldenSlime(),null);}
 });
 test('a rare spawn supplements the normal wave once without changing its roster, count or RNG',()=>{
  const a=quiet(),b=quiet();a.waveSpawned=b.waveSpawned=0;a.goldenSlimeWave=2;b.goldenSlimeWave=null;
