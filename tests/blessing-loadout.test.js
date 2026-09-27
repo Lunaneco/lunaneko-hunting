@@ -8,7 +8,7 @@ import {enemySpeedScale} from '../src/ultimate-combat.js';
 import {talentView} from '../src/talent-ui.js';
 import {partyView} from '../src/party-ui.js';
 import {botInput} from './bot.js';
-const story={version:2,actClears:Array(12).fill(true)},first=FIRST_TIER_NODES.map(n=>n.id),tree=[...first,'ascension',...SKILL_TALENT_NODES.map(n=>n.id)];
+const story={version:2,actClears:Array(20).fill(true)},first=FIRST_TIER_NODES.map(n=>n.id),tree=[...first,'ascension',...SKILL_TALENT_NODES.map(n=>n.id)];
 const profile=(options={})=>normalizeProgression({story,characters:Object.fromEntries(HEROES.map(h=>[h.id,{level:35,breaks:2,tree}])),inventory:{starBud:1000,moonDew:100,wardenCore:10,moonPrism:100,astralCore:10},...options},HEROES);
 const ids=pool=>pool.map(s=>s.id).sort();
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-6,`${a} != ${b}`);
@@ -23,7 +23,7 @@ function ticks(g,n,targets=[]){for(let i=0;i<n;i++){for(const [e,z] of targets)O
 test('old saves preserve every earned value and retain original candidates without unlocking new skills',()=>{
  const raw=profile({characters:{nyanluna:{level:20,xp:72,tree:first},tsukineko:{level:15,xp:19}},blessingLoadouts:undefined});
  const {blessingLoadouts,...legacy}=raw,restored=normalizeProgression(legacy,HEROES);
- assert.deepEqual(restored,raw);assert.deepEqual(restored.blessingLoadouts,{nyanluna:['nova','orbit','reach'],tsukineko:['haste','focus','crit'],omsolo:['saberPower','saberReach','saberGuard'],mochinyafe:['mochiLull','mochiReach','mochiMend']});
+ assert.deepEqual(restored,raw);assert.deepEqual(restored.blessingLoadouts,{nyanluna:['nova','orbit','reach'],tsukineko:['haste','focus','crit'],omsolo:['saberPower','saberReach','saberGuard'],mochinyafe:['mochiLull','mochiReach','mochiMend'],shizuku:['shizukuPower','shizukuDrain','shizukuReach'],prim:['primPower','primReach','primFocus']});
  assert.equal(skillsForParty(['nyanluna'],restored).length,7);assert.equal(skillsForParty(['nyanluna','tsukineko'],restored).length,12);
 });
 test('invalid, locked, duplicate, foreign and pair candidates are repaired to three owned personal slots',()=>{
@@ -39,7 +39,7 @@ test('all twelve skills unlock per hero at increasing levels and rarity costs, w
  for(const h of HEROES){
   const p=profile({characters:{[h.id]:{level:35,breaks:2,tree:[...first,'ascension']}}}),stats=characterStats(h,p.characters[h.id]),other=structuredClone(p.characters[HEROES.find(o=>o.id!==h.id).id]);
   for(const node of SKILL_TALENT_NODES){assert.equal(unlockTalent(p,h.id,node.id),true);const paid=structuredClone(p);assert.equal(unlockTalent(p,h.id,node.id),false);assert.deepEqual(p,paid);assert.ok(talentNode(node.id,h.id).skill.requires.includes(h.id));}
-  assert.deepEqual(p.inventory,{starBud:710,moonDew:89,wardenCore:8,moonPrism:88,astralCore:6,weaponTicket:0,limitStone:0});assert.deepEqual(characterStats(h,p.characters[h.id]),stats);assert.deepEqual(equippedSkills(p,h.id),defaultSkills(h.id));assert.deepEqual(p.characters[HEROES.find(o=>o.id!==h.id).id],other);
+  assert.deepEqual(p.inventory,{bloodCrystal:0,demonHeart:0,starBud:710,moonDew:89,wardenCore:8,moonPrism:88,astralCore:6,weaponTicket:0,limitStone:0});assert.deepEqual(characterStats(h,p.characters[h.id]),stats);assert.deepEqual(equippedSkills(p,h.id),defaultSkills(h.id));assert.deepEqual(p.characters[HEROES.find(o=>o.id!==h.id).id],other);
  }
  for(const [level,node,prior] of [[4,'blessing1',['origin']],[14,'blessing2',['origin','blessing1']],[34,'blessing3',tree.slice(0,-1)]]){
   const p=profile({characters:{nyanluna:{level,breaks:2,tree:prior}}}),before=structuredClone(p);assert.equal(unlockTalent(p,'nyanluna',node),false);assert.deepEqual(p,before);

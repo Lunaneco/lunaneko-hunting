@@ -1,3 +1,6 @@
+import {PRISM_ENEMIES} from './chapter-five-enemies.js';
+import {prismBossAttack,prismEnemyAttack,prismFollowup} from './chapter-five-combat.js';
+import {demonEnemyAttack,demonBossAttack,demonFollowup} from './chapter-four-combat.js';
 import {BOSSES,ELITE_BOSS_MULTIPLIER} from './enemies.js';
 import {GOLDEN_SLIME,fleeGoldenSlime} from './golden-slime.js';
 import {extraCombatFor} from './extra-stages.js';
@@ -8,7 +11,7 @@ const hard=g=>g.difficulty==='hard'?1.3:1;
 const telegraph=(g,duration)=>duration*(g.actConfig?.extra?extraCombatFor(g.actConfig).telegraphScale:1);
 const cadence=g=>g.actConfig?.extra?extraCombatFor(g.actConfig).cooldownRate:1;
 // Apply the same route multiplier to spells, beams and projectiles as body/charge damage.
-const damageScale=(g,e)=>hard(g)*(g.actConfig?.extra?g.actConfig.damageScale:1)*(e.type==='boss'?(g.actConfig?.chapter===2?2.1:g.actConfig?.chapter===1?1.7:1):1)*(e.type==='boss'&&e.elite?ELITE_BOSS_MULTIPLIER:1);
+const damageScale=(g,e)=>hard(g)*(g.actConfig?.extra?g.actConfig.damageScale:1)*(e.type==='boss'?(g.actConfig?.chapter>=3?2.6:g.actConfig?.chapter===2?2.1:g.actConfig?.chapter===1?1.7:1):1)*(e.type==='boss'&&e.elite?ELITE_BOSS_MULTIPLIER:1);
 function circle(g,e,x,z,radius,delay,damage,color){delay=telegraph(g,delay);g.hazards.push({id:g.ids++,sourceId:e.id,kind:'sigil',x,z,radius,timer:delay,total:delay,damage:damage*damageScale(g,e),color});}
 function ring(g,e,x,z,innerRadius,radius,delay,damage,color){
  delay=telegraph(g,delay);g.hazards.push({id:g.ids++,sourceId:e.id,kind:'shockwave',shape:'ring',x,z,innerRadius,radius,timer:delay,total:delay,damage:damage*damageScale(g,e),color});
@@ -30,7 +33,7 @@ function volley(g,e,{angle,delay=1.1,waves=1,interval=.6,turn=0,...pattern}){
 }
 function fireBossVolley(g,e,c,round=0){
  const angle=c.angle+c.turn*round,source=c.origin??e;
- if(c.offsets){for(const offset of c.offsets)shot(g,source,angle+offset,{kind:c.projectileKind,speed:c.speed,damage:c.damage,color:c.color,radius:.3});}
+ if(c.offsets){for(const offset of c.offsets)shot(g,source,angle+offset,{kind:c.projectileKind,speed:c.speed,damage:c.damage,color:c.color,radius:.3,homing:c.homing,turnRate:c.turnRate});}
  else{
   const step=Math.PI*2/c.count,gap=Math.floor(c.count/4);
   for(let i=0;i<c.count;i++){if(i===gap||i===gap+1)continue;shot(g,source,angle+i*step,{kind:c.projectileKind??(e.bossId==='tempest'?'enemyFeather':'enemyMoon'),speed:c.speed,damage:c.damage??18,color:c.color,radius:.32});}
@@ -39,8 +42,8 @@ function fireBossVolley(g,e,c,round=0){
 function line(g,e,angle,length,width,delay,damage,color,kind='beam'){
  delay=telegraph(g,delay);g.hazards.push({id:g.ids++,sourceId:e.id,kind,shape:'line',angle,x:e.x+Math.sin(angle)*length/2,z:e.z+Math.cos(angle)*length/2,length,width,radius:width/2,timer:delay,total:delay,damage:damage*damageScale(g,e),color});
 }
-function shot(g,e,angle,{speed=7,damage=12,kind='enemyArrow',color=0xffb36d,radius=.25}={}){
- speed*=g.actConfig?.extra?extraCombatFor(g.actConfig).projectileScale:1;g.projectiles.push({id:g.ids++,owner:'enemy',sourceId:e.id,kind,color,x:e.x+Math.sin(angle)*(e.radius+.2),z:e.z+Math.cos(angle)*(e.radius+.2),vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,life:4,damage:damage*damageScale(g,e),radius});
+function shot(g,e,angle,{speed=7,damage=12,kind='enemyArrow',color=0xffb36d,radius=.25,homing=0,turnRate=0}={}){
+ speed*=g.actConfig?.extra?extraCombatFor(g.actConfig).projectileScale:1;g.projectiles.push({id:g.ids++,owner:'enemy',sourceId:e.id,kind,color,x:e.x+Math.sin(angle)*(e.radius+.2),z:e.z+Math.cos(angle)*(e.radius+.2),vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,life:4,damage:damage*damageScale(g,e),radius,homing,turnRate,speed});
  g.emit('enemyShot',{x:e.x,z:e.z,color});
 }
 function lockCast(g,e,duration,action){duration=telegraph(g,duration);e.cast={remaining:duration,total:duration,...action};e.face=action.angle??e.face;}
@@ -69,17 +72,22 @@ function finishCast(g,e,c){
 function bossAttack(g,e){
  const spec=BOSSES[e.bossId],p=g.player,angle=Math.atan2(p.x-e.x,p.z-e.z),action=e.action++%3,color=spec.color;
  const empowered=Boolean(g.actConfig?.extra||e.hp<=e.maxHp*.5);
- e.special=g.actConfig?.chapter===2?(empowered?1.65:2.35):g.actConfig?.chapter===1?(empowered?2.5:3.35):(empowered?3:4.1);
- g.emit('bossAttack',{kind:['rune','stars','charge'][action],label:g.actConfig?.apex?['夢蝕の包囲陣','三重王冠の星弾','王座砕きの交差突進'][action]:spec.attacks[action],bossId:e.bossId});
+ e.special=g.actConfig?.chapter>=3?(empowered?1.4:1.95):g.actConfig?.chapter===2?(empowered?1.65:2.35):g.actConfig?.chapter===1?(empowered?2.5:3.35):(empowered?3:4.1);
+ g.emit('bossAttack',{kind:['rune','stars','charge'][action],label:g.actConfig?.apex?['夢蝕の包囲陣','三重王冠の星弾','王座砕きの交差突進'][action]:spec.attacks[g.actConfig?.chapter===4?(e.action-1)%2:action],bossId:e.bossId});
  const helpers={angle,action,color,empowered,line,circle,ring,charge,lockCast,volley};
- if(g.actConfig?.chapter===2)mochiBossAttack(g,e,helpers);
+ if(g.actConfig?.chapter===4)prismBossAttack(g,e,helpers);else if(g.actConfig?.chapter>=3)demonBossAttack(g,e,helpers);
+ else if(g.actConfig?.chapter===2)mochiBossAttack(g,e,helpers);
  else storyBossAttack(g,e,helpers);
 }
 export function tickEnemyBehavior(g,e,dt,slow=1){
  if(e.hp<=0||g.phase!=='playing'||g.exitOpen)return;
+ // Follow-up timing includes the preceding cast and recovery. Reserve the chain
+ // until it ends so a new boss cycle cannot overwrite its final rush.
+ if(e.demonFollowup)e.demonFollowup.due-=dt;
+ if(e.prismFollowup)e.prismFollowup.due-=dt;
  if(e.type===GOLDEN_SLIME.type){fleeGoldenSlime(g,e,dt,slow);return;}
  const p=g.player,dx=p.x-e.x,dz=p.z-e.z,d=Math.hypot(dx,dz)||.01,angle=Math.atan2(dx,dz),route=g.steerEnemy(e);
- if(e.type==='boss'&&!e.enraged&&e.hp<=e.maxHp*.5){e.enraged=true;g.emit('bossPhase',{label:g.actConfig?.chapter===2?'闇の猛攻 — 連撃と弾幕が激しくなる':g.actConfig?.chapter===1?'猛攻開始 — 攻撃の間隔が短くなる':'力の解放 — 連撃が増加、予告を見て回避しよう'});}
+ if(e.type==='boss'&&!e.enraged&&e.hp<=e.maxHp*.5){e.enraged=true;g.emit('bossPhase',{label:g.actConfig?.chapter===4?'虹光の暴走 — 五方向弾・三連撃、ブレスの溜めが短縮':g.actConfig?.chapter>=3?'紅霧の暴走 — 追尾弾と連撃が増加':g.actConfig?.chapter===2?'闇の猛攻 — 連撃と弾幕が激しくなる':g.actConfig?.chapter===1?'猛攻開始 — 攻撃の間隔が短くなる':'力の解放 — 連撃が増加、予告を見て回避しよう'});}
  if(e.type==='boss'&&g.actConfig?.apex&&!e.apexAwakened&&e.hp<=e.maxHp*.5){e.apexAwakened=true;g.emit('bossPhase',{label:'夢蝕覚醒 — 包囲魔法と星弾が増加'});}
  if(e.rush){const rush=e.rush;e.face=rush.angle;move(e,Math.sin(rush.angle),Math.cos(rush.angle),rush.speed*slow,Math.min(dt,rush.remaining));rush.remaining-=dt;if(rush.remaining<=0){e.rush=null;e.recovery=.8;}return;}
  if(e.cast){e.cast.remaining-=dt;if(e.cast.remaining<=0){const cast=e.cast;e.cast=null;finishCast(g,e,cast);}return;}
@@ -99,10 +107,14 @@ export function tickEnemyBehavior(g,e,dt,slow=1){
  }
  if(e.recovery>0){e.recovery=Math.max(0,e.recovery-dt*cadence(g));return;}
  e.face=angle;
+ if(g.actConfig?.chapter>=3&&e.demonFollowup){demonFollowup(g,e,dt,{angle,circle,charge});return;}
+ if(e.prismFollowup){prismFollowup(g,e,{angle,circle,charge});return;}
  if(e.type==='boss'){
   e.special-=dt*cadence(g);if(e.special<=0){bossAttack(g,e);return;}
-  const preferred=e.bossId==='chronarch'?7:0;if(d>Math.max(preferred,e.radius+.6))move(e,route.x,route.z,e.speed*slow,dt);return;
+  const preferred=g.actConfig?.chapter===4?9:e.bossId==='chronarch'?7:0;if(d>Math.max(preferred,e.radius+.6))move(e,route.x,route.z,e.speed*slow,dt);return;
  }
+ if(PRISM_ENEMIES[e.type]){prismEnemyAttack(g,e,{angle,d,route,dt,slow,move,line,circle,ring,charge,lockCast,volley,cooldownRate:cadence(g)});return;}
+ if(e.type.startsWith('demon')){demonEnemyAttack(g,e,{angle,d,route,dt,slow,move,line,circle,ring,charge,lockCast,volley,cooldownRate:cadence(g)});return;}
  if(e.type.startsWith('mochi')){
   mochiEnemyAttack(g,e,{angle,d,route,dt,slow,move,line,circle,charge,lockCast,cooldownRate:cadence(g)});return;
  }

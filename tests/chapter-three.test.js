@@ -33,8 +33,8 @@ test('only the last chapter-three gate recruits Mochinyafe once and saves it per
  const solo=new Adventure({progression:p,party:['mochinyafe'],hero:3});assert.deepEqual(solo.party,['mochinyafe']);assert.equal(solo.player.hero,3);
 });
 test('all chapter-three waves use the referenced enemy roster and four different dark Mochi bosses',()=>{
- assert.equal(new Set(ACTS.slice(8).map(a=>a.bossId)).size,4);
- for(const a of ACTS.slice(8))for(let wave=1;wave<=5;wave++)for(let i=0;i<40;i++)assert.ok(CHAPTER_THREE_ENEMIES.includes(enemyForSpawn(a.id,wave,i,i/40)));
+ assert.equal(new Set(ACTS.slice(8,12).map(a=>a.bossId)).size,4);
+ for(const a of ACTS.slice(8,12))for(let wave=1;wave<=5;wave++)for(let i=0;i<40;i++)assert.ok(CHAPTER_THREE_ENEMIES.includes(enemyForSpawn(a.id,wave,i,i/40)));
  const lines=ACT_SCENES.slice(8).flatMap(a=>Object.values(a).flatMap(s=>s.lines));
  assert.ok(lines.some(l=>l.text.includes('最後の一匹')));assert.ok(lines.some(l=>l.text.includes('戻ってこない')));
  for(const l of lines.filter(l=>l.who==='mochinyafe')){assert.match(l.text,/^ふぇ〜[っ！？…]*$/u);assert.equal(l.voiced,true);}
@@ -85,7 +85,7 @@ test('Mochi ultimate stops regular enemies, weakens bosses and heals without dra
  const g=quiet({hero:3,party:['mochinyafe','nyanluna']}),a=target(g),b=target(g,'boss',5);g.player.hp=10;g.player.charge=100;g.ultimateCharges.nyanluna=43;
  assert.ok(g.ultimate());assert.equal(g.player.charge,0);assert.equal(g.ultimateCharges.nyanluna,43);assert.equal(g.player.hp,46);assert.ok(a.mochiStopUntil>=3);assert.equal(b.mochiAttackDown,.4);advance(g,3);assert.equal(g.ultimateEffects.length,0);
 });
-for(const act of ACTS.slice(8))test(`Lv.40 party can clear ${act.title}, through all six waves and the final gate`,()=>{
+for(const act of ACTS.slice(8,12))test(`Lv.40 party can clear ${act.title}, through all six waves and the final gate`,()=>{
  const tree=TALENT_NODES.filter(n=>n.level<=40).map(n=>n.id),p=profile(act.id,40,tree);
  const g=new Adventure({act:act.id,progression:p,party:['nyanluna','tsukineko'],hero:1,seed:1});
  for(let frame=0;frame<60*600;frame++){

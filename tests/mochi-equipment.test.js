@@ -27,7 +27,7 @@ test('old natural-voice loadouts and prior gacha results migrate without spendin
 test('Mochi gacha grants all nine new variants before recruitment, equips only after recruitment, and keeps draws unchanged',()=>{
  const p=normalizeProgression({inventory:{weaponTicket:9}},HEROES),ids=[];
  for(const rarity of [0,.75,.95])for(const family of [0,.34,.67]){
-  const rolls=[.75,rarity,family],r=drawWeapon(p,()=>rolls.shift());ids.push(r.item.id);assert.equal(r.item.heroId,'mochinyafe');assert.equal(equipWeapon(p,'mochinyafe',r.item.id),false);
+  const rolls=[3.5/6,rarity,family],r=drawWeapon(p,()=>rolls.shift());ids.push(r.item.id);assert.equal(r.item.heroId,'mochinyafe');assert.equal(equipWeapon(p,'mochinyafe',r.item.id),false);
  }
  assert.equal(new Set(ids).size,9);assert.equal(p.inventory.weaponTicket,0);assert.equal(p.weapons.loadout.mochinyafe,'mochi-voice-r1');
  p.story.actClears=Array(12).fill(true);const restored=normalizeProgression(p,HEROES);
@@ -73,7 +73,7 @@ test('three chime models attach to the non-humanoid Mochi rig and reuse the cach
  }
  assert.equal(new Set(geometries).size,3);
 });
-const relics=UNIQUE_EQUIPMENT.filter(e=>e.act>=8);
+const relics=UNIQUE_EQUIPMENT.filter(e=>e.act>=8&&e.act<12);
 function gate(g){g.area=2;g.wave=6;g.exitOpen=true;g.exitDelay=0;g.pendingBlessings=0;Object.assign(g.player,g.exitPoint);assert.ok(g.crossExit());}
 test('each chapter-three trial awards its distinct relic once, with exact time, hit and difficulty gates',()=>{
  assert.equal(relics.length,4);

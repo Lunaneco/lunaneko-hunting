@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import {buildPrismEnemy,PRISM_ENEMIES,PRISM_BOSSES} from './chapter-five-enemies.js';
+import {buildDemonEnemy,DEMON_ENEMIES,DEMON_BOSSES} from './chapter-four-enemies.js';
 import {buildMochiEnemy,MOCHI_ENEMIES,MOCHI_BOSSES} from './chapter-three-enemies.js';
 import {buildChapterTwoBoss} from './chapter-two-bosses.js';
 import {buildCountryEnemy} from './chapter-two-enemies.js';
@@ -19,7 +21,9 @@ export function bakeGroup(group){
 }
 export function createEnemy(type,bossId='eclipse'){
   const root=new THREE.Group(),body=new THREE.Group();root.add(body);let wings=[],rotors=[],focus=null;
-  if(type==='goldenSlime'||MOCHI_ENEMIES[type]||type==='boss'&&MOCHI_BOSSES[bossId]){({focus,wings,rotors}=buildMochiEnemy(type,bossId,root,body,{part,ball,tube}));
+  if(PRISM_ENEMIES[type]||type==='boss'&&PRISM_BOSSES[bossId]){({focus,wings,rotors}=buildPrismEnemy(type,bossId,root,body,{part,ball,tube,bakeGroup}));
+  }else if(DEMON_ENEMIES[type]||type==='boss'&&DEMON_BOSSES[bossId]){({focus,wings,rotors}=buildDemonEnemy(type,bossId,root,body,{part,ball,tube}));
+  }else if(type==='goldenSlime'||MOCHI_ENEMIES[type]||type==='boss'&&MOCHI_BOSSES[bossId]){({focus,wings,rotors}=buildMochiEnemy(type,bossId,root,body,{part,ball,tube}));
   }else if(CHAPTER_TWO_ENEMIES.includes(type)){
     ({focus,wings,rotors}=buildCountryEnemy(type,root,body,{part,ball,tube,bakeGroup}));
   }else if(type==='moss'){
@@ -134,10 +138,10 @@ export function createEnemy(type,bossId='eclipse'){
     part(body,new THREE.TorusGeometry(1.14,.05,6,40),0xe4d8a8,0,2.7,0,null,.2).rotation.x=Math.PI/2;
   }
   const statusRing=new THREE.Mesh(new THREE.RingGeometry(.85,.93,32),new THREE.MeshBasicMaterial({color:0xffb8db,transparent:true,opacity:.65,side:THREE.DoubleSide,depthWrite:false}));statusRing.rotation.x=-Math.PI/2;statusRing.position.y=.13;statusRing.visible=false;root.add(statusRing);
-  if(focus)focus.userData.baseScale=focus.scale.clone();bakeGroup(body);root.userData={body,wings,rotors,focus,statusRing,type,bossId:type==='boss'?bossId:null};return root;
+  if(focus)focus.userData.baseScale=focus.scale.clone();bakeGroup(body);root.userData={demonScale:root.userData.demonScale,body,wings,rotors,focus,statusRing,type,bossId:type==='boss'?bossId:null};return root;
 }
 export function animateEnemy(root,e,time){
-  const d=root.userData,flying=e.type==='bat'||ENEMY_TYPES[e.type]?.flying||e.bossId==='chronarch'||e.bossId==='tempest';
+  const d=root.userData,flying=e.type==='bat'||ENEMY_TYPES[e.type]?.flying||e.bossId==='chronarch'||e.bossId==='tempest'||Boolean(PRISM_BOSSES[e.bossId]);
   root.position.set(e.x,0,e.z);root.rotation.y=e.face;
   d.statusRing.scale.setScalar(e.type==='boss'?e.radius*1.15:1);d.statusRing.visible=!!e.mochiFrozen||e.mochiAttackDown>0;d.statusRing.material.opacity=.45+Math.sin(time*4)*.18;
   if(e.mochiFrozen)return;
@@ -151,5 +155,5 @@ export function animateEnemy(root,e,time){
   if(e.type==='boss'&&MOCHI_BOSSES[e.bossId]){
     const pose=mochiSlimePose(time+e.id,{movement:e.cast||e.salvo||e.recovery>0?0:1,cry:e.cast?.kind==='chant'?.6:0,dash:e.rush?1:0,hit:Math.min(1,e.hit*5)});
     d.body.position.y=.015+pose.hop;d.body.rotation.set(0,pose.sway,0);d.body.scale.set(pose.x,pose.y,pose.z);
-  }else{const scale=e.hit>0?1+e.hit*.45:1;d.body.scale.set(scale,2-scale,scale);}
+  }else{const scale=e.hit>0?1+e.hit*.45:1;d.body.scale.set(scale,2-scale,scale).multiplyScalar(d.demonScale??1);}
 }

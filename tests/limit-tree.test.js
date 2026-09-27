@@ -5,14 +5,14 @@ import {normalizeProgression,talentStatus,unlockTalent,previewLimitBreak,levelCa
 import {LIMIT_BREAK_NODES,GROWTH_NODES,isTalentUnlocked,growthCount,nextLimitNode} from '../src/talents.js';
 const saved=(characters={},stones=3)=>normalizeProgression({characters,inventory:{limitStone:stones,starBud:1000,moonDew:100,wardenCore:20,moonPrism:100,astralCore:30}},HEROES);
 
-test('the tree exposes exactly three cap steps from the shared level rules',()=>{
- assert.equal(GROWTH_NODES.length,22);assert.deepEqual(LIMIT_BREAK_NODES.map(n=>[n.level,n.cap,n.cost.limitStone]),[[20,30,1],[30,40,2],[40,50,4]]);
+test('the tree exposes exactly six cap steps from the shared level rules',()=>{
+ assert.equal(GROWTH_NODES.length,33);assert.deepEqual(LIMIT_BREAK_NODES.map(n=>[n.level,n.cap,n.cost.limitStone]),[[20,30,1],[30,40,2],[40,50,4],[50,60,5],[60,70,6],[70,80,8]]);
  assert.equal(LIMIT_BREAK_NODES.at(-1).cap,LEVEL_RULES.maxLevel);
 });
 test('old breakthrough progress lights the correct tree nodes without requiring ability stars',()=>{
  const p=saved({nyanluna:{level:30,xp:5,breaks:1},tsukineko:{level:41,xp:2,breaks:3}}),before=structuredClone(p);
  assert.equal(talentStatus(p,'nyanluna','limit30').owned,true);assert.equal(talentStatus(p,'nyanluna','limit40').canUnlock,true);assert.equal(nextLimitNode(p.characters.nyanluna).id,'limit40');
- assert.equal(growthCount(p.characters.tsukineko),3);assert.equal(nextLimitNode(p.characters.tsukineko).id,'limit50');assert.equal(unlockTalent(p,'nyanluna','limit30'),false);assert.deepEqual(p,before);
+ assert.equal(growthCount(p.characters.tsukineko),3);assert.equal(nextLimitNode(p.characters.tsukineko).id,'limit60');assert.equal(unlockTalent(p,'nyanluna','limit30'),false);assert.deepEqual(p,before);
 });
 test('a cap node spends the stone and all materials and applies banked XP to the selected character',()=>{
  const p=saved({nyanluna:{level:20,xp:664,breaks:0}});const other=structuredClone(p.characters.tsukineko),wallet=structuredClone(p.inventory);
@@ -37,7 +37,7 @@ test('previewing a breakthrough does not spend or mutate anything and matches th
 test('completed caps survive reload and cannot be paid again or duplicated as ability bonuses',()=>{
  const p=saved({nyanluna:{level:50,breaks:3,tree:['origin','guard1','limit30','limit40','limit50']}}),stats=characterStats(HEROES[0],p.characters.nyanluna);
  assert.deepEqual(p.characters.nyanluna.tree,['origin','guard1']);assert.equal(growthCount(p.characters.nyanluna),5);
- for(const n of LIMIT_BREAK_NODES){assert.equal(isTalentUnlocked(p.characters.nyanluna,n.id),true);assert.equal(unlockTalent(p,'nyanluna',n.id),false);}
+ for(const n of LIMIT_BREAK_NODES.slice(0,3)){assert.equal(isTalentUnlocked(p.characters.nyanluna,n.id),true);assert.equal(unlockTalent(p,'nyanluna',n.id),false);}
  const restored=normalizeProgression(JSON.parse(JSON.stringify(p)),HEROES);assert.deepEqual(restored,p);assert.deepEqual(characterStats(HEROES[0],restored.characters.nyanluna),stats);assert.equal(restored.inventory.limitStone,3);
  const forged=saved({nyanluna:{level:20,tree:['limit30']}});assert.equal(isTalentUnlocked(forged.characters.nyanluna,'limit30'),false);assert.equal(levelCap(forged.characters.nyanluna),20);
 });

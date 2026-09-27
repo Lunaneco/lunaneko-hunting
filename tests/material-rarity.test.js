@@ -22,8 +22,8 @@ test('large rarity 1 reserves cannot replace rarity 2 or partially pay for an ad
   grantMaterials(p,{moonPrism:12,astralCore:4});assert.ok(unlockTalent(p,'nyanluna','ascension'));assert.equal(p.inventory.moonPrism,0);assert.equal(p.inventory.astralCore,0);assert.equal(p.inventory.moonDew,99999);assert.equal(p.inventory.wardenCore,99999);assert.equal(p.inventory.limitStone,3);
 });
 test('legacy saves retain fully upgraded trees and old inventory without recharging or inventing rare items',()=>{
-  const raw={story,characters:{nyanluna:{level:50,breaks:3,xp:0,tree:TALENT_NODES.map(n=>n.id)}},inventory:{starBud:84,moonDew:9,wardenCore:7,limitStone:2}},p=normalizeProgression(raw,HEROES);
-  assert.deepEqual(p.characters.nyanluna,raw.characters.nyanluna);assert.deepEqual(p.inventory,{...raw.inventory,moonPrism:0,astralCore:0,weaponTicket:0});const before=structuredClone(p);assert.equal(unlockTalent(p,'nyanluna','ascension'),false);assert.deepEqual(p,before);assert.deepEqual(normalizeProgression(JSON.parse(JSON.stringify(p)),HEROES),p);
+  const raw={story,characters:{nyanluna:{level:50,breaks:3,xp:0,tree:TALENT_NODES.filter(n=>n.level<=50).map(n=>n.id)}},inventory:{starBud:84,moonDew:9,wardenCore:7,limitStone:2}},p=normalizeProgression(raw,HEROES);
+  assert.deepEqual(p.characters.nyanluna,raw.characters.nyanluna);assert.deepEqual(p.inventory,{bloodCrystal:0,demonHeart:0,...raw.inventory,moonPrism:0,astralCore:0,weaponTicket:0});const before=structuredClone(p);assert.equal(unlockTalent(p,'nyanluna','ascension'),false);assert.deepEqual(p,before);assert.deepEqual(normalizeProgression(JSON.parse(JSON.stringify(p)),HEROES),p);
 });
 test('chapter 1 normal bosses and gates grant only rarity 1; XP and crystals stay separate',()=>{
   const g=game();kill(g);gate(g,0);assert.equal(g.progression.inventory.starBud,3);assert.equal(g.progression.inventory.wardenCore,1);assert.equal(g.progression.inventory.moonDew,1);assert.equal(g.earnedMaterials.moonPrism,0);assert.equal(g.earnedMaterials.astralCore,0);assert.equal(g.earnedXp.nyanluna,60);assert.equal(g.totalCrystals,0);

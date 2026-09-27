@@ -5,7 +5,7 @@ import {normalizeProgression,breakthrough,breakthroughStatus,talentStatus,unlock
 import {LEVEL_AWAKENING_COSTS} from '../src/level-rules.js';
 import {LIMIT_BREAK_NODES} from '../src/talents.js';
 import {talentView} from '../src/talent-ui.js';
-const story={version:2,actClears:Array(8).fill(true)};
+const story={version:2,actClears:Array(20).fill(true)};
 function gate(g,area){g.phase='playing';g.area=area;g.wave=area*2+2;g.exitOpen=true;g.exitDelay=0;g.pendingBlessings=0;Object.assign(g.player,g.exitPoint);assert.equal(g.crossExit(),true);}
 
 test('each of eight acts guarantees one ticket on every clear in both modes, independently of first-clear missions',()=>{
@@ -31,7 +31,7 @@ test('the clear ticket supplements boss drops; defeat or return before the final
 });
 test('awakening costs escalate, agree with the tree and do not require chapter-two materials for Lv.30',()=>{
   assert.deepEqual(LIMIT_BREAK_NODES.map(n=>n.cost),LEVEL_AWAKENING_COSTS);
-  assert.deepEqual(LEVEL_AWAKENING_COSTS,[{limitStone:1,starBud:60,moonDew:12,wardenCore:3},{limitStone:2,starBud:180,moonPrism:20,astralCore:6},{limitStone:4,starBud:420,moonPrism:60,astralCore:18}]);
+  assert.deepEqual(LEVEL_AWAKENING_COSTS.slice(0,3),[{limitStone:1,starBud:60,moonDew:12,wardenCore:3},{limitStone:2,starBud:180,moonPrism:20,astralCore:6},{limitStone:4,starBud:420,moonPrism:60,astralCore:18}]);
 });
 test('every stone and material is required atomically for each character and cap, including the direct API',()=>{
   for(const hero of HEROES)for(const [stage,cost] of LEVEL_AWAKENING_COSTS.entries()){

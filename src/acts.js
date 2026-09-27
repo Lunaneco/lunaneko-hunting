@@ -15,13 +15,23 @@ const acts=[
   {id:9,title:'ふるえる小さな声',summary:'壊れたティーカップの陰で、最後のもちにゃふぇを見つけた。言葉にならない声と仕草を受け止め、国を覆う影の源へ。',counts:[26,28,32,34,36,1],boss:'ダークもちにゃふぇ・夢喰',bossId:'dreammochi',bossHp:7000,stages:[stage('ミルクティーの渓谷',8,'ふるえる声が頼ったぬくもり',0),stage('ゆめ砂糖の架け橋',8,'小さな手が指す、影の城',1),stage('夢喰の寝床',8,'眠りを奪う黒いもちの影',2)]},
   {id:10,title:'最後の一匹を守って',summary:'仲間を守ろうと叫んだもちにゃふぇが、ダークもちにゃふぇたちにさらわれた。壊れた鈴の道を追い、必ず連れ戻す。',counts:[28,30,34,36,38,1],boss:'ダークもちにゃふぇ・黒鈴',bossId:'bellmochi',bossHp:7700,stages:[stage('しずかな夢見の街',9,'置き去りのクッションと黒い霧',0),stage('黒鈴の分かれ道',9,'小さな鈴の音を追って',1),stage('こだまの鐘楼',9,'最後の一匹へ続く封印',2)]},
   {id:11,title:'ひとりぼっちにしない',summary:'空になった国の、最後の命。闇の王が閉じた結界を破り、もちにゃふぇを光の中へ迎えに行く。',counts:[30,32,36,38,40,1],boss:'ダークもちにゃふぇ・闇の王',bossId:'kingmochi',bossHp:8600,stages:[stage('うす桃の王宮跡',10,'守れなかった故郷の先へ',0),stage('最後の灯りの階段',10,'小さな声は、まだ聞こえる',1),stage('ふぇ〜の約束の広場',10,'ダークもちにゃふぇの王から救出',2)]},
+  {id:12,title:'眠らない悪魔の街',summary:'再会した雫は、暴走する悪魔たちから街を一人で守っていた。親友と力を合わせ、住民を正気に戻そう。',counts:[28,30,32,34,36,1],boss:'紅角の門番',bossId:'demonWarden',bossHp:11500,stages:[stage('紅灯りの街道',11,'暴走を止めて、帰る場所を守る',0),stage('黒鐘楼の避難路',11,'暴走を止めて、帰る場所を守る',1),stage('真紅の城門',11,'暴走を止めて、帰る場所を守る',2)]},
+  {id:13,title:'紅霧をたどる水路',summary:'優しかった悪魔たちを取り戻すため、王城から流れる暴走の霧を追う。追尾する火球を見極めて進もう。',counts:[30,32,34,36,38,1],boss:'眠れぬ夢魔',bossId:'demonSiren',bossHp:12500,stages:[stage('紅霧の水路',12,'暴走を止めて、帰る場所を守る',0),stage('影火の上層回廊',12,'暴走を止めて、帰る場所を守る',1),stage('夢魔の眠り庭',12,'暴走を止めて、帰る場所を守る',2)]},
+  {id:14,title:'黒薔薇の約束',summary:'国を守るため暴走を引き受けた悪魔大王。大の仲良しの雫とにゃんるなが交わす合図が、閉じた城門への道をひらく。',counts:[32,34,36,38,40,1],boss:'黒翼の騎士長',bossId:'demonKnight',bossHp:14000,stages:[stage('黒薔薇の城下',13,'暴走を止めて、帰る場所を守る',0),stage('騎士団の分かれ路',13,'暴走を止めて、帰る場所を守る',1),stage('黒翼の見張り台',13,'暴走を止めて、帰る場所を守る',2)]},
+  {id:15,title:'おかえり、悪魔大王',summary:'暴走しただけで、本当は心優しい悪魔大王。雫とともに紅霧を払い、穏やかな国を取り戻そう。',counts:[34,36,38,40,42,1],boss:'悪魔大王',bossId:'demonKing',bossHp:17000,stages:[stage('静寂の王城',14,'暴走を止めて、帰る場所を守る',0),stage('王を守る大階段',14,'暴走を止めて、帰る場所を守る',1),stage('おかえりの王座',14,'暴走を止めて、帰る場所を守る',2)]},
+{id:16,title:"ひとり、虹の向こうへ",summary:"結晶の門をくぐったつきねこが、青い異世界で小さな鳴き声に出会う。",counts:[28, 30, 32, 34, 36, 1],boss:"プリズムドラゴン・青晶",bossId:"prismShard",bossHp:11500,stages:[stage("青晶の入り江",15,'苦しむプリズムドラゴンを追う',0),stage("星映しの結晶段",15,'苦しむプリズムドラゴンを追う',1),stage("虹欠片の広場",15,'苦しむプリズムドラゴンを追う',2)]},
+{id:17,title:"キュ〜の道しるべ",summary:"苦しそうな鳴き声を追い、暴走するドラゴンの光を少しずつほどく。",counts:[30, 32, 34, 36, 38, 1],boss:"プリズムドラゴン・虹光",bossId:"prismMirror",bossHp:12500,stages:[stage("オーロラの峡谷",16,'苦しむプリズムドラゴンを追う',0),stage("響きの上層路",16,'苦しむプリズムドラゴンを追う',1),stage("氷鏡の湖畔",16,'苦しむプリズムドラゴンを追う',2)]},
+{id:18,title:"割れた空をつないで",summary:"七色に輝き始めた竜の翼。攻撃の合間に届く鳴き声が、つきねこの道しるべになる。",counts:[32, 34, 36, 38, 40, 1],boss:"プリズムドラゴン・暴走",bossId:"prismWing",bossHp:14000,stages:[stage("七彩の分かれ道",17,'苦しむプリズムドラゴンを追う',0),stage("星屑の架け橋",17,'苦しむプリズムドラゴンを追う',1),stage("空割れの尖塔",17,'苦しむプリズムドラゴンを追う',2)]},
+{id:19,title:"同じ光を見ていた",summary:"苦しむプリズムドラゴンを浄化し、小さくなったプリムを仲間に迎える。",counts:[34, 36, 38, 40, 42, 1],boss:"プリズムドラゴン・光の解放",bossId:"prismHeart",bossHp:17000,stages:[stage("虹還りの道",18,'苦しむプリズムドラゴンを追う',0),stage("光をつなぐ階段",18,'苦しむプリズムドラゴンを追う',1),stage("プリズムの心臓",18,'苦しむプリズムドラゴンを追う',2)]},
 ];
 export const CHAPTERS=Object.freeze([
  {id:0,title:'迷子の月と、ふたりの約束',summary:'大の仲良しの二人が、一緒に迷い込んだ月の世界。はぐれた親友を探す、全4幕の物語。',start:0,end:3},
  {id:1,title:'小さな願いと、消えない光',summary:'おむすびたちが暮らす穂むすびの国。黄金の棚田から城下町、襲撃された砦へ。こむすびの願いを胸に、故郷を守ったオムソロを救いに行く。',start:4,end:7},
  {id:2,title:'もちにゃふぇの国と、最後のふぇ〜',summary:'謎の敵に襲われ、もちにゃふぇは最後の一匹になってしまった。言葉は「ふぇ〜」だけ。それでも届いた助けを求める声を、今度は仲間たちが守り抜く。',start:8,end:11},
+ {id:3,title:'悪魔の国',summary:'優しい悪魔たちが突然暴走した国。必死に街を守る雫と再会し、悪魔大王を正気に戻す、全4幕の物語。適正Lv.60。★3素材とLv.80への育成が開く。',start:12,end:15},
+ {id:4,title:'プリズムの国',summary:'青い結晶とオーロラの異世界。つきねことプリムだけの全4幕。適正Lv.60・第4章と同等の難易度。各幕の初回はつきねこ単独。',start:16,end:19},
 ]);
-export const ACTS=Object.freeze(acts.map(a=>Object.freeze({...a,recommendedLevel:a.id>=8?40:a.id>=4?30:null,chapter:Math.floor(a.id/4),number:a.id%4+1,recruit:a.id===3?'tsukineko':a.id===7?'omsolo':a.id===11?'mochinyafe':null})));
+export const ACTS=Object.freeze(acts.map(a=>Object.freeze({...a,recommendedLevel:a.id>=12?60:a.id>=8?40:a.id>=4?30:null,chapter:Math.floor(a.id/4),number:a.id%4+1,recruit:a.id===19?'prim':a.id===3?'tsukineko':a.id===7?'omsolo':a.id===11?'mochinyafe':a.id===15?'shizuku':null})));
 export const PLAYABLE_ACTS=Object.freeze([...ACTS,...EXTRA_ACTS]);
 export const actFor=act=>PLAYABLE_ACTS[act];
 export const chapterForAct=act=>CHAPTERS[actFor(act)?.chapter??0];
@@ -32,7 +42,7 @@ export function normalizeStory(raw,legacy={}){
  const oldClear=raw?.chapterOneCleared===true||legacy?.chapterOneCleared===true;
  const actClears=ACTS.map((_,i)=>raw?.version===2?raw?.actClears?.[i]===true:i===0&&oldClear);
  for(let i=1;i<actClears.length;i++)if(!actClears[i-1])actClears[i]=false;
- return {version:2,actClears,extraClears:EXTRA_ACTS.map(a=>actClears.slice(0,a.unlockAfterAct+1).every(Boolean)&&raw?.extraClears?.[a.chapter]===true),chapterOneCleared:actClears.slice(0,4).every(Boolean),chapterTwoCleared:actClears.slice(4,8).every(Boolean),tsukinekoUnlocked:raw?.version===2?raw.tsukinekoUnlocked===true||actClears[3]:oldClear,omsoloUnlocked:actClears[7],chapterThreeCleared:actClears.slice(8,12).every(Boolean),mochinyafeUnlocked:actClears[11]};
+ return {version:2,actClears,extraClears:EXTRA_ACTS.map(a=>actClears.slice(0,a.unlockAfterAct+1).every(Boolean)&&raw?.extraClears?.[a.chapter]===true),chapterOneCleared:actClears.slice(0,4).every(Boolean),chapterTwoCleared:actClears.slice(4,8).every(Boolean),tsukinekoUnlocked:raw?.version===2?raw.tsukinekoUnlocked===true||actClears[3]:oldClear,omsoloUnlocked:actClears[7],chapterThreeCleared:actClears.slice(8,12).every(Boolean),mochinyafeUnlocked:actClears[11],chapterFourCleared:actClears.slice(12,16).every(Boolean),shizukuUnlocked:actClears[15],chapterFiveCleared:actClears.slice(16,20).every(Boolean),primUnlocked:actClears[19],demonKingCalm:actClears[15]};
 }
 export const isActUnlocked=(profile,act)=>Number.isInteger(act)&&act>=0&&act<PLAYABLE_ACTS.length&&(actFor(act).extra?ACTS.slice(0,actFor(act).unlockAfterAct+1).every(a=>profile?.story?.actClears?.[a.id]===true):act===0||profile?.story?.actClears?.[act-1]===true);
 export const nextAct=profile=>{const next=ACTS.findIndex((_,i)=>!profile.story.actClears[i]);return next<0?ACTS.length-1:next;};
@@ -41,6 +51,8 @@ export function completeAct(profile,act){
  if(actFor(act).extra){profile.story.extraClears[actFor(act).chapter]=true;return false;}
  const hero=ACTS[act].recruit,recruited=hero&&!profile.story[`${hero}Unlocked`];
  profile.story.actClears[act]=true;profile.story.chapterOneCleared=profile.story.actClears.slice(0,4).every(Boolean);profile.story.chapterTwoCleared=profile.story.actClears.slice(4,8).every(Boolean);profile.story.chapterThreeCleared=profile.story.actClears.slice(8,12).every(Boolean);
+ profile.story.chapterFourCleared=profile.story.actClears.slice(12,16).length===4&&profile.story.actClears.slice(12,16).every(Boolean);profile.story.demonKingCalm=profile.story.chapterFourCleared;
+ profile.story.chapterFiveCleared=profile.story.actClears.slice(16,20).length===4&&profile.story.actClears.slice(16,20).every(Boolean);
  if(hero)profile.story[`${hero}Unlocked`]=true;
  return !!recruited;
 }

@@ -8,7 +8,7 @@ import {createSanctuary,updateSanctuary} from '../src/ultimate-effects.js';
 
 const first=FIRST_TIER_NODES.map(n=>n.id),all=TALENT_NODES.map(n=>n.id);
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-6,`${a} != ${b}`);
-const profile=(id='nyanluna',tree=first,level=50)=>normalizeProgression({story:{version:2,actClears:Array(12).fill(true)},characters:{[id]:{level,breaks:3,tree}},inventory:{starBud:10000,moonDew:1000,wardenCore:100,moonPrism:1000,astralCore:100,limitStone:3}},HEROES);
+const profile=(id='nyanluna',tree=first,level=50)=>normalizeProgression({story:{version:2,actClears:Array(20).fill(true)},characters:{[id]:{level,breaks:3,tree}},inventory:{starBud:10000,moonDew:1000,wardenCore:100,moonPrism:1000,astralCore:100,limitStone:3}},HEROES);
 const quiet=(heroId='nyanluna',tree=all)=>{
   const hero=HEROES.findIndex(h=>h.id===heroId),partner=heroId==='nyanluna'?'tsukineko':'nyanluna';
   const g=new Adventure({hero,progression:profile(heroId,tree),party:[heroId,partner],seed:47});
@@ -29,7 +29,7 @@ test('eight advanced nodes cost 2760 buds, 216 rare dew and 66 rare cores per he
   for(const hero of HEROES){
     const p=profile(hero.id),otherId=HEROES.find(h=>h.id!==hero.id).id,other=structuredClone(p.characters[otherId]);
     for(const node of SECOND_TIER_NODES){assert.equal(unlockTalent(p,hero.id,node.id),true);const paid=structuredClone(p);assert.equal(unlockTalent(p,hero.id,node.id),false);assert.deepEqual(p,paid);}
-    assert.deepEqual(p.inventory,{starBud:7240,moonDew:1000,wardenCore:100,moonPrism:784,astralCore:34,limitStone:3,weaponTicket:0});assert.deepEqual(p.characters[otherId],other);assert.equal(p.characters[hero.id].tree.length,16);assert.deepEqual(normalizeProgression(JSON.parse(JSON.stringify(p)),HEROES),p);
+    assert.deepEqual(p.inventory,{bloodCrystal:0,demonHeart:0,starBud:7240,moonDew:1000,wardenCore:100,moonPrism:784,astralCore:34,limitStone:3,weaponTicket:0});assert.deepEqual(p.characters[otherId],other);assert.equal(p.characters[hero.id].tree.length,16);assert.deepEqual(normalizeProgression(JSON.parse(JSON.stringify(p)),HEROES),p);
   }
 });
 test('level 35/40/50 gates and the final three branches stay mandatory even with abundant materials',()=>{

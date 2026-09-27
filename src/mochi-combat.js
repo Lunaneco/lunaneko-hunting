@@ -9,7 +9,7 @@ export function mochiCryHit(game,enemy,{ultimate=false}={}){
   enemy.mochiDefenseDown=Math.max(enemy.mochiDefenseDown??0,(ultimate?.4:MOCHI_SUPPORT.defenseDown)+game.rank('mochiWeaken')*.05);
  }else{
   enemy.mochiStopUntil=game.time+(ultimate?3:MOCHI_SUPPORT.stop)+game.effectRank('mochiLull')*.3+game.rank('mochiWeaken')*.2;
-  enemy.cast=null;enemy.rush=null;enemy.salvo=null;enemy.knockX=0;enemy.knockZ=0;
+  enemy.cast=null;enemy.rush=null;enemy.salvo=null;enemy.demonFollowup=null;enemy.knockX=0;enemy.knockZ=0;
   game.hazards=game.hazards.filter(h=>h.sourceId!==enemy.id);
  }
  game.emit('mochiCryHit',{id:enemy.id,x:enemy.x,z:enemy.z,boss:enemy.type==='boss'});
