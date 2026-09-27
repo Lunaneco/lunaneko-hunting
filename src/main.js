@@ -66,6 +66,7 @@ import './chapter-four.css';
 import './story-mobile.css';
 import './skill-choice.css';
 import './chapter-five.css';
+import './mobile-layout.css';
 import {hasPrimBond} from './prim-combat.js';
 import {extraCombatHint} from './extra-stages.js';
 import {ACT_SCENES,ChapterStory} from './chapter.js';
