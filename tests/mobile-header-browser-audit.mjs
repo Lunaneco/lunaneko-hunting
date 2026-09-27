@@ -1,4 +1,4 @@
-import {chromium,webkit} from '@playwright/test';
+import {chromium,webkit,devices} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 
@@ -96,6 +96,44 @@ try{
     await page.waitForSelector('#resume');await page.locator('#resume').tap();
     console.log(`PASS ${engine} battle ${fixture.name}: viewport alignment, safe controls and pause/resume touch input`);
   }
-  assert.deepEqual(errors,[]);await writeFile(`${out}/${engine}-report.json`,JSON.stringify({base,errors,cases:report},null,2));
+  assert.deepEqual(errors,[]);
   await context.close();
+  // Reproduce an existing iPhone install: safe-area env values are zero and dvh
+  // reports a viewport 59px shorter than the actual home-screen window.
+  const installed=await browser.newContext({viewport:{width:393,height:852},isMobile:true,hasTouch:true,userAgent:devices['iPhone 15'].userAgent});
+  await installed.addInitScript(()=>{
+    Object.defineProperty(navigator,'standalone',{get:()=>true});
+    localStorage.setItem('lunaria-settings-v1',JSON.stringify({quality:'low',motion:false,sound:false,music:false,voice:false}));
+    localStorage.setItem('lunaria-progression-v1',JSON.stringify({story:{version:2,actClears:[true,true,true,true]},tutorial:{firstBattleCompleted:true}}));
+  });
+  let shortenedViewport=false;
+  await installed.route('**/src/mobile-layout.css',async route=>{
+    const response=await route.fetch();
+    const body=await response.text();shortenedViewport=body.includes('--app-height:100dvh');
+    await route.fulfill({response,body:body.replace('--app-height:100dvh','--app-height:calc(100vh - 59px)')});
+  });
+  const phone=await installed.newPage();phone.on('pageerror',e=>errors.push(e.message));
+  await phone.goto(base);await phone.waitForSelector('#loading',{state:'detached',timeout:60000});
+  assert.ok(shortenedViewport,'The short-dvh regression fixture was applied');
+  assert.ok(await phone.locator('html').evaluate(e=>e.classList.contains('ios-standalone')));
+  const title=await phone.locator('#home').boundingBox();assert.equal(title.y+title.height,852,'Home-screen title reaches the bottom despite the shorter dvh');
+  await phone.screenshot({path:`${out}/${engine}-installed-title.png`});
+  await phone.locator('#start').tap();await phone.locator('[data-chapter="1"]').tap();await phone.locator('[data-act="4"]').tap();
+  for(const [width,height] of [[393,852],[852,393],[393,852]]){
+    await phone.setViewportSize({width,height});
+    const box=await phone.locator('#modal').boundingBox(),close=await phone.locator('.brief-close').boundingBox();
+    const portrait=height>width;
+    assert.ok(close.y>=(portrait?88:24),'The stage close button stays below system icons');
+    assert.ok(close.width>=48&&close.height>=48,'The close button has a usable touch target');
+    assert.ok(box.y>=0&&box.y+box.height<=height-(portrait?34:21));
+    assert.ok(box.x>=0&&box.x+box.width<=width);
+    await phone.locator('#chapter-start').scrollIntoViewIfNeeded();
+    const start=await phone.locator('#chapter-start').boundingBox();assert.ok(start.y+start.height<=height-(portrait?34:21));
+    await phone.locator('#modal').evaluate(el=>el.scrollTop=0);
+  }
+  await phone.screenshot({path:`${out}/${engine}-installed-brief.png`});
+  await phone.locator('.brief-close').tap({position:{x:8,y:8}});assert.equal(await phone.locator('#modal').isVisible(),false);
+  console.log(`PASS ${engine} existing iPhone install: zero env insets, short dvh, full-height title and accessible stage close/start controls`);
+  report.push({fixture:{name:'existing-iphone-install'},shortenedViewport,title});
+  assert.deepEqual(errors,[]);await writeFile(`${out}/${engine}-report.json`,JSON.stringify({base,errors,cases:report},null,2));await installed.close();
 }finally{await browser.close();}
