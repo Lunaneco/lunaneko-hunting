@@ -26,12 +26,15 @@ function glb(name) {
 for (const name of ['nyanluna', 'tsukineko', 'omsolo']) {
   test(`${name}: portable skin, geometry, colours and bounds are valid`, () => {
     const { doc, read, bytes } = glb(name);
-    assert.equal(doc.meshes.length, 1);
+    const referenceEyes = name === 'tsukineko';
+    assert.equal(doc.meshes.length, referenceEyes ? 3 : 1);
     assert.equal(doc.meshes[0].primitives.length, 1);
-    assert.equal(doc.materials.length, 1);
+    assert.equal(doc.materials.length, referenceEyes ? 2 : 1);
     assert.equal(doc.skins.length, 1);
     assert.ok(bytes < 12 * 1048576, '12 MiB per-character transfer budget');
-    assert.equal(doc.images?.length ?? 0, 0, 'Appearance is self contained in vertex colours');
+    assert.equal(doc.images?.length ?? 0, referenceEyes ? 1 : 0);
+    assert.ok((doc.images ?? []).every(image => image.bufferView !== undefined && !image.uri),
+      'Reference artwork is embedded in the GLB');
     const primitive = doc.meshes[0].primitives[0];
     const pos = read(primitive.attributes.POSITION);
     const normals = read(primitive.attributes.NORMAL);
@@ -39,7 +42,9 @@ for (const name of ['nyanluna', 'tsukineko', 'omsolo']) {
     const joints = read(primitive.attributes.JOINTS_0);
     const weights = read(primitive.attributes.WEIGHTS_0);
     const indices = read(primitive.indices);
-    assert.ok(indices.length / 3 < 180000, '180k triangle budget');
+    const triangles = doc.meshes.flatMap(mesh => mesh.primitives)
+      .reduce((sum, p) => sum + doc.accessors[p.indices].count / 3, 0);
+    assert.ok(triangles < 180000, '180k triangle budget including eye details');
     for (const [index] of indices) assert.ok(index >= 0 && index < pos.length);
     let colorful = 0;
     for (let i = 0; i < pos.length; i++) {
@@ -61,6 +66,32 @@ for (const name of ['nyanluna', 'tsukineko', 'omsolo']) {
     assert.ok(report.meshes.every(m => !/FACE_FX_|SmoothLid|DANCE_GROUND/.test(m.source_mesh)));
   });
 }
+
+test('tsukineko: both reference eyes retain artwork, UVs and full head-bone weights', () => {
+  const { doc, read } = glb('tsukineko');
+  const skin = doc.skins[0];
+  const head = skin.joints.findIndex(index => doc.nodes[index].name === 'head');
+  assert.ok(head >= 0);
+  for (const side of ['L', 'R']) {
+    const node = doc.nodes.find(n => n.name === `Eye_reference.${side}`);
+    assert.ok(node, `Independent ${side} eye survives export`);
+    assert.equal(node.skin, 0);
+    const p = doc.meshes[node.mesh].primitives[0];
+    const positions = read(p.attributes.POSITION), uv = read(p.attributes.TEXCOORD_0);
+    const joints = read(p.attributes.JOINTS_0), weights = read(p.attributes.WEIGHTS_0);
+    assert.ok(positions.length > 100);
+    for (let i = 0; i < positions.length; i++) {
+      assert.ok(positions[i].every(Number.isFinite));
+      assert.ok(uv[i].every(v => Number.isFinite(v) && v >= 0 && v <= 1));
+      assert.equal(joints[i][0], head);
+      assert.deepEqual(weights[i], [1, 0, 0, 0]);
+    }
+    for (const [index] of read(p.indices)) assert.ok(index >= 0 && index < positions.length);
+    const material = doc.materials[p.material];
+    const texture = doc.textures[material.pbrMetallicRoughness.baseColorTexture.index];
+    assert.equal(doc.images[texture.source].mimeType, 'image/png');
+  }
+});
 
 test('mochinyafe: limbless model has portable pink materials, finite geometry and a mobile budget',()=>{
  const {doc,read,bytes}=glb('mochinyafe');assert.equal(doc.meshes.length,1);assert.equal(doc.materials.length,4);assert.equal(doc.skins?.length??0,0);assert.equal(doc.images?.length??0,0);assert.ok(bytes<1048576);
