@@ -1,3 +1,4 @@
+import {version as APP_VERSION} from '../package.json';
 import {goldenSlimeHud,GOLDEN_SLIME} from './golden-slime.js';
 import './golden-slime.css';
 import {publicUrl} from './public-url.js';
@@ -109,7 +110,7 @@ $('#app').innerHTML=`
     <div class="key-art" aria-hidden="true"><div class="title-backdrop"></div><div class="title-film"><img src="${publicUrl('assets/title/adventure-poster.jpg')}" alt="" fetchpriority="high"><video id="title-video" data-src="${publicUrl('assets/title/adventure-loop.mp4')}" poster="${publicUrl('assets/title/adventure-poster.jpg')}" muted loop playsinline preload="none" disablepictureinpicture tabindex="-1"></video></div></div><div class="home-shade"></div><div class="dust dust-one"></div><div class="dust dust-two"></div>
     <div class="title-lockup"><span class="title-orbit" aria-hidden="true">☾</span><p class="title-kicker">LUNANECO ADVENTURE</p><h1 class="game-title"><span>ルナネコの</span><span>不思議な冒険</span></h1><p class="title-caption">月明かりが、ふたりを導く。</p></div>
     <div class="title-entry"><button id="start" class="title-start"><span>冒険をはじめる</span>${icon('arrow')}</button></div>
-    <footer class="title-footer"><span>月と星をめぐる、小さな冒険。</span><span class="version">Ver. 2.0.1</span></footer>
+    <footer class="title-footer"><span>月と星をめぐる、小さな冒険。</span><span class="version">Ver. ${APP_VERSION}</span></footer>
   </section>
   <section id="chapter-menu" class="chapter-menu menu-light hidden" tabindex="-1" aria-label="冒険メニュー"></section>
   <section id="hud" class="hud hidden" aria-label="戦闘情報">
@@ -524,5 +525,13 @@ async function boot(){
 }
 // The audit bridge is excluded from production builds. It exercises the real simulation.
 if(import.meta.env.DEV){window.__LUNARIA_TEST__={get state(){return game?.snapshot()??{phase:'home'};},get stats(){return world?.stats();},get game(){return game;},get world(){return world;},get voice(){return voice;},get audio(){return audio;},get ultimatePresentation(){return ultimatePresentation;},get weaponSummon(){return weaponSummon;},get story(){return story;},start(){start({withStory:false});},step(seconds,input={x:0,z:0}){if(!game)return;for(let i=0;i<seconds*60;i++){game.tick(1/60,input);if(game.phase!=='playing')break;}handleEvents(game.drainEvents());updateHud();},skill(id){if(game?.chooseSkill(id)){if($('#modal').open)$('#modal').close();activeDialog=null;$('#modal').classList.remove('wide');handleEvents(game.drainEvents());}},home:goHome};}
-if(import.meta.env.PROD&&'serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register(publicUrl('sw.js'),{scope:import.meta.env.BASE_URL}).catch(()=>{}));}
+if(import.meta.env.PROD&&'serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register(publicUrl('sw.js'),{
+    scope:import.meta.env.BASE_URL,updateViaCache:'none',
+  }).then(registration=>{
+    const check=()=>registration.update().catch(()=>{});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
+    window.addEventListener('online',check);
+  }).catch(()=>{}));
+}
 boot();

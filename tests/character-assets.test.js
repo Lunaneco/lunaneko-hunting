@@ -26,7 +26,7 @@ function glb(name) {
 for (const name of ['nyanluna', 'tsukineko', 'omsolo']) {
   test(`${name}: portable skin, geometry, colours and bounds are valid`, () => {
     const { doc, read, bytes } = glb(name);
-    const referenceEyes = name === 'tsukineko';
+    const referenceEyes = ['nyanluna', 'tsukineko'].includes(name);
     assert.equal(doc.meshes.length, referenceEyes ? 3 : 1);
     assert.equal(doc.meshes[0].primitives.length, 1);
     assert.equal(doc.materials.length, referenceEyes ? 2 : 1);
@@ -67,8 +67,8 @@ for (const name of ['nyanluna', 'tsukineko', 'omsolo']) {
   });
 }
 
-test('tsukineko: both reference eyes retain artwork, UVs and full head-bone weights', () => {
-  const { doc, read } = glb('tsukineko');
+for (const name of ['nyanluna', 'tsukineko']) test(`${name}: both reference eyes retain artwork, UVs and full head-bone weights`, () => {
+  const { doc, read } = glb(name);
   const skin = doc.skins[0];
   const head = skin.joints.findIndex(index => doc.nodes[index].name === 'head');
   assert.ok(head >= 0);

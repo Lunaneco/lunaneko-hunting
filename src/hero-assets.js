@@ -8,8 +8,9 @@ import { part, bakeGroup } from './characters.js';
 import { ATTACK_DURATION } from './model.js';
 import {createWeaponVariant} from './weapon-models.js';
 import {mochiSlimePose} from './mochi-motion.js';
+import {HERO_MODEL_NAMES, heroModelPath} from './hero-model-paths.js';
 
-const files = ['nyanluna', 'tsukineko', 'omsolo', 'mochinyafe', 'shizuku', 'prim'];
+const files = HERO_MODEL_NAMES;
 const axisX = new THREE.Vector3(1, 0, 0);
 const axisY = new THREE.Vector3(0, 1, 0);
 const axisZ = new THREE.Vector3(0, 0, 1);
@@ -21,7 +22,7 @@ const rigRotation = new THREE.Quaternion();
 
 export async function loadHeroes() {
   const loader = new GLTFLoader();
-  const assets = await Promise.all(files.map(name => loader.loadAsync(publicUrl(`assets/models/${name}.glb`))));
+  const assets = await Promise.all(files.map(name => loader.loadAsync(publicUrl(heroModelPath(name)))));
   return assets.map((asset, hero) => createHero(asset, hero));
 }
 
@@ -146,7 +147,7 @@ function createHero(asset, hero) {
   ring.rotation.x = -Math.PI / 2;
   root.add(ring);
   root.userData = { rig, model, slimeBody, bones, weapon, ring, hero, attackTime: 0,
-    metrics, source: publicUrl(`assets/models/${files[hero]}.glb`), movement: 0 };
+    metrics, source: publicUrl(heroModelPath(files[hero])), movement: 0 };
   animateHero(root, { x: 0, z: 0, face: 0, moving: false, invincible: 0 }, 0, 0, hero === 0);
   return root;
 }
