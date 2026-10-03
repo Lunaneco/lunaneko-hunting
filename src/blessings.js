@@ -2,6 +2,18 @@ import {SKILL_TALENT_NODES} from './skill-tree.js';
 import {isHeroUnlocked} from './recruitment.js';
 export const SKILL_SLOTS=3;
 export const SKILLS = [
+ {id:'lumiPower',requires:['lumi'],name:'小さな指先の光',icon:'spark',type:'光術',text:'るみのレールガン威力 +20%',max:3},
+ {id:'lumiReach',requires:['lumi'],name:'帰り道まで届け',icon:'wind',type:'光術',text:'通常るみの射程 +2。ねこるみは引き続き無限',max:3},
+ {id:'lumiFocus',requires:['lumi'],name:'ねこみみのときめき',icon:'star',type:'必殺',text:'るみの必殺ゲージ獲得 +20%',max:3},
+ {id:'lumiTempo',requires:['lumi'],upgrades:'lumiPower',unlockNode:'blessing1',name:'重なる指先の光',icon:'spark',type:'光術',text:'威力+20%を継承。攻撃間隔8%短縮',max:3},
+ {id:'lumiFar',requires:['lumi'],upgrades:'lumiReach',unlockNode:'blessing2',name:'村までつづく光',icon:'wind',type:'光術',text:'通常射程+2を継承。必殺技の射程+2',max:3},
+ {id:'lumiBrave',requires:['lumi'],upgrades:'lumiFocus',unlockNode:'blessing3',name:'好きでいても、いい',icon:'star',type:'必殺',text:'ゲージ+20%を継承。必殺技威力+15%',max:3},
+ {id:'sakuraPower',requires:['hehereal'],name:'桜心の矢',icon:'spark',type:'弓術',text:'へへりあるの通常追尾矢ダメージ +20%',max:3},
+ {id:'sakuraReach',requires:['hehereal'],name:'遠くの誰かへ',icon:'wind',type:'弓術',text:'へへりあるの弓の射程 +2',max:3},
+ {id:'sakuraFocus',requires:['hehereal'],name:'いただきますの力',icon:'star',type:'必殺',text:'へへりあるの必殺ゲージ獲得 +20%',max:3},
+ {id:'sakuraTempo',requires:['hehereal'],upgrades:'sakuraPower',unlockNode:'blessing1',name:'花びらの連射',icon:'spark',type:'弓術',text:'追尾矢の威力+20%を継承。さらに攻撃間隔8%短縮',max:3},
+ {id:'sakuraFar',requires:['hehereal'],upgrades:'sakuraReach',unlockNode:'blessing2',name:'まっすぐな約束',icon:'wind',type:'弓術',text:'弓の射程+2を継承。さらに必殺技の射程+2',max:3},
+ {id:'sakuraBrave',requires:['hehereal'],upgrades:'sakuraFocus',unlockNode:'blessing3',name:'半分の勇気',icon:'star',type:'必殺',text:'ゲージ獲得+20%を継承。さらに本人の必殺技威力+15%',max:3},
  {id:'primPower',requires:['prim'],name:'虹晶の爪研ぎ',icon:'sword',type:'爪術',text:'プリムの通常爪攻撃ダメージ +20%',max:3},
  {id:'primReach',requires:['prim'],name:'小竜の踏み込み',icon:'wind',type:'爪術',text:'プリムの爪の範囲 +0.4',max:3},
  {id:'primFocus',requires:['prim'],name:'七彩の息づかい',icon:'star',type:'必殺',text:'プリムの必殺ゲージ獲得 +20%',max:3},
@@ -54,10 +66,15 @@ export const SKILLS = [
 const UPGRADE_FOR=Object.freeze(Object.fromEntries(SKILLS.filter(s=>s.upgrades).map(s=>[s.upgrades,s.id])));
 export function skillEffectRank(ranks,id){return Math.max(ranks[id]??0,ranks[UPGRADE_FOR[id]]??0);}
 export function skillUpgradeLabel(skill){const base=SKILLS.find(s=>s.id===skill.upgrades);return base?`上位版 · ${base.name}`:'';}
-export const PERSONAL_SKILLS=Object.freeze(Object.fromEntries(['nyanluna','tsukineko','omsolo','mochinyafe','shizuku','prim'].map(id=>[id,SKILLS.filter(s=>s.requires?.length===1&&s.requires[0]===id)])));
+export const PERSONAL_SKILLS=Object.freeze(Object.fromEntries(['nyanluna','tsukineko','omsolo','mochinyafe','shizuku','prim','hehereal','lumi'].map(id=>[id,SKILLS.filter(s=>s.requires?.length===1&&s.requires[0]===id)])));
 export function personalSkills(heroId){return Object.hasOwn(PERSONAL_SKILLS,heroId)?PERSONAL_SKILLS[heroId]:[];}
 export function defaultSkills(heroId){return personalSkills(heroId).filter(s=>!s.unlockNode).map(s=>s.id);}
+// Derive this permanent reward from the existing validated EX clear record.
+export const hasFreeSkillLoadout=profile=>profile?.story?.chapterSixCleared===true&&profile.story.extraClears?.[5]===true;
+export const loadoutSkillChoices=(profile,heroId)=>Object.hasOwn(PERSONAL_SKILLS,heroId)?hasFreeSkillLoadout(profile)?SKILLS:personalSkills(heroId):[];
 export function isSkillAvailable(profile,heroId,skillId){
+  if(!Object.hasOwn(PERSONAL_SKILLS,heroId))return false;
+  if(hasFreeSkillLoadout(profile))return SKILLS.some(s=>s.id===skillId);
   const skill=personalSkills(heroId).find(s=>s.id===skillId);if(!skill)return false;
   if(!skill.unlockNode)return true;
   const node=SKILL_TALENT_NODES.find(n=>n.id===skill.unlockNode),p=profile?.characters?.[heroId];
@@ -82,6 +99,7 @@ export function equipSkill(profile,heroId,slot,skillId){
 // Common and pair blessings are automatic. Personal candidates use a fixed loadout.
 export function skillsForParty(party,profile){
   const ids=new Set(party),equipped=new Set(party.flatMap(id=>equippedSkills(profile,id)));
+  if(hasFreeSkillLoadout(profile))return SKILLS.filter(skill=>equipped.has(skill.id)||skill.requires?.length!==1&&(skill.requires??[]).every(id=>ids.has(id)));
   return SKILLS.filter(skill=>(skill.requires??[]).every(id=>ids.has(id))&&(skill.requires?.length!==1||equipped.has(skill.id)));
 }
 export function blessingSource(skill,roster){

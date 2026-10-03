@@ -6,7 +6,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve, extname} from 'node:path';
 import {chromium} from '@playwright/test';
-import {HERO_MODEL_NAMES,heroModelPath} from '../src/hero-model-paths.js';
+import {CACHE_MODEL_NAMES as HERO_MODEL_NAMES,heroModelPath} from '../src/hero-model-paths.js';
 
 const base='/lunaneko-hunting/', directory=resolve('dist-pages'), served=new Map();
 const {version}=JSON.parse(await readFile(resolve('package.json'),'utf8'));
@@ -49,6 +49,7 @@ try{
   await page.goto(origin+base);
   await page.waitForSelector('#loading',{state:'detached',timeout:120000});
   assert.equal(await page.locator('.version').innerText(),`Ver. ${version}`);
+  assert.equal(await page.evaluate(()=>typeof window.__LUNARIA_TEST__),'undefined');
   assert.equal(await page.evaluate(()=>!!navigator.serviceWorker.controller),true);
   for(const name of HERO_MODEL_NAMES){
     const expected=createHash('sha256').update(await readFile(resolve('public',heroModelPath(name,{})))).digest('hex');
@@ -60,7 +61,7 @@ try{
     return (await cache.match(base+'assets/models/nyanluna.glb')).text();
   },base),'obsolete model','Verification retains the stale cached model');
   assert.deepEqual(errors,[]);
-  console.log('PASS all six current models load under a legacy cache-first worker; old model cache remains intact');
+  console.log(`PASS all ${HERO_MODEL_NAMES.length} current models load under a legacy cache-first worker; old model cache remains intact`);
 }finally{
   await browser.close();await new Promise(resolve=>server.close(resolve));
 }
