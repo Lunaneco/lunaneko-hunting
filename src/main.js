@@ -82,11 +82,14 @@ import './skill-choice.css';
 import './chapter-five.css';
 import './mobile-layout.css';
 import './talent-presentation.css';
+import './battle-viewport.css';
+import {configureBattleViewport} from './battle-viewport.js';
 import {configureStandaloneViewport} from './viewport.js';
 import {hasPrimBond} from './prim-combat.js';
 import {extraCombatHint} from './extra-stages.js';
 import {storyScenesFor,ChapterStory} from './chapter.js';
 configureStandaloneViewport();
+configureBattleViewport();
 const story=new ChapterStory();
 const tutorialView=new BattleTutorialView();
 const $=s=>document.querySelector(s);
@@ -609,7 +612,13 @@ function drawNumbers(){const ctx=numberContext,width=numberCanvas.width,height=n
     }
   }
   for(const n of world.numbers){const p=world.project(n.x,n.y,n.z);ctx.globalAlpha=Math.min(1,n.life*3);ctx.font=`${n.crit?'800 25':'700 18'}px system-ui`;ctx.textAlign='center';ctx.strokeStyle='rgba(29,47,52,.65)';ctx.lineWidth=3;ctx.strokeText(n.text,p.x,p.y);ctx.fillStyle=n.crit?'#ffe2a5':'#fffbe8';ctx.fillText(n.text,p.x,p.y);}ctx.globalAlpha=1;}
-function resize(){world?.resize();numberCanvas.width=canvas.clientWidth;numberCanvas.height=canvas.clientHeight;numberCanvas.style.width=`${numberCanvas.width}px`;numberCanvas.style.height=`${numberCanvas.height}px`;}
+function resize(){
+  if(!world?.resize())return;
+  const w=canvas.clientWidth,h=canvas.clientHeight;
+  if(numberCanvas.width!==w)numberCanvas.width=w;
+  if(numberCanvas.height!==h)numberCanvas.height=h;
+  numberCanvas.style.width=`${w}px`;numberCanvas.style.height=`${h}px`;
+}
 window.addEventListener('resize',resize);
 // Safari's dynamic viewport can change with the address bar, without a window
 // resize. Observe the actual canvas so projection and overlays stay aligned.
