@@ -30,7 +30,7 @@
 .journey-party .icon{width:14px;height:14px}
 #journey-party-faces{display:flex;padding-right:3px}
 #journey-party-faces .portrait{width:34px;height:34px;box-shadow:none;border:2px solid #f7f2e5;margin-left:-7px}
-.menu-light .menu-tabs{display:flex;margin:0 0 28px;padding:0;border-bottom:1px solid #ceccc3;gap:24px;flex-wrap:nowrap}
+.menu-light .menu-tabs{display:flex;margin:0 0 28px;padding:0;border-bottom:1px solid #ceccc3;gap:16px;flex-wrap:nowrap;min-width:0;max-width:100%;overflow-x:auto;scrollbar-width:none}
 .menu-light .menu-tabs button{position:relative;background:none;border:0;border-radius:0;padding:14px 6px 16px;min-height:48px;color:#526174;font-size:max(13px,var(--ui-min-font,0px));font-weight:700;gap:9px;white-space:nowrap;letter-spacing:.5px}
 .menu-light .menu-tabs button[aria-pressed=true]{color:#323a4b;background:none}
 .menu-light .menu-tabs button[aria-pressed=true]::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:3px;background:#95805a}
