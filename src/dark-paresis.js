@@ -7,15 +7,19 @@ export const STORY_ACT_SLOTS=50;
 export const isParesisAct=id=>id>=PARESIS_ACT_START&&id<=PARESIS_ACT_END;
 
 export const ENDING_CREDITS=Object.freeze([
-  Object.freeze({id:'nyanluna',name:'にゃんるな',handle:'@nyanlunaAI'}),
-  Object.freeze({id:'mochinyafe',name:'もちにゃふぇ',handle:'@nyanlunaAI'}),
-  Object.freeze({id:'tsukineko',name:'つきねこ',handle:'@nyanlunaAI'}),
-  Object.freeze({id:'prim',name:'プリム',handle:'@nyanlunaAI'}),
-  Object.freeze({id:'omsolo',name:'オムソロ',handle:'@omusbi2580'}),
-  Object.freeze({id:'shizuku',name:'雫',handle:'@yuno_yuu_AIart'}),
-  Object.freeze({id:'hehereal',name:'へへりある',handle:'@hehehehehe035'}),
-  Object.freeze({id:'lumi',name:'るみ',handle:'@Project_Luminus'}),
+  Object.freeze({id:'nyanluna',name:'にゃんるな',handle:'@nyanlunaAI',line:'月の光は、まだ道になる。'}),
+  Object.freeze({id:'mochinyafe',name:'もちにゃふぇ',handle:'@nyanlunaAI',line:'小さな声も、届くところまで。'}),
+  Object.freeze({id:'tsukineko',name:'つきねこ',handle:'@nyanlunaAI',line:'隣の席は、空けたままにしない。'}),
+  Object.freeze({id:'prim',name:'プリム',handle:'@nyanlunaAI',line:'虹の向こうに、名前を呼ぶ声がある。'}),
+  Object.freeze({id:'omsolo',name:'オムソロ',handle:'@omusbi2580',line:'守りたい人がいるなら、剣はそこにある。'}),
+  Object.freeze({id:'shizuku',name:'雫',handle:'@yuno_yuu_AIart',line:'紅い月の下で、また会おう。'}),
+  Object.freeze({id:'hehereal',name:'へへりある',handle:'@hehehehehe035',line:'冷めた食卓も、また温められる。'}),
+  Object.freeze({id:'lumi',name:'るみ',handle:'@Project_Luminus',line:'指先の光は、帰れる方角を指す。'}),
 ]);
+export function endingRollMarkup(imageFor){
+  const cast=ENDING_CREDITS.map(hero=>{const speaker=imageFor(hero.id);return `<article class="ending-credit"><img src="${speaker.image}" alt="${speaker.alt}"><div><strong>${hero.name}</strong><small>${hero.handle}</small><p>${hero.line}</p></div></article>`;}).join('');
+  return `<section class="ending-roll-screen" aria-label="エンドロール"><div class="ending-roll-viewport"><div class="ending-roll-track"><header><p class="eyebrow">LUNANECO ADVENTURE</p><h2>ルナネコの不思議な冒険</h2><p>終章</p></header>${cast}<p class="ending-thanks">闇を分けて、また同じ場所で。</p><p class="ending-thanks">ここまで遊んでくれて、ありがとう。</p></div></div><button id="ending-close" class="primary">メニューへ</button></section>`;
+}
 export const KEPHIA_HERO_NAMES=Object.freeze(Object.fromEntries(ENDING_CREDITS.map(hero=>[hero.id,hero.name])));
 export const KEPHIA_PHASE_LABELS=Object.freeze(['1段階','2段階','3段階','最終形態']);
 export const KEPHIA_BATTLE_LINES=Object.freeze({
@@ -59,14 +63,13 @@ const DARK_BOSS_LIST=Object.freeze([
   ['paresisBell','笑い声の鐘',0xb9a6ff,'鐘の波紋には安全な中央がある。落鐘の後は斜めへ。'],
   ['paresisChoir','闇灯の回廊',0x7f8cff,'三方向の弾幕。消えた線へ移り、連射が止まってから前へ。'],
   ['paresisDoor','ライトパレシスの殻',0xd8c6ff,'古い光の殻が砕ける。内側の爆発と外側の衝撃を分けてかわす。'],
-  ['kephia1','ケフィア・開幕',0xf2b7ff,'舞台の幕が輪になる。中央と外側を行き来し、笑い声の弾は切れ目を見る。'],
-  ['kephia2','ケフィア・幕間',0xe7a0ff,'拍手のたびに弾幕の切れ目が動く。突進が止まってから反撃。'],
-  ['kephia3','ケフィア・暗転',0xc58cff,'照明が落ち、足元の印が先に爆ぜる。印の外へ出てから次の輪へ。'],
-  ['kephia4','ケフィア・終幕',0xff8adf,'最終形態。輪、弾幕、突進が間を置かず続く。HP半分で三連になる。倒すとエンディング。'],
-  ['paresisApex','瘴核の門',0xe7a0ff,'核の輪と突進が重なる。帯を横切ってから反撃。'],
+  ['kephia1','ケフィア・開幕',0xf2b7ff,'鈴帽の開幕。体力が減るたび、輪が裏返り、十字と合唱に変わる。'],
+  ['kephia2','ケフィア・幕間',0xe7c56a,'四つの腕と鈴。切れ目が回り、低い体力では中央が安全になり瘴蛾を呼ぶ。'],
+  ['kephia3','ケフィア・暗転',0x7a5cff,'灯りの蛾。足元の印が先に爆ぜ、低い体力では輪が二重になり香炉が出る。'],
+  ['kephia4','ケフィア・終幕',0xff6aa8,'舞台の塔。体力が低いと輪・十字・扇が間を置かず続き、門番を呼ぶ。'],
 ]);
 export const DARK_BOSS_IDS=Object.freeze(DARK_BOSS_LIST.map(([id])=>id));
-export const DARK_PARESIS_BOSSES=Object.freeze(Object.fromEntries(DARK_BOSS_LIST.map(([id,name,color,hint])=>[id,boss(name,color,hint,id.startsWith('kephia'))])));
+export const DARK_PARESIS_BOSSES=Object.freeze({...Object.fromEntries(DARK_BOSS_LIST.map(([id,name,color,hint])=>[id,boss(name,color,hint,id.startsWith('kephia'))])),paresisApex:boss('瘴核の門',0xe7a0ff,'核の輪と突進が重なる。帯を横切ってから反撃。')});
 
 const paresisTheme=FIELD_THEMES.findIndex(theme=>theme.paresis);
 const stage=(name,_theme,note,index)=>({name,theme:paresisTheme+Math.min(index,2),image:FIELD_THEMES[paresisTheme+Math.min(index,2)].image,note,waves:`WAVE 0${index*2+1}–0${index*2+2}`});
@@ -97,7 +100,7 @@ export const DARK_PARESIS_ACTS=Object.freeze([
   makeAct({title:'笑い声の階段',summary:'塔の中段。過去に富を運んだ光の跡が、黒い鈴のように鳴っている。この階も、選んだ二人が進む。',boss:'笑い声の鐘',bossHp:33000,counts:[50,52,54,56,58,1],roster:'six',stages:[stage('光の跡の回廊',12,'富を運んだ光の、黒い残り香',0),stage('笑い声の階段',13,'鈴の鳴る段を二人で上る',1),stage('中段の鐘楼',14,'鐘を止め、上の階への道を残す',2)]},9),
   makeAct({title:'闇灯の回廊',summary:'瘴気が灯りの形をしている。避ける光と、追う光を間違えない。各幕で一度、20%の確率で瘴金のへへへが現れる。',boss:'闇灯の回廊',bossHp:36000,counts:[52,54,56,58,60,1],roster:'six',stages:[stage('闇灯の回廊',13,'黒い灯りの切れ目を抜ける',0),stage('瘴気の分かれ路',11,'通常の道と、濃い瘴気の道',1),stage('上位の影が通る広間',14,'黄金のへへへより重い影を退ける',2)]},10),
   makeAct({title:'ライトパレシスの殻',summary:'塔の芯に、昔のライトパレシスが残っていた。富を生んだ光は、いまは殻の内側で濁っている。この扉の向こうに、笑い声の主がいる。',boss:'ライトパレシスの殻',bossHp:40000,counts:[54,56,58,60,62,1],roster:'six',stages:[stage('白い塔の残骸',14,'光を生んでいた壁の、黒い内側',0),stage('殻の螺旋',13,'濁った光を避けて芯へ',1),stage('笑い声の扉',11,'ケフィアの舞台への扉を開ける',2)]},11),
-  makeAct({title:'開幕',summary:'ケフィアとの戦い。ボスだけが現れる。第一形態から最終形態まで、決めた二人ずつが続けて舞台に立つ。途中で倒れると、記録は第1幕のまま。',boss:'ケフィア・開幕',bossHp:100000,counts:[1,1,1,1,1,1],roster:'paresis',kephiaPhase:0,finale:true,stages:[stage('開幕の舞台',11,'一段階目の二人が幕を上げる',0),stage('拍手の回廊',12,'笑い声が、二人の並びを見ている',1),stage('開幕の幕切れ',13,'この段階を退け、次の二人へ渡す',2)]},12),
+  makeAct({title:'開幕',summary:'ケフィアとの戦い。形態ごとに姿と攻撃が変わり、残った体力でも手を変える。呼んだ客を倒すとクリスタルが落ちる。第一形態から最終形態まで、決めた二人ずつが続けて舞台に立つ。途中で倒れると、記録は第1幕のまま。',boss:'ケフィア・開幕',bossHp:100000,counts:[1,1,1,1,1,1],roster:'paresis',kephiaPhase:0,finale:true,stages:[stage('開幕の舞台',11,'一段階目の二人が幕を上げる',0),stage('拍手の回廊',12,'笑い声が、二人の並びを見ている',1),stage('開幕の幕切れ',13,'この段階を退け、次の二人へ渡す',2)]},12),
   makeAct({title:'幕間',summary:'2段階。開幕を退けたその場で、次の二人が舞台に入る。メニューには戻らない。',boss:'ケフィア・幕間',bossHp:110000,counts:[1,1,1,1,1,1],roster:'paresis',kephiaPhase:1,finale:true,stages:[stage('幕間の袖',12,'次の二人が袖から出る',0),stage('動く切れ目',13,'拍手のたびに弾幕がずれる',1),stage('幕間の終わり',14,'舞台を、三段階目へ渡す',2)]},13),
   makeAct({title:'暗転',summary:'3段階。照明が落ち、瘴気がケフィアの形を取りはじめる。この二人のあとに、最終形態が続く。',boss:'ケフィア・暗転',bossHp:120000,counts:[1,1,1,1,1,1],roster:'paresis',kephiaPhase:2,finale:true,stages:[stage('暗転の舞台',13,'灯りの落ちた床を二人で渡る',0),stage('足元の印',14,'先に爆ぜる印の外へ',1),stage('最終形態の前',11,'最後の二人へ、舞台を開ける',2)]},14),
   makeAct({title:'終幕',summary:'最終形態。最後の二人がケフィアを倒すと、四つの幕がまとめてクリアになり、エンディングが始まる。過去を知ったことは、塔を許したことにはならない。',boss:'ケフィア・終幕',bossHp:150000,counts:[1,1,1,1,1,1],roster:'paresis',kephiaPhase:3,finale:true,stages:[stage('終幕の舞台',14,'最後の二人が、笑い声の前に立つ',0),stage('割れない照明',13,'三連の攻撃を、二人で分ける',1),stage('塔を出ない笑い',11,'最終形態を倒し、出口の光を戻す',2)]},15),
@@ -501,15 +504,19 @@ export function toggleKephiaHero(pairs,phase,heroId,{lockedPhases=new Set()}={})
   next[phase].push(heroId);
   return next;
 }
+export function kephiaLockedPhases(profile){
+  if(profile?.story?.finaleCleared)return new Set();
+  return new Set([0,1,2,3].filter(index=>profile?.story?.actClears?.[46+index]===true));
+}
 export function kephiaBoard(profile){
-  const pairs=normalizeKephiaPairs(profile?.story?.kephiaPairs),ready=kephiaPairsReady(pairs);
-  const locked=index=>profile?.story?.actClears?.[46+index]===true;
+  const pairs=normalizeKephiaPairs(profile?.story?.kephiaPairs),ready=kephiaPairsReady(pairs),locked=kephiaLockedPhases(profile);
   const button=(phase,hero)=>{
     const owner=pairs.findIndex(row=>row.includes(hero.id));
-    const disabled=locked(phase)||(owner>=0&&locked(owner));
+    const disabled=locked.has(phase)||(owner>=0&&locked.has(owner));
     return `<button type="button" data-kephia-phase="${phase}" data-kephia-hero="${hero.id}" aria-pressed="${pairs[phase].includes(hero.id)}" ${disabled?'disabled':''}>${hero.name}</button>`;
   };
-  return `<section class="kephia-board" aria-label="終章の配役"><header><h3>終章の配役</h3><p>${ready?'四組そろいました。この順で舞台へ出ます。':'八人を、二人ずつ四つの段階へ。クリアした段階の二人は固定されます。'}</p></header>${KEPHIA_PHASE_LABELS.map((label,phase)=>`<div class="kephia-pair"><strong>${label}</strong><span>${pairs[phase].map(id=>KEPHIA_HERO_NAMES[id]).join('・')||'未定'}</span><div>${ENDING_CREDITS.map(hero=>button(phase,hero)).join('')}</div></div>`).join('')}</section>`;
+  const note=profile?.story?.finaleCleared?'クリア済みです。配役を組み直して、また第1幕から挑めます。':ready?'四組そろいました。この順で舞台へ出ます。':'八人を、二人ずつ四つの段階へ。クリアした段階の二人は固定されます。';
+  return `<section class="kephia-board" aria-label="終章の配役"><header><h3>終章の配役</h3><p>${note}</p></header>${KEPHIA_PHASE_LABELS.map((label,phase)=>`<div class="kephia-pair"><strong>${label}</strong><span>${pairs[phase].map(id=>KEPHIA_HERO_NAMES[id]).join('・')||'未定'}</span><div>${ENDING_CREDITS.map(hero=>button(phase,hero)).join('')}</div></div>`).join('')}</section>`;
 }
 export function finaleMemberDialog(profile){
   return `<div class="modal-heading"><span class="eyebrow">FINAL CAST</span><h2>終章のメンバー</h2><p>八人を、二人ずつ四つの段階へ。第1幕から、この順で舞台に出ます。</p></div>${kephiaBoard(profile)}`;
