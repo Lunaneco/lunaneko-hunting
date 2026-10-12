@@ -82,6 +82,10 @@ export function isSkillAvailable(profile,heroId,skillId){
 }
 export function equippedSkills(profile,heroId){
   const raw=profile?.blessingLoadouts?.[heroId],valid=[];
+  if(hasFreeSkillLoadout(profile)){
+    for(const id of Array.isArray(raw)?raw:defaultSkills(heroId))if(!valid.includes(id)&&isSkillAvailable(profile,heroId,id))valid.push(id);
+    return valid;
+  }
   for(const id of [...(Array.isArray(raw)?raw:[]),...defaultSkills(heroId)]){
     if(valid.length===SKILL_SLOTS)break;
     if(!valid.includes(id)&&isSkillAvailable(profile,heroId,id))valid.push(id);
@@ -90,13 +94,19 @@ export function equippedSkills(profile,heroId){
 }
 export function normalizeSkillLoadouts(raw,profile){return Object.fromEntries(Object.keys(PERSONAL_SKILLS).map(id=>[id,equippedSkills({...profile,blessingLoadouts:raw},id)]));}
 export function equipSkill(profile,heroId,slot,skillId){
-  if(!isHeroUnlocked(profile,heroId)||!Number.isInteger(slot)||slot<0||slot>=SKILL_SLOTS||!isSkillAvailable(profile,heroId,skillId))return false;
+  if(!isHeroUnlocked(profile,heroId)||!isSkillAvailable(profile,heroId,skillId))return false;
+  if(hasFreeSkillLoadout(profile)){
+    const next=equippedSkills(profile,heroId),index=next.indexOf(skillId);
+    if(index>=0)next.splice(index,1);else next.push(skillId);
+    profile.blessingLoadouts??={};profile.blessingLoadouts[heroId]=next;return true;
+  }
+  if(!Number.isInteger(slot)||slot<0||slot>=SKILL_SLOTS)return false;
   const next=equippedSkills(profile,heroId),old=next.indexOf(skillId);
   if(next[slot]===skillId)return false;
   if(old!==-1)next[old]=next[slot];
   next[slot]=skillId;profile.blessingLoadouts??={};profile.blessingLoadouts[heroId]=next;return true;
 }
-// Before the Hehe extra clear, common and pair blessings are automatic. After it, every skill uses the three slots.
+// Before the Hehe extra clear, common and pair blessings are automatic. After it, only the skills the player turned on are candidates.
 export function skillsForParty(party,profile){
   const ids=new Set(party),equipped=new Set(party.flatMap(id=>equippedSkills(profile,id)));
   if(hasFreeSkillLoadout(profile))return SKILLS.filter(skill=>equipped.has(skill.id));
